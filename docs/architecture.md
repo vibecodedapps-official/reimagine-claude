@@ -30,7 +30,7 @@ reimagine-claude/
 | Plugin | Installs | Entry points | Scripts | Hooks | Version line |
 |---|---|---|---|---|---|
 | rules | house rules block, output style | `/rules` | `scripts/rules.mjs` | SessionStart `startup` | own |
-| loop | the build loop | `/loop:run`, prose "reimagine loop" | none | none | own |
+| loop | the build loop | `/loop:run` (the skill itself), prose "reimagine loop" | none | none | own |
 | audit | the audit | `/audit:run`, `/audit:resume`, `/audit:act`, `/audit:handoff`, prose "reimagine audit" | nine sh scripts | none | own |
 | repo-docs | instruction-file maintenance | `/repo-docs` | `hooks/drift.sh` | PreToolUse `Bash\|PowerShell` | own |
 
@@ -55,7 +55,7 @@ Skills are user-invocable and carry their trigger phrases in `description` (veri
 
 ## Host facts the design rests on
 
-- A skill in a plugin is `/<plugin>:<skill>`; a skill named like its plugin also answers to `/<plugin>` (verified by spike 8; the documentation describes only the namespaced form).
+- A skill in a plugin is `/<plugin>:<skill>`; a skill named like its plugin also answers to `/<plugin>` when no bundled skill owns that name (verified by spike 8 for `/rules`; the documentation describes only the namespaced form). The host bundles a `/loop` skill that runs a prompt on an interval, so the loop plugin's skill is named `run` and answers only as `/loop:run`.
 - Agent frontmatter `model:` accepts `sonnet`, `opus`, `haiku`, `fable`; an unknown name fails the Agent call with an API error the orchestrator sees, so every fallback is written into the skill (verified, spike 2).
 - `${CLAUDE_PLUGIN_ROOT}` and `${CLAUDE_PLUGIN_DATA}` are substituted in hook commands, and `CLAUDE_PLUGIN_DATA` is also exported to the hook's environment (verified, spike 4). The data directory is `$CLAUDE_CONFIG_DIR/plugins/data/<plugin>-<marketplace>/`.
 - A `userConfig` option's default is not substituted while the option is unset; the hook fails to run (verified, spike 4). The suite declares none.
@@ -135,36 +135,35 @@ The skill `/rules` runs the script, shows its output, asks before `apply`, and e
 plugins/loop/
   .claude-plugin/plugin.json
   LICENSE  README.md
-  commands/run.md                  /loop:run; forwards the text
-  skills/loop/SKILL.md             core: reading, approval scope, roles, budgets, states, record
-  skills/loop/steps/0-preflight.md
-  skills/loop/steps/1-plan.md      steps 1 to 3
-  skills/loop/steps/4-build.md     steps 4 to 6
-  skills/loop/steps/7-publish.md
-  skills/loop/risk.md              risk floor, higher-risk rule, effort hint
-  skills/loop/record.md            record files, steps.json, resume rules
-  skills/loop/ci-watch.md
-  skills/loop/multi-repo.md
-  skills/loop/worktree.md
-  skills/loop/pr-body.md           body, comment and ticket comment templates
-  skills/loop/report.md
-  skills/loop/handoff.md
+  skills/run/SKILL.md              /loop:run; core: reading, approval scope, roles, budgets, states, record
+  skills/run/steps/0-preflight.md
+  skills/run/steps/1-plan.md       steps 1 to 3
+  skills/run/steps/4-build.md      steps 4 to 6
+  skills/run/steps/7-publish.md
+  skills/run/risk.md               risk floor, higher-risk rule, effort hint
+  skills/run/record.md             record files, steps.json, resume rules
+  skills/run/ci-watch.md
+  skills/run/multi-repo.md
+  skills/run/worktree.md
+  skills/run/pr-body.md            body, comment and ticket comment templates
+  skills/run/report.md
+  skills/run/handoff.md
 ```
 
-The skill description: "Plan, build, review and publish a bundle of tickets as one reviewed pull request per repository, resuming on the same branch when run again. Use when the user says "reimagine loop" or "run the loop" with ticket ids, issue or pull request references, a file, or a description of the work." `/loop:run` is a thin command whose body invokes the skill with the user's text unchanged.
+The skill is named `run`, so it answers as `/loop:run`; the bare `/loop` is the host's bundled interval skill. Its description: "Plan, build, review and publish a bundle of tickets as one reviewed pull request per repository, resuming on the same branch when run again. Use when the user says "reimagine loop", or "run the loop" with ticket ids, issue or pull request references, a file, or a description of the work to ship." There is no separate command.
 
 ### Reading the request
 
-No flags. The skill prints one block before any tool call:
+No flags. The skill makes only the read-only calls that resolve ids (`git remote`, `gh`, `az`, an MCP read, a file read), then prints one block before any other tool call:
 
 ```
-Tickets: #68 (gh), AB#4567 (mcp:ado_get_work_item), 4580 (unresolved: no Azure DevOps tool or az on PATH; continuing without it)
+Tickets: #68 (gh), AB#4567 (mcp:ado_get_work_item), AB#4580 (unresolved: the work item read failed; continuing without it)
 Mode: build and publish; continue branch feat/68-4567-export (open PR #73)
 Scope: primary C:/src/app; also edit C:/src/app-infra
 Effort: thorough (reviewers at high; risk floor not yet judged)
 ```
 
-Resolution order per id: GitHub forms through `gh`; `AB#n` or a bare number on an Azure DevOps remote through an Azure DevOps MCP tool if listed, else `az boards work-item show --id n`; a Salesforce case through a Salesforce MCP tool; a readable path as a file; anything else as text. A `--token` in the request is read as prose and the block shows the reading. "plan only", "do not publish", "confirm the plan", "continue <branch>", "on branch <name>", "also edit <path>", "budget <n> minutes" and the effort words are the recognized phrases.
+Resolution order per id: GitHub forms through `gh`; `AB#n`, or a bare number when the primary remote is Azure DevOps, through an Azure DevOps MCP tool if listed, else `az boards work-item show --id n`; a Salesforce case through a Salesforce MCP tool; a readable path as a file; anything else, a bare number on a GitHub remote included, as text. A `--token` in the request is read as prose and the block shows the reading. "plan only", "do not publish", "confirm the plan", "continue <branch>", "on branch <name>", "also edit <path>", "budget <n> minutes" and the effort words are the recognized phrases.
 
 ### Approval scope
 
@@ -226,7 +225,7 @@ The record is keyed by branch, not by run, so a second invocation finds it:
   pr-body.md, comment-<n>.md, ticket-<id>.md      never committed
 ```
 
-`<branch-slug>` is the branch name lowercased with each run of characters outside `[a-z0-9]` replaced by `-`, at most 60 characters. The branch is known at preflight: the continued branch, the "on branch" name, or the predicted `fix/<ids>-<slug>`, `feat/<ids>-<slug>` or `work/<slug>`. `.reimagine/` is excluded through `.git/info/exclude` so that a run that commits nothing leaves the tree clean (verified, spike 7).
+`<branch-slug>` is the branch name lowercased with each run of characters outside `[a-z0-9]` replaced by `-`, at most 60 characters; `steps.json` keeps the exact branch name, and a record whose branch differs from the run's is a collision that ends preflight `blocked`. The branch is known at preflight: the continued branch, the "on branch" name, or the predicted `fix/<ids>-<slug>`, `feat/<ids>-<slug>` or `work/<slug>`. `.reimagine/` is excluded through `.git/info/exclude` so that a run that commits nothing leaves the tree clean (verified, spike 7).
 
 `steps.json`:
 
@@ -249,18 +248,18 @@ An entry is written `running` with its input hashes when the step starts and `co
 
 A run on an existing record:
 
-- Preflight fetches the branch with the explicit refspec, fast-forwards when the local tip is an ancestor of the remote head, lists `git log <merge-base>..HEAD`, marks each commit as its own (named in `run.md`) or foreign, writes the foreign commits to `inputs.md`, and marks tickets done by their recorded closing commit.
+- Preflight fetches the branch with the explicit refspec when it exists on the remote (a branch left by a `prepared` run may be local only), fast-forwards when the local tip is at or behind the remote head, lists `git log <merge-base>..HEAD`, marks each commit as its own (named in `run.md`) or foreign, writes the foreign commits to `inputs.md`, and marks tickets done by their recorded closing commit.
 - Steps whose inputs are unchanged and whose outputs exist are reused. Slices with a closing commit on the branch are not rebuilt.
 - Same tickets and no open slice: step 6 verifies the checks, the report is rewritten, nothing is committed or posted, state `done`.
 - New tickets: slices are appended to `plan.md`, which is reviewed again; the new slices are built and reviewed; the whole diff from the merge-base goes through step 5; step 7 pushes, updates the body of the pull request this loop opened with `gh pr edit --body-file` (once per run), posts one comment per run, and comments on the new tickets. A pull request the loop did not open gets a comment only; its body is never edited.
 - An interrupted run resumes at the first step whose entry is not `complete` or whose inputs changed, after the tree is rechecked.
-- The loop never force pushes, rebases, resets or amends; before every push it compares the remote head with what it fetched; a dirty tree ends preflight `blocked`.
+- The loop never force pushes, rebases, resets or amends; before every push it compares the remote head with what preflight fetched and ends `blocked` if it moved; a dirty tree ends preflight `blocked`.
 
 Terminal states: `done`, `plan-only`, `prepared`, `blocked`, `stopped`.
 
 ### Publication texts
 
-`pr-body.md` sections: What changed, Drift corrections, Decisions for the reviewer, Checks not run, Related pull requests, Closes. Ticket comments carry state, pull request link, criteria, not done, deferred. Neither names a model, an agent, a tool, or a run-internal path. The handoff (`reimagine-handoff: 1`) and `audit-manifest.json` (`{"bundles":[{"repo","pr","tickets"}|{"repo","branch","base","tickets"}],"claims":["<absolute handoff.md>"]}`) are written when the run has its own commit, and the report suggests `/audit:run "<manifest>"` for bundles with more than one repository, more than one ticket, or 500 or more changed lines.
+The pull request is created with `gh pr create --title "<title>" --body-file <absolute path>`, the title being the single ticket's title or the plan's one-line summary. `pr-body.md` sections: What changed, Drift corrections, Decisions for the reviewer, Checks not run, Related pull requests, Closes. Ticket comments carry state, pull request link, criteria, not done, deferred. Neither names a model, an agent, a tool, or a run-internal path; a report posted as a comment under `commit: true` is cut to its external sections for the same reason. The handoff (`reimagine-handoff: 1`) and `audit-manifest.json` (`{"bundles":[{"repo","pr","tickets"}|{"repo","branch","base","tickets"}],"claims":["<absolute handoff.md>"]}`) are written when the run has its own commit, and the report suggests `/audit:run "<manifest>"` for bundles with more than one repository, more than one ticket, or 500 or more changed lines.
 
 ## The `audit` plugin
 
@@ -328,7 +327,7 @@ PreToolUse on `Bash|PowerShell`, POSIX sh. It reads stdin, extracts `tool_input.
 
 ## Versions, tags and release
 
-Each plugin has its own version, starting at 0.1.0, in its manifest and its catalog entry. Tags are `<plugin>--v<version>`, made with `claude plugin tag`, which checks that manifest and catalog agree. Lint fails when a plugin directory changed since its latest tag without a version above it, and when `CHANGELOG.md` lacks `## <plugin> <version> - <date>` for a current version. There is no suite version and no lockstep; the marketplace `metadata.version` is the catalog's own and is raised whenever an entry changes. `main` is the release ref. `tools/release.mjs <plugin> <version>` sets the version in the manifest and the catalog entry (and the audit `plugin_version` literals), computing every edit before writing, keeping CRLF files CRLF, and running lint; tagging stays with `claude plugin tag`; the changelog heading is written by hand.
+Each plugin has its own version, starting at 0.1.0, in its manifest and its catalog entry. Tags are `<plugin>--v<version>`, made with `claude plugin tag`, which checks that manifest and catalog agree. Lint fails when a plugin directory changed since its latest tag without a version above it, and when `CHANGELOG.md` lacks `## <plugin> <version> - <date>` for a tagged version; an untagged bump needs no heading yet, so the release order is bump, heading, tag. There is no suite version and no lockstep; the marketplace `metadata.version` is the catalog's own and is raised whenever an entry changes. `main` is the release ref. `tools/release.mjs <plugin> <version>` sets the version in the manifest and the catalog entry (and the audit `plugin_version` literals), computing every edit before writing, keeping CRLF files CRLF, and running lint; tagging stays with `claude plugin tag`; the changelog heading is written by hand.
 
 ## Repository tooling
 

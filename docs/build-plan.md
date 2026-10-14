@@ -7,8 +7,8 @@ The implementation runs with an Opus orchestrator and Sonnet subagents. The orch
 | # | Milestone | Adds | Depends on |
 |---|---|---|---|
 | M1 | rules | `plugins/rules`, `tests/rules` | - |
-| M2 | loop | `plugins/loop` | - |
-| M3 | loop idempotency | record, `steps.json`, resume rules | M2 |
+| M2 | loop | `plugins/loop` with the record and `steps.json` | - |
+| M3 | loop idempotency | second runs, foreign commits, resume | M2 |
 | M4 | audit | `plugins/audit`, `tests/audit` | - |
 | M5 | repo-docs | `plugins/repo-docs`, `tests/repo-docs`, the adopt fixture | - |
 | M6 | catalog | `.claude-plugin/marketplace.json`, README install lines, the repository's own hub | M1 to M5 |
@@ -43,19 +43,18 @@ Check:
 Work items:
 
 1. Manifest, `LICENSE`, `README.md`. Commit: `feat(loop): add the plugin manifest and readme`.
-2. `skills/loop/SKILL.md`: description with the trigger phrases, allowed-tools, the reading block, approval scope, roles, budgets, rounds, terminal states, the `## Supporting files` section (R45 to R72, R94). Commit: `feat(loop): add the skill core`.
-3. `steps/0-preflight.md` (R73 to R81, R52, R53). Commit: `feat(loop): add preflight`.
+2. `skills/run/SKILL.md`: name `run`, description with the trigger phrases, allowed-tools, the reading block, approval scope, roles, budgets, rounds, terminal states, the `## Supporting files` section (R45 to R72, R94). Commit: `feat(loop): add the skill core`.
+3. `steps/0-preflight.md` (R73 to R81, R52, R53) and `record.md` with the record location, files and `steps.json` schema (R82, R84, R85). Commit: `feat(loop): add preflight and the record`.
 4. `steps/1-plan.md` (R97 to R103, R66), `risk.md` (R69, R70, R51). Commit: `feat(loop): add plan and review`.
 5. `steps/4-build.md` (R104 to R114, R95). Commit: `feat(loop): add build, final review and checks`.
 6. `steps/7-publish.md`, `pr-body.md`, `ci-watch.md`, `multi-repo.md`, `worktree.md` (R115 to R132). Commit: `feat(loop): add publish, ci watch, multi-repo and worktree`.
 7. `report.md`, `handoff.md` (R133 to R141). Commit: `feat(loop): add report and handoff formats`.
-8. `commands/run.md` (R45). Commit: `feat(loop): add /loop:run`.
 
 Check:
 
 - Every step file's last paragraph names the next read; the core is under the word cap that M7 will enforce (5,800 words).
-- Prose invocation triggers the skill and the reading block prints before any tool call (acceptance item 7).
-- A plan-only run on a throwaway repository writes `inputs.md`, `plan.md`, `run.md`, `report.md` and leaves the tree clean (acceptance item 8).
+- Prose invocation triggers the skill and the reading block prints before any tool call other than id resolution (acceptance item 7); "run the loop" reaches `/loop:run`, not the host's bundled `/loop` (acceptance item 25).
+- A plan-only run on a throwaway repository writes `inputs.md`, `plan.md`, `run.md`, `steps.json`, `report.md` and leaves the tree clean (acceptance item 8).
 - A full run on a throwaway GitHub repository with one ticket opens one pull request, comments on the ticket, and names no model, agent or tool in either (acceptance item 9).
 - An ask-first rule in the profile's `CLAUDE.md` makes the publish step prompt; that is expected behavior (acceptance item 11).
 - A dirty tree ends preflight `blocked` without stashing (acceptance item 12).
@@ -64,7 +63,7 @@ Check:
 
 Work items:
 
-1. `record.md`: record files, slug rule, `steps.json` schema, append rules, resume rules (R82 to R93, R96). Commit: `feat(loop): add the branch-keyed record and resume rules`.
+1. `record.md` additions: append rules, reuse rules, resume rules, the slug collision check (R86, R88, R92, R93, R96). Commit: `feat(loop): add resume rules to the record`.
 2. Preflight additions: branch prediction, existing record detection, foreign commit listing, ticket done marks (R83, R87, R89). Commit: `feat(loop): read the branch state at preflight`.
 3. Plan and publish additions: appended slices, body update versus comment, one comment per run (R86, R90, R91). Commit: `feat(loop): continue a record on a second run`.
 
@@ -118,7 +117,7 @@ Check:
 Work items:
 
 1. `.claude-plugin/marketplace.json` with four entries at 0.1.0 (R1, R14). Commit: `feat(catalog): add the marketplace`.
-2. `README.md` install, update and uninstall blocks, prerequisites, development section (R5, R219). Commit: `docs(readme): add install and development sections`.
+2. `README.md`: confirm the install, update and uninstall blocks match the catalog line for line and add whatever R219 requires. Commit only if something changed: `docs(readme): align install lines with the catalog`.
 3. The repository's own `CLAUDE.md` hub, written with `/repo-docs` bootstrap (R16). Commit: `docs(repo): add the instruction hub`.
 
 Check:
@@ -132,11 +131,10 @@ Work items:
 
 1. `tools/lint.mjs` with every rule of R219 and the deny-token rule of R220. Commit: `feat(lint): add the repository rules`.
 2. `tests/lint/lint.test.mjs`: a clean copy passes; one negative case per message. Commit: `test(lint): cover every rule`.
-3. `package.json` script `lint`. Commit: `chore(repo): wire lint`.
 
 Check:
 
-- `npm run lint` prints `lint: ok` with exit 0 on the tree; with `LINT_DENY_TOKENS` set to the implementer's list it still passes.
+- `npm run lint` (the script exists in `package.json`) prints `lint: ok` with exit 0 on the tree; with `LINT_DENY_TOKENS` set to the implementer's list it still passes. No tag exists yet, so the changelog rule has nothing to check.
 - Each negative case fails with its message.
 
 ## M8: CI
@@ -155,13 +153,13 @@ Check:
 Work items:
 
 1. `tools/release.mjs` and `tests/release/release.test.mjs` (R221). Commit: `feat(release): add the version bump script`.
-2. `CHANGELOG.md` headings `## rules 0.1.0`, `## loop 0.1.0`, `## audit 0.1.0`, `## repo-docs 0.1.0` with the date (R15). Commit: `docs(changelog): record 0.1.0`.
+2. `CHANGELOG.md` headings `## rules 0.1.0`, `## loop 0.1.0`, `## audit 0.1.0`, `## repo-docs 0.1.0` with the date, written before the tags so lint passes right after tagging (R15). Commit: `docs(changelog): record 0.1.0`.
 3. Tags `rules--v0.1.0`, `loop--v0.1.0`, `audit--v0.1.0`, `repo-docs--v0.1.0` with `claude plugin tag --push plugins/<name>` after the owner's approval (R14). No commit.
-4. acceptance.md record entry for the release run (acceptance items 1 to 24).
+4. acceptance.md record entry for the release run (acceptance items 1 to 25).
 
 Check:
 
-- Lint passes after tagging; a one-line change under a plugin without a version bump fails the tag rule (acceptance item 22).
+- Lint passes after tagging; a one-line change under a plugin without a version bump fails the tag rule, and a bump to 0.1.1 passes with no 0.1.1 heading (acceptance item 22).
 
 ## Acceptance record
 

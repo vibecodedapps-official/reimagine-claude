@@ -30,7 +30,7 @@ Each plugin works alone. After installing `rules`, run `/rules` (also reachable 
 
 ## Use
 
-- Loop: say `reimagine loop #12 and #15` or `run the loop on AB#4567, plan only`. There are no flags; the skill prints how it read your request before it does anything.
+- Loop: say `reimagine loop #12 and #15` or `run the loop on AB#4567, plan only`, or type `/loop:run` followed by the same words. There are no flags; the skill prints how it read your request before it does anything. The bare `/loop` is Claude Code's own interval skill, not this one.
 - Audit: say `reimagine audit PR 123 and 124 in app, tickets AB#4567 and AB#4580`, or pass the manifest a loop run wrote.
 - repo-docs: run `/repo-docs` in a repository; it says whether it will bootstrap, adopt or maintain before it writes.
 
@@ -65,7 +65,7 @@ Node 22 or later, no dependencies. `npm test` runs the suites under `tests/`; `n
 
 Design documents, in reading order: `docs/requirements.md`, `docs/architecture.md`, `docs/build-plan.md`, `docs/decisions.md`, `docs/acceptance.md`.
 
-Releases are per plugin: `node tools/release.mjs <plugin> <version>`, a heading in `CHANGELOG.md`, then `claude plugin tag --push plugins/<plugin>`, which creates `<plugin>--v<version>`.
+Releases are per plugin, in this order: `node tools/release.mjs <plugin> <version>`, then a heading `## <plugin> <version> - <date>` in `CHANGELOG.md`, then `claude plugin tag --push plugins/<plugin>`, which creates `<plugin>--v<version>`. Lint requires the heading only once the tag exists.
 
 ## License
 
