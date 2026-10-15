@@ -32,6 +32,17 @@ Hand-run checks for the suite. Each milestone adds its items. An item is `N. **T
 
 ## Record of runs
 
+### 2026-10-15: audit milestone and alpha catalog
+
+Windows 11 Pro 10.0.26200, Claude Code 2.1.300, Node 26.4.0, git 2.56.0, jq 1.8.2. The audit plugin on branch `feat/audit`, with the prerelease catalog listing `rules`, `loop` and `audit` at 0.1.0-alpha.1.
+
+- **npm test passed on Windows.** 179 tests, 173 passed, 6 skipped, exit 0, before every commit from the observed-literal commit on; the commits before it held stale literals or an incomplete layout, as decision 11 and the build plan allow, and were red on the audit suites only.
+- **npm test on POSIX: three suites not run.** WSL Ubuntu 24.04.5, Node 22.23.3, git 2.43.0, mawk 1.3.4: 179 tests, 176 passed, 3 failed, exit 1. The three failures are the live, work-items and collisions suites, each printing `note: jq not found, nothing was tested`, since the machine has no `jq`; every other suite passed under mawk. Rerun once `jq` is installed there.
+- **Validation passed.** `claude plugin validate --strict` exit 0 for the repository root (the catalog) and for `plugins/rules`, `plugins/loop` and `plugins/audit`.
+- **Tag dry runs passed.** `claude plugin tag --dry-run plugins/<name>` exit 0 for the three plugins, each reporting `<name>--v0.1.0-alpha.1` at HEAD with the catalog entry agreeing.
+- **Item 23 passed** before each commit: the forbidden-token grep from outside the repository found nothing in tracked files, and the non-ASCII grep found nothing.
+- **Items 1 and 14 to 17: not yet run.** They need a logged-in scratch profile and a fixture directory outside the user's home, which the owner provides; macOS is not run, by the owner's decision of 2026-10-15 that the MVP target is Windows.
+
 ### 2026-10-15: code review of the idempotency milestone
 
 Windows 11 Pro 10.0.26200, Claude Code 2.1.300, Node 26.4.0, git 2.56.0. A `code-review` pass at level `high` over the idempotency commits gave 10 findings, each judged by reading the skill text. Each fix carries a text test that failed before the fix and passes after it (commit `fix(loop): judge a record by its committed and published work`); none was run on the sandbox.
