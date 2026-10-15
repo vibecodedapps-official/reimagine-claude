@@ -32,6 +32,20 @@ Hand-run checks for the suite. Each milestone adds its items. An item is `N. **T
 
 ## Record of runs
 
+### 2026-10-15: code review of the audit milestone
+
+Windows 11 Pro 10.0.26200, Claude Code 2.1.300, Node 26.4.0, git 2.56.0, gawk 5.2.1 (Git for Windows). A `code-review` pass at level `xhigh` over the audit commits gave 10 findings. Each script fix has a test that fails on the scripts before the fix and passes after it; the skill text fix was checked by reading.
+
+- **Defect, fixed: the reverted-test selection read nothing from a Windows work dir.** `revert-tests.sh` passed its work-dir paths to awk with `-v`, which expands backslash escapes, so a backslash followed by t or r in a path became a tab or a carriage return; with gawk the run died at a redirect to the mangled name, and a path that survived would have selected no test and reported "No changed tests to run" with exit 0. The paths now go through the environment and `ENVIRON` (commit `fix(audit): keep the reverted-test work dir in the run directory and off awk -v`). Test: revert-tests case 20, a work dir whose name holds a backslash and a t.
+- **Defect, fixed: the work dir sat under the plugin data directory.** Stage 1 placed it at `${CLAUDE_PLUGIN_DATA}/revert-work/<run id>/<bundle>`, the path the host refuses headless under `acceptEdits` and prompts for interactively, so a headless run with `test_command` would have ended at `mkdir`. It is `<run dir>/tmp/revert-work/<bundle>` now, under the scratch resolution, with `GIT_CEILING_DIRECTORIES` keeping the copies' test commands from finding the audited repository above them; the data-directory list in `common.md` drops the item. No acceptance run reached this path, since the fixture manifests of items 14 and 15 carry no test keys. Not rerun.
+- **Defect, fixed: a final output line without a newline was not counted.** `record()` used `wc -l`, so 81 lines ending without a newline read as 80 and the block said `- Output:` while `tail` dropped the first line. It counts with awk now. Test: revert-tests case 21.
+- **Defect, fixed: a live file named like an assignment was never read.** `live.sh check` passed the live file and the report to awk as bare operands, so a relative name of the form `results=2.md` was taken as a variable assignment; relative operands get a `./` prefix now, as `readonly.sh` does. Test: live "check a name like an assignment".
+- **Open, for the next milestone:** `tests/audit/sh.test.mjs` builds its fixtures with `build.sh` under the system temporary directory and removes none of them, so every `npm test` leaves eight fixture repositories behind; `readonly.sh` walks each repository's status twice per check where one `--ignored` call would serve; `work-items.sh` computes each line's item errors twice; the `plugin_version` literal in `1-orient.md` has no check against `plugin.json`, and the catalog check that `lint.sh`'s header assigns to `tools/lint.mjs` waits for that script; `ledger.sh` handles a `--- batch <k> ---` separator that no stage writes.
+- **Open, not fixed:** `revert-tests.sh` passes files under the work dir to awk as operands, so a relative work dir of the form `a=b` would be read as an assignment; the orchestrator passes an absolute path under the run directory.
+- **npm test passed on Windows.** 179 tests, 173 passed, 6 skipped, exit 0. Not rerun on POSIX.
+- **Validation passed.** `claude plugin validate --strict` exit 0 for the repository root and for `plugins/audit`; `claude plugin tag --dry-run plugins/audit` exit 0.
+- **Item 23 passed** before the fix commit.
+
 ### 2026-10-15: audit milestone and alpha catalog
 
 Windows 11 Pro 10.0.26200, Claude Code 2.1.300, Node 26.4.0, git 2.56.0, jq 1.8.2. The audit plugin on branch `feat/audit`, with the prerelease catalog listing `rules`, `loop` and `audit` at 0.1.0-alpha.1.
