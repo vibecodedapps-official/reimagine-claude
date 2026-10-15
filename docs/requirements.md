@@ -15,7 +15,7 @@ Numbers are never reused. A retired requirement keeps its number with the word "
 
 ## Suite
 
-1. **One repository, one marketplace.** The marketplace is named `reimagine-claude` and lists exactly four plugins: `rules`, `loop`, `audit`, `repo-docs`, each at `plugins/<name>/`. Check: lint.
+1. **One repository, one marketplace.** The marketplace is named `reimagine-claude` and, at 0.1.0, lists exactly four plugins: `rules`, `loop`, `audit`, `repo-docs`, each at `plugins/<name>/`. Until then a prerelease catalog lists only the plugins that are built, each at a prerelease version (requirement 14), so a work machine can install them from `main` before the suite is complete. Check: lint.
 2. **Plugin directories hold only what a user installs.** Under `plugins/<name>/` there are the manifest, the skills, commands, agents, hooks, scripts, output styles and reference files the plugin uses at run time, plus `README.md` and `LICENSE`. No tests, no design documents, no fixtures. Check: lint.
 3. **ASCII.** Every shipped file under `plugins/` is ASCII. Check: lint.
 4. **License per plugin.** The root `LICENSE` and each `plugins/<name>/LICENSE` is the Apache License 2.0 text with the holder line `Copyright 2026 vibecodedapps.net`. Check: lint.
@@ -28,8 +28,8 @@ Numbers are never reused. A retired requirement keeps its number with the word "
 11. **Nothing external names a model, agent or tool.** Pull request bodies, pull request comments, ticket comments and commit messages name the activity and the date, never the model, the agent type or the tool that produced the text. Run records and reports kept in a run directory may name them. The loop never types an attribution trailer; the host's attribution setting decides that alone. Check: review; acceptance.
 12. **Commit form.** Commits in this repository and commits the loop makes read `type(scope): subject` in lowercase, with a body that says why. A bare `@token` in a subject or pull request text is written in backticks. Check: review.
 13. **Moves and renames apart.** A commit that moves or renames files changes no file content; string renames go in their own commit. Check: review.
-14. **Versions and tags.** Each plugin has its own version line starting at 0.1.0 in its manifest and its catalog entry, which agree. A release is tagged `<plugin>--v<version>` with `claude plugin tag`. A plugin directory that changed since its last tag carries a version above that tag. There is no shared suite version. Check: lint.
-15. **One changelog.** `CHANGELOG.md` has a heading `## <plugin> <version> - <YYYY-MM-DD>` for every tagged version of every plugin, newest first; a version not yet tagged needs none, so a bump passes lint before its heading is written. Check: lint.
+14. **Versions and tags.** Each plugin has its own version line in its manifest and its catalog entry, which agree. The first release is 0.1.0; before it a built plugin may ship as `0.1.0-alpha.<n>`, a semver prerelease that sorts below 0.1.0, and the 0.1.0 target of every plugin stands. A release is tagged `<plugin>--v<version>` with `claude plugin tag`. A plugin directory that changed since its last tag carries a version above that tag. There is no shared suite version. Check: lint.
+15. **One changelog.** `CHANGELOG.md` has a heading `## <plugin> <version> - <YYYY-MM-DD>` for every tagged version of every plugin, prerelease versions included, newest first; a version not yet tagged needs none, so a bump passes lint before its heading is written. Check: lint.
 16. **The repository keeps its own instruction file by its own rules.** The root `CLAUDE.md` is a repo-docs hub, and the repo-docs drift hook runs in sessions on this repository. Check: acceptance.
 17. **Windows and POSIX.** Every test and script runs on ubuntu, macOS and Windows with Git for Windows, and the awk-using audit scripts also run on mawk. Check: test (CI matrix).
 
