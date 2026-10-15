@@ -41,6 +41,7 @@
 #    .err or .exit (18c)
 # 19 stopdog, from the script's own text: the watchdog, stopped at once 200 times under the
 #    script's TERM trap, leaves stderr empty
+# 20 a work dir whose name holds a backslash   21 output without a final newline
 #
 # Prints one line per mismatch, then `revert-tests test: ok` when there were none. Exit 0
 # when every case matches, otherwise 1.
@@ -847,6 +848,38 @@ bash -c '. "$1"; w=$2; n=0
 rc=$?
 [ "$rc" = 0 ] || mismatch "$case_id: exit $rc, expected 0"
 [ ! -s "$tmp/err" ] || mismatch "$case_id: stderr [$(head -n 2 "$tmp/err" | tr '\n' '|')]"
+
+# 20. Case 1's repo with a work dir whose name holds a backslash and a t, which awk's -v
+# would read as a tab. On Windows the backslash separates two directories.
+case_id="case 20"
+RW="$root/w\\tx"
+run "$root/c1" "$run_keys"
+unset RW
+ok
+verdicts "- \`tests/test_a b'c.sh\`: passes at head and without the change
+- \`tests/test_a.sh\`: passes at head and without the change
+- \`tests/test_m.sh\`: passes at head only
+- \`tests/test_moved.sh\`: passes at head only
+- \`tests/test_t.sh\`: does not pass at head (exit status 127)
+"
+
+# 21. Output without a final newline: the last line still counts, for 81 lines and for
+# one.
+case_id="case 21"
+mkrepo c21
+put 100644 README 'x\n'
+commit main
+put 100644 tests/test_long.sh 'awk '"'"'BEGIN { for (i = 1; i <= 81; i++) printf "%sline %d", (i > 1 ? "\\n" : ""), i }'"'"'\n'
+put 100644 tests/test_one.sh 'printf %s "only line"\n'
+commit feature main
+run "$R" "$run_keys"
+ok
+verdicts '- `tests/test_long.sh`: passes at head and without the change
+- `tests/test_one.sh`: passes at head and without the change
+'
+inblock '`tests/test_long.sh`, head copy' '- Output, the last 80 of 81 lines:'
+inblock '`tests/test_one.sh`, head copy' '- Output:'
+inblock '`tests/test_one.sh`, head copy' '    only line'
 
 if [ "$bad" -gt 0 ]; then
 	exit 1

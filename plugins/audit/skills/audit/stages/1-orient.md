@@ -495,8 +495,8 @@ branch to it in the manifest."
       read tree, else that check is "not run". Step 6b is the one exception.
 
    b. **Changed tests with the change reverted.** Only the orchestrator runs this. First
-      remove `<run dir>/revert/` and `${CLAUDE_PLUGIN_DATA}/revert-work/<run id>/` when
-      present (`rm -rf`, those two only), so nothing of an interrupted attempt remains.
+      remove `<run dir>/revert/` and `<run dir>/tmp/revert-work/` when present
+      (`rm -rf`, those two only), so nothing of an interrupted attempt remains.
       Then, for each bundle with `test_command`, in manifest order:
       1. Write `revert/<bundle>.keys` with the Write tool, one `<key><TAB><value>` line
          per value: `command` (`test_command`), `setup` (`test_setup`, when given),
@@ -505,7 +505,7 @@ branch to it in the manifest."
          the script's default list applies). No key's text passes through a shell
          command line.
       2. Start, with the Bash tool's `run_in_background` set to true,
-         `sh ${CLAUDE_PLUGIN_ROOT}/scripts/revert-tests.sh bg <repo> <base> <head> <run dir>/revert/<bundle>.keys ${CLAUDE_PLUGIN_DATA}/revert-work/<run id>/<bundle> <run dir>/revert/<bundle>.md`,
+         `sh ${CLAUDE_PLUGIN_ROOT}/scripts/revert-tests.sh bg <repo> <base> <head> <run dir>/revert/<bundle>.keys <run dir>/tmp/revert-work/<bundle> <run dir>/revert/<bundle>.md`,
          with the shas of step 3. Then run
          `sh ${CLAUDE_PLUGIN_ROOT}/scripts/revert-tests.sh wait <run dir>/revert/<bundle>.md`
          in the foreground with the Bash tool's `timeout` at 600000. It returns within

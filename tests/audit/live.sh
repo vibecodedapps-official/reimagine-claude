@@ -181,6 +181,8 @@ del_line() { # <in> <out> <n>
 usage_msg="usage: live.sh check <file> <report.md> | import <file> <report.md> <run dir> | active <run dir> | carry <run dir> <id> | assemble <run dir> <entries dir> | retire <run dir> <dest dir> <reason>"
 
 run "check valid" 0 "live: ok" "" check valid.md report.md
+cp "$w/valid.md" "$w/results=2.md"
+run "check a name like an assignment" 0 "live: ok" "" check results=2.md report.md
 
 # broken <label> <message>: run check on b.md.
 broken() {

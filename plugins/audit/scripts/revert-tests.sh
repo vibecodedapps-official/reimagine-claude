@@ -434,9 +434,12 @@ pairs < "$w/out.raw" > "$w/outside" || die "cannot list the other paths"
 # Test-code paths, without the status: the files to run (at the head, matching `run`), the
 # rest present at the head, and those deleted at the head. A path holding a newline or tab goes
 # to the unwritable list.
-awk -F '\t' -v soh="$soh" -v rn="$w/rn" -v run="$w/torun.all" -v keep="$w/kept" \
-	-v del="$w/deleted" -v nl="$w/tc.nl" '
+# Paths go through the environment, since -v expands backslash escapes.
+RT_RN=$w/rn RT_RUN=$w/torun.all RT_KEEP=$w/kept RT_DEL=$w/deleted RT_NL=$w/tc.nl \
+	awk -F '\t' -v soh="$soh" '
 	BEGIN {
+		rn = ENVIRON["RT_RN"]; run = ENVIRON["RT_RUN"]; keep = ENVIRON["RT_KEEP"]
+		del = ENVIRON["RT_DEL"]; nl = ENVIRON["RT_NL"]
 		while ((getline l < rn) > 0) {
 			t = index(l, "\t")
 			r[substr(l, t + 1)] = 1
@@ -484,7 +487,8 @@ sizeof() {
 # with a tab is not written either, since `read` would trim it.
 entries() {
 	g ls-tree -r -l -z --full-tree "$1" > "$w/ls.raw" || die "git ls-tree failed"
-	nulines < "$w/ls.raw" | awk -v soh="$soh" -v skip="$3" '
+	nulines < "$w/ls.raw" | RT_SKIP=$3 awk -v soh="$soh" '
+		BEGIN { skip = ENVIRON["RT_SKIP"] }
 		{
 			t = index($0, "\t")
 			p = substr($0, t + 1)
@@ -696,7 +700,7 @@ record() {
 		rd_status=$rc
 	fi
 	printf '\n### %s\n\n- Exit status: %s\n- Duration in seconds: %s\n' "$1" "$rd_status" "$secs"
-	rd_n=$(wc -l < "$2" | tr -d ' ')
+	rd_n=$(awk 'END { print NR }' "$2")
 	if [ ! -s "$2" ]; then
 		printf -- '- Output: none\n'
 		return
@@ -727,8 +731,8 @@ if [ -s "$w/torun" ] && [ -z "$reason" ]; then
 	entries "$mb" "$w/e.mb" "$w/skip.mb"
 	# The reverted copy: the merge-base entries outside the test code, then the head's
 	# test-code entries.
-	awk -v tcf="$w/tcpaths" '
-		BEGIN { while ((getline l < tcf) > 0) tc[l] = 1 }
+	RT_TCF=$w/tcpaths awk '
+		BEGIN { tcf = ENVIRON["RT_TCF"]; while ((getline l < tcf) > 0) tc[l] = 1 }
 		{ t = index($0, "\t"); p = substr($0, t + 1) }
 		FILENAME == ARGV[1] && !(p in tc) { print }
 		FILENAME == ARGV[2] && (p in tc) { print }' "$w/e.mb" "$w/e.head" > "$w/e.rev" ||

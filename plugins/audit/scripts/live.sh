@@ -415,7 +415,10 @@ run_check() {
 		return 1
 	fi
 	: > "$tmp/files" || fail2 "cannot write a temp file"
-	LIVE_NAME=$2 LIVE_RUN=$run_id LIVE_REV="sha256:$rev_hex" LIVE_FILES=$tmp/files awk -f "$tmp/check.awk" "$report" "$1"
+	# An awk operand such as k=v.md would be taken as an assignment.
+	case $report in /*|[A-Za-z]:*) rc_rep=$report ;; *) rc_rep=./$report ;; esac
+	case $1 in /*|[A-Za-z]:*) rc_file=$1 ;; *) rc_file=./$1 ;; esac
+	LIVE_NAME=$2 LIVE_RUN=$run_id LIVE_REV="sha256:$rev_hex" LIVE_FILES=$tmp/files awk -f "$tmp/check.awk" "$rc_rep" "$rc_file"
 	rcc=$?
 	[ "$rcc" -le 1 ] || fail2 "awk failed while checking $2"
 	[ "$rcc" = 0 ] || return 1

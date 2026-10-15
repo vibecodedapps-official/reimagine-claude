@@ -30,9 +30,8 @@ Every rule holds in every stage, for the orchestrator and for every agent.
    of truth is an audited repository. The writes allowed are these, and nothing else:
    - the run directory;
    - audit's data directory `${CLAUDE_PLUGIN_DATA}`: `runs.json`, its lock directory
-     `runs.json.lock` with the owner directory inside it, its temporary file
-     `runs.json.<owner>.tmp`, and the orchestrator's working copies for the reverted
-     test runs under `revert-work/<run id>/`, removed when those runs end;
+     `runs.json.lock` with the owner directory inside it, and its temporary file
+     `runs.json.<owner>.tmp`;
    - `git fetch` into remote-tracking refs, once the user has approved it for the run;
    - for a bundle with `head: working-tree`, the loose objects that
      `working-tree.sh build` writes into the repository's object store, in stage 1 and
