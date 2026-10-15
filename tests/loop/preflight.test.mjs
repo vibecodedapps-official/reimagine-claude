@@ -43,3 +43,11 @@ test('R82: Step 0.5 asks git about .reimagine/ with its trailing slash, so an ex
   assert.ok(text.includes('`git check-ignore -q .reimagine/`'));
   assert.ok(!text.includes('`git check-ignore -q .reimagine`'));
 });
+
+test('R86: Step 0.5 compares a description with the text files after the credentials decision', () => {
+  assert.ok(PREFLIGHT.includes('holds the same text after the credentials decision'));
+});
+
+test('R92: the no-new-work path runs 3.7.2 and 3.7.4 before Step 6', () => {
+  assert.ok(PREFLIGHT.includes('run 3.7.2 and 3.7.4 there, and go to Step 6'));
+});

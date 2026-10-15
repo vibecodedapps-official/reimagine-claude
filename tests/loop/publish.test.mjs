@@ -40,3 +40,21 @@ test('R92: every step file applies the reuse rule of the record before it writes
     assert.ok(read(file).includes('`record.md`, Reuse and resume'), `${file} does not apply record.md, Reuse and resume`);
   }
 });
+
+test('R87: Step 7.1 logs each commit as the commit line a later run reads', () => {
+  assert.ok(section(PUBLISH, '7.1 Commit').includes('`- commit <full sha> <subject>`'));
+});
+
+test('R90: Step 7.4 comments on a done ticket only when no run logged a comment on it', () => {
+  assert.ok(section(PUBLISH, '7.4 Ticket comments').includes('logs a comment on it'));
+});
+
+test('R86: a slice in the plan names a description input by its text file', () => {
+  assert.ok(read('steps/1-plan.md').includes('or by `text-<k>.md` for a description'));
+});
+
+test('R92: Steps 3.6 and 3.7 run when Step 3 is reused', () => {
+  const build = read('steps/4-build.md');
+  assert.ok(build.includes('When Step 3 is reused, they still run'));
+  assert.ok(build.includes('run only 3.7.2 and 3.7.4'));
+});

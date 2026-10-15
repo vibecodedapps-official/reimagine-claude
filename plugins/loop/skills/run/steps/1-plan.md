@@ -48,7 +48,7 @@ Never adopt multi-repository scope from prose alone. The gate stays in force for
 
 ## Step 2: plan
 
-Write `plan.md`. For each input: scope, acceptance criteria and buildable status. Across the inputs: shared changes, migrations and API changes, tests, checks, the order of work, and the slices. For each slice: the files it owns (created files included), the inputs it serves by their normalized ids (`record.md`, steps.json, item 1), the change, the criteria it serves, the tests, the checks, and the implementer (`sonnet`, or the `implementer` model of `.reimagine.json`).
+Write `plan.md`. For each input: scope, acceptance criteria and buildable status. Across the inputs: shared changes, migrations and API changes, tests, checks, the order of work, and the slices. For each slice: the files it owns (created files included), the inputs it serves by their normalized ids (`record.md`, steps.json, item 1) or by `text-<k>.md` for a description, the change, the criteria it serves, the tests, the checks, and the implementer (`sonnet`, or the `implementer` model of `.reimagine.json`).
 
 On an existing record, leave the sections of `plan.md` as they are and append a section `## Run <n> slices` holding the open inputs' scope, criteria and buildable status, their slices, and what the parts across inputs gain from them. A prior run's open slice stays in its own section and is built in this run. A slice name is never used twice in one record.
 

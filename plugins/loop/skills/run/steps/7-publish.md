@@ -18,7 +18,7 @@ A question about a commit, a push or a pull request, raised because an ask-first
 
 ## 7.1 Commit
 
-Commit the work of each slice whose closing commit is not yet on the branch, one commit per slice, and record each sha as the slice's `commit` in steps.json. Log each commit's full sha and subject in `run.md`; a later run tells the loop's own commits from foreign ones by these lines.
+Commit the work of each slice whose closing commit is not yet on the branch, one commit per slice, and record each sha as the slice's `commit` in steps.json. Log each commit in `run.md` as a line `- commit <full sha> <subject>`; a later run tells the loop's own commits from foreign ones by these lines alone.
 
 - Write the message as `type(scope): subject`, lowercase, with a body that says why the change was made. When the repository's instruction files set another form, follow them.
 - Write a bare `@token` in backticks.
@@ -79,7 +79,7 @@ At most three cycles run. A result still red after the third, or a repair the ro
 
 ## 7.4 Ticket comments
 
-After the pull request is open and 7.3 has ended without a block (green, or not applicable), post one status comment for each ticket this run took up. A ticket that was done at Step 0 (`record.md`, An existing record) gets no comment. Read the `## Ticket comment` template in `pr-body.md` and write each body first.
+After the pull request is open and 7.3 has ended without a block (green, or not applicable), post one status comment for each ticket this run took up. A ticket that was done at Step 0 (`record.md`, An existing record) gets no comment, unless no run's `run.md` section logs a comment on it, as after a run that ended before 7.4. Log each comment in `run.md` with its file. Read the `## Ticket comment` template in `pr-body.md` and write each body first.
 
 - GitHub: write the body to `<record>/ticket-<id-slug>.md` (`ticket-<id-slug>-run<n>.md` from run 2 on) and post `gh issue comment <n> --body-file <absolute path>`.
 - Azure DevOps: use the Azure DevOps MCP tool when one is listed, else `az boards work-item update --id <n> --discussion "<text>"`, reading the text from a file when quoting fails.

@@ -148,7 +148,7 @@ Round cap: no step repeats more than three times. A round is one pass by the sta
 
 Every run ends in exactly one state.
 
-- `done`: the pull request is open, CI is green or not applicable, and the report is written. A run on an existing record with no new work ends `done` after Step 6, having published nothing.
+- `done`: the pull request is open, CI is green or not applicable, and the report is written. A run on an existing record with no new work whose work is already published ends `done` after Step 6, having published nothing (`record.md`, An existing record, item 8).
 - `plan-only`: the plan was reviewed and nothing in the tree changed, or a plan confirmation was not answered with a clear yes.
 - `prepared`: every step through 6 is complete and publication is withheld before any push. Print the exact commands: `git add <paths>`, `git commit`, `git push -u <remote> <branch>` and `gh pr create --title "<title>" --body-file <absolute path>`. For a continued branch with one open pull request, print `gh pr comment <pr> --body-file <absolute path>` in place of the last, preceded by `gh pr edit <pr> --body-file <absolute path>` when this loop opened that pull request. On a non-GitHub host, add a note that the pull request is opened with the host's own tooling. With several repositories, give the set per repository with `git -C <path>`.
 - `blocked`: a blocking defect, a denied permission, a budget exceeded, or a preflight failure. After `blocked` nothing more is published; pushed work stays and is linked.
@@ -207,8 +207,8 @@ At every terminal state:
 1. When the run has its own commit (Step 7.1), read `handoff.md`, then write `handoff.md` and `audit-manifest.json` in the record first.
 2. Read `report.md` and fill the report from `run.md`, never from memory.
 3. Before Step 0.5, print the report and write nothing. From Step 0.5 on, write it to the record's `report.md`, rewritten at every terminal state, and print it.
-4. With `commit: true` and state `done`, post the report's external form as one pull request comment, as `record.md`, Commit snapshot, says; it is the run's one comment on the pull request.
-5. From Step 0.5 on, close the run's entry in `steps.json` (`ended`, `state`).
+4. With `commit: true` and state `done`, post the report's external form as one pull request comment, as `record.md`, Commit snapshot, says; it is the run's one comment on the pull request. A run on the no-new-work path of published work posts nothing.
+5. From Step 0.5 on, close the run's entry in `steps.json` (`ended`, `state`), and give each slice this run built and did not commit its `files` (`record.md`, steps.json, item 3).
 
 ## Supporting files
 
