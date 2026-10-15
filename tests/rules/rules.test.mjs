@@ -339,6 +339,24 @@ test('R18, R36: the windows option puts the shipped Windows paragraph before the
   assert.equal(lines.slice(1).join('\n'), `${SHIPPED['windows.md']}\n${SHIPPED['core.md']}${END}\n`);
 }));
 
+test('R36: adopt on a block that holds the windows option runs off Windows when no --options is given', sandbox((s) => {
+  s.run('plan', ['--options', 'core,windows'], { platform: 'win32' });
+  s.run('apply', [], { platform: 'win32' });
+  const rule = `- Make the calls within the task, architecture included; someone else's area is no
+  reason by itself to defer. Explain the ones that matter in a line. Ask only for my
+  preference, an authority I lack, a fact you can't find, or input that avoids a costly
+  or hard-to-undo mistake. Ask with one recommendation and its tradeoffs; add a second
+  option only when it wins under a condition I control, and name it. Do the work that
+  doesn't depend on the answer first.
+`;
+  put(s.claude, `${bytes(s.claude)}${rule}`);
+  assert.throws(() => s.run('plan', ['--adopt', '--options', 'core,windows'], { platform: 'linux' }),
+    { message: 'the windows option is offered only on Windows' });
+  const out = s.run('plan', ['--adopt'], { platform: 'linux' });
+  assert.equal(out.includes('options: core,windows'), true);
+  assert.equal(out.includes('change: ready'), true);
+}));
+
 test('R26: plan writes nothing for current, malformed and edited targets', sandbox((s) => {
   s.run('plan');
   s.run('apply');

@@ -66,7 +66,7 @@ If a command prints a line that starts with `rules:` and exits with an error, sh
   - `adopt`: offer three choices: adopt (recommended), apply anyway, or decline.
 - On apply, or on apply anyway, run `node "${CLAUDE_PLUGIN_ROOT}/scripts/rules.mjs" apply "${CLAUDE_PLUGIN_DATA}"`.
 - On decline, run `node "${CLAUDE_PLUGIN_ROOT}/scripts/rules.mjs" decline "${CLAUDE_PLUGIN_DATA}"`.
-- On adopt, run `node "${CLAUDE_PLUGIN_ROOT}/scripts/rules.mjs" plan "${CLAUDE_PLUGIN_DATA}" --adopt --options <list>`, where `<list>` is the value on the `options:` line of the plan you just showed, with no spaces. Show that output verbatim in a fenced code block. If it says `change: ready`, this is a different change, so ask once more, apply or decline, and run `apply` or `decline` as above. If it says `change: none`, say nothing will change.
+- On adopt, run `node "${CLAUDE_PLUGIN_ROOT}/scripts/rules.mjs" plan "${CLAUDE_PLUGIN_DATA}" --adopt`, adding `--options <list>` only when the arguments gave `--options <list>`, with the user's list written with no spaces. Show that output verbatim in a fenced code block. If it says `change: ready`, this is a different change, so ask once more, apply or decline, and run `apply` or `decline` as above. If it says `change: none`, say nothing will change.
 
 Show the output of each `apply` and `decline` verbatim in a fenced code block.
 
