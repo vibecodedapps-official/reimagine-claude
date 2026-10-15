@@ -220,6 +220,13 @@ test('R31: remove takes the block and the bytes of its join, for each join value
   assert.deepEqual(plan('mine\n', { remove: true }), { state: 'absent', after: null, note: 'there is no block to remove' });
 });
 
+test('R31: remove of a block with a line typed into it is edited, with nothing to write', () => {
+  const text = `${begin('core', 'blank', 'cb477dddc15de845')}\nC1\nC2\nmine\n${END}\n`;
+  const p = plan(text, { remove: true });
+  assert.equal(p.state, 'edited');
+  assert.equal(p.after, null);
+});
+
 test('R31, R23: install then remove gives back the original bytes for LF, CRLF, BOM and no final newline', () => {
   for (const original of ['', 'mine\n', 'mine', 'one\r\ntwo\r\n', 'one\r\ntwo', `${BOM}mine\n`, `${BOM}mine`]) {
     const installed = plan(original).after;
@@ -411,6 +418,20 @@ test('R29, R31: a missing file is created and recorded, and remove deletes it wi
   assert.deepEqual(s.run('apply', [], { now: LATER }), [`rules: removed ${s.claude}, which /rules had created and which held nothing else`]);
   assert.deepEqual(readdirSync(s.claudeDir), []);
   assert.deepEqual(s.state(), { created: false, declined: [] });
+}));
+
+test('R29, R31: remove refuses a block the user edited, so the file and its lines stay', sandbox((s) => {
+  s.run('plan');
+  s.run('apply');
+  const text = bytes(s.claude), marker = text.lastIndexOf(END);
+  put(s.claude, `${text.slice(0, marker)}MY OWN RULE\n${text.slice(marker)}`);
+  const edited = bytes(s.claude);
+  const out = s.run('remove', [], { now: LATER });
+  assert.ok(out.includes('state: edited; the block was edited by hand; move your lines below the end marker, then run /rules --remove again'));
+  assert.equal(out.at(-1), 'change: none');
+  assert.equal(bytes(s.claude), edited);
+  assert.deepEqual(s.planFile(), {});
+  assert.throws(() => s.run('apply', [], { now: LATER }), { message: 'there is no planned change; run /rules again' });
 }));
 
 test('R31: a created file that the user added to is kept on remove, holding only the user text', sandbox((s) => {

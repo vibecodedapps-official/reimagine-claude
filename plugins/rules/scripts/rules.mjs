@@ -116,11 +116,16 @@ export function planTarget({
   // Where no body is known, the imports are named without counts.
   const brief = imported.length ? { overlap: { imports: imported.map(({ ref, missed, unreadable }) => ({ ref, missed, unreadable })) } } : {};
   if (found.kind === 'malformed') return { state: 'malformed', after: null, note: `${found.reason}, at lines ${found.lines.join(', ')}`, ...brief };
+  const eol = eolOf(text ?? '');
+  const inFile = found.kind === 'block' ? text.slice(found.bodyStart, found.bodyEnd) : '';
+  if (found.kind === 'block' && digest(inFile) !== found.digest) {
+    return { state: 'edited', after: null, options: found.options, edits: [render(found.options, texts, eol), inFile],
+      note: `the block was edited by hand; move your lines below the end marker, then run /rules${remove ? ' --remove' : ''} again`, ...brief };
+  }
   if (remove) {
     return found.kind === 'absent' ? { state: 'absent', after: null, note: 'there is no block to remove', ...brief }
       : { state: 'remove', after: removeBlock(text, found), options: found.options, recommend: 'apply', ...brief };
   }
-  const eol = eolOf(text ?? '');
   // The plan once the body is known: the plain change, or the adopted one when the file already holds rules.
   const propose = (state, opts, body, plain) => {
     const base = found.kind === 'block' ? removeBlock(text, found) : text ?? '';
@@ -139,11 +144,6 @@ export function planTarget({
     const before = text ?? '';
     const join = before === '' ? 'none' : before.endsWith('\n') ? 'blank' : 'newline';
     return propose('absent', opts, body, before + eol.repeat(JOINS[join]) + beginLine(version, opts, join, body) + eol + body + END + eol);
-  }
-  const inFile = text.slice(found.bodyStart, found.bodyEnd);
-  if (digest(inFile) !== found.digest) {
-    return { state: 'edited', after: null, options: found.options, edits: [render(found.options, texts, eol), inFile],
-      note: 'the block was edited by hand; move your lines below the end marker, then run /rules again', ...brief };
   }
   const opts = options ?? found.options;
   const body = render(opts, texts, eol);
