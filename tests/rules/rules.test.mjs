@@ -684,7 +684,7 @@ test('R33: adopt removes a full copy, headings included, and puts the block wher
 
 test('R33: a fenced example, a differing qualification, and user text under a heading are kept', () => {
   // The parser alone keeps the fenced example; plan --adopt leaves a file with a fence alone (the gate).
-  assert.equal(adoptRules('mine\n\n```\n- one\n```\n\n- one\n', '[B]\n', RICH['core.md']), 'mine\n\n```\n- one\n```\n\n[B]\n');
+  assert.equal(adoptRules('mine\n\n```\n- one\n```\n\n- one\n', () => '[B]\n', RICH['core.md']), 'mine\n\n```\n- one\n```\n\n[B]\n');
   const kept = '- one\n\n  but only on Fridays\n';
   assert.equal(rich(kept, { adopt: true }).after, rich(kept).after);
   assert.equal(rich('## Working\n\n- one\n\n### Mine\n\nmy text\n', { adopt: true }).after, `## Working\n\n### Mine\n\nmy text\n${richBlock()}`);
@@ -693,11 +693,11 @@ test('R33: a fenced example, a differing qualification, and user text under a he
 });
 
 test('R33: one separator blank line goes with a removed run that had blank lines on both sides', () => {
-  assert.equal(adoptRules('a\n\n- one\n\nb\n', '[B]\n', RICH['core.md']), 'a\n\nb\n[B]\n');
-  assert.equal(adoptRules('a\n- one\n\nb\n', '[B]\n', RICH['core.md']), 'a\n\nb\n[B]\n');
-  assert.equal(adoptRules('a\n\n- one\n## H\n', '[B]\n', RICH['core.md']), 'a\n\n[B]\n## H\n');
-  assert.equal(adoptRules('- one\n\nb\n', '[B]\n', RICH['core.md']), 'b\n[B]\n');
-  assert.equal(adoptRules('a\n\n- one\n\n- three\n\nb\n', '[B]\n', RICH['core.md']), 'a\n\nb\n[B]\n');
+  assert.equal(adoptRules('a\n\n- one\n\nb\n', () => '[B]\n', RICH['core.md']), 'a\n\nb\n[B]\n');
+  assert.equal(adoptRules('a\n- one\n\nb\n', () => '[B]\n', RICH['core.md']), 'a\n\nb\n[B]\n');
+  assert.equal(adoptRules('a\n\n- one\n## H\n', () => '[B]\n', RICH['core.md']), 'a\n\n[B]\n## H\n');
+  assert.equal(adoptRules('- one\n\nb\n', () => '[B]\n', RICH['core.md']), 'b\n[B]\n');
+  assert.equal(adoptRules('a\n\n- one\n\n- three\n\nb\n', () => '[B]\n', RICH['core.md']), 'a\n\nb\n[B]\n');
 });
 
 test('R33: adopt keeps CRLF, a byte order mark, and a missing final newline', () => {
@@ -715,6 +715,15 @@ test('R33: adopt acts on a stale block and on a current one, and takes the old b
   assert.equal(current.state, 'current');
   assert.equal(current.after, `mine\n\n${richBlock()}`);
   assert.deepEqual(rich(`mine\n\n${richBlock().replace('none', 'blank')}`, { adopt: true }), { state: 'current', after: null, options: ['core'] });
+});
+
+test('R33: a block adopted above a heading keeps the blank line before the heading, and remove gives the trimmed file', () => {
+  const file = '# Mine\n\nUser line above.\n\n## Working\n\n- one\n- two wrapped\n\n## Code\n\n- three\n\n## Notes\n\nUser line below.\n';
+  const p = rich(file, { adopt: true });
+  assert.equal(p.after, `# Mine\n\nUser line above.\n\n${begin('core', 'blank', '63857e438c8dd232', '9.9.9')}\n${RICH['core.md']}${END}\n\n## Notes\n\nUser line below.\n`);
+  assert.equal(plan(p.after, { texts: RICH, remove: true }).after, '# Mine\n\nUser line above.\n\n## Notes\n\nUser line below.\n');
+  const crlf = rich(file.replace(/\n/g, '\r\n'), { adopt: true });
+  assert.equal(plan(crlf.after, { texts: RICH, remove: true }).after, '# Mine\r\n\r\nUser line above.\r\n\r\n## Notes\r\n\r\nUser line below.\r\n');
 });
 
 test('R31, R33: remove after adopt leaves the trimmed file, for join=blank and join=newline blocks', () => {
@@ -901,7 +910,7 @@ test('a fence or comment that opens on a list item first line belongs to that it
   assert.deepEqual(kinds('- <!-- a\n  b -->\n\n- one\n- <!-- c --> two\n'), ['item:', 'item:one', 'item:two']);
   // The fence state stays right after such an item, so the rule below it is still found and adopted.
   assert.deepEqual(kinds('- ```\n  - one\n  ```\n\n- one\n'), ['item:``` - one ```', 'item:one']);
-  assert.equal(adoptRules('- ```\n  - one\n  ```\n\n- one\n', '[B]\n', RICH['core.md']), '- ```\n  - one\n  ```\n\n[B]\n');
+  assert.equal(adoptRules('- ```\n  - one\n  ```\n\n- one\n', () => '[B]\n', RICH['core.md']), '- ```\n  - one\n  ```\n\n[B]\n');
 });
 
 test('R35: a house-rules marker line is a hard boundary for units, so a managed block in an imported file keeps all its rules', sandbox((s) => {
@@ -1014,12 +1023,12 @@ test('R35: quotes, HTML blocks, tables, setext headings, tabs and nested contain
 test('R33: a unit whose raw lines differ from its match text, because a comment was stripped, is never counted or removed', () => {
   // The commented heading stays; the rules under it, and the heading that held only rules, are still adopted.
   const file = '## Working <!-- Keep this project-specific note. -->\n\n- one\n- two wrapped\n\n## Code\n\n- three\n';
-  assert.equal(adoptRules(file, '[B]\n', RICH['core.md']), '## Working <!-- Keep this project-specific note. -->\n\n[B]\n');
+  assert.equal(adoptRules(file, () => '[B]\n', RICH['core.md']), '## Working <!-- Keep this project-specific note. -->\n\n[B]\n');
   for (const [text, texts] of [['- one <!-- x -->\n', RICH], ['C1 <!-- x -->\nC2\n', TEXTS], ['<!-- x -->\n- one\n  <!-- y -->\n  more\n', RICH]]) {
     const p = plan(text, { texts, adopt: true });
     assert.equal(p.after, plan(text, { texts }).after, text);
   }
-  assert.equal(adoptRules('## Code <!-- x -->\n\n- three\n', '[B]\n', RICH['core.md']), '## Code <!-- x -->\n\n[B]\n');
+  assert.equal(adoptRules('## Code <!-- x -->\n\n- three\n', () => '[B]\n', RICH['core.md']), '## Code <!-- x -->\n\n[B]\n');
 });
 
 test('R35: comment marks inside a code span that wraps across lines are text, and a real comment ends only at its own mark', () => {
@@ -1154,7 +1163,8 @@ test('R35: a symlinked CLAUDE.md resolves imports beside the link first, then be
 test('R33: the block goes before the next level 1 or 2 heading, else at the end, never ahead of user text', () => {
   const rule = '- three\n';
   assert.equal(rich(`## Mine\n\n${rule}- Always use tabs in Go files.\n`, { adopt: true }).after, `## Mine\n\n- Always use tabs in Go files.\n${richBlock()}`);
-  assert.equal(rich(`## Mine\n\n${rule}\n## Next\n\nx\n`, { adopt: true }).after, `## Mine\n\n${richBlock()}## Next\n\nx\n`);
+  assert.equal(rich(`## Mine\n\n${rule}\n## Next\n\nx\n`, { adopt: true }).after,
+    `## Mine\n\n${begin('core', 'blank', '63857e438c8dd232', '9.9.9')}\n${RICH['core.md']}${END}\n\n## Next\n\nx\n`);
   assert.equal(rich(`## Mine\n\n${rule}\n### Sub\n\nx\n`, { adopt: true }).after, `## Mine\n\n### Sub\n\nx\n${richBlock()}`);
   assert.equal(rich('- one\n- two wrapped\n', { adopt: true }).after, richBlock());
   assert.equal(rich('- one\n\nuser paragraph\n', { adopt: true }).after, `user paragraph\n${richBlock()}`);
@@ -1305,7 +1315,7 @@ test('R34: with nothing to change, a copy beside the block is called a duplicate
 }));
 
 test('R33: rules at the very top of a file leave no leading blank line', () => {
-  assert.equal(adoptRules('- one\n\n# Project\n\nmine\n', '[B]\n', RICH['core.md']), '[B]\n# Project\n\nmine\n');
+  assert.equal(adoptRules('- one\n\n# Project\n\nmine\n', () => '[B]\n', RICH['core.md']), '[B]\n# Project\n\nmine\n');
   assert.equal(rich('- one\n\n# Project\n\nmine\n', { adopt: true }).after, `${richBlock()}# Project\n\nmine\n`);
 });
 

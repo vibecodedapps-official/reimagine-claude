@@ -124,7 +124,7 @@ export function planTarget({
     const base = found.kind === 'block' ? removeBlock(text, found) : text ?? '';
     const ov = overlap(body, base, imported);
     const stop = gate(text ?? '', found), adopt = adopting && ov.n > 0 && !stop;
-    const after = adopt ? adoptRules(base, `${beginLine(version, opts, 'none', body)}${eol}${body}${END}${eol}`, body) : plain;
+    const after = adopt ? adoptRules(base, (join) => `${beginLine(version, opts, join, body)}${eol}${body}${END}${eol}`, body) : plain;
     const { all, ...counts } = ov, shown = { ...counts, n: adopt ? 0 : ov.n, gate: stop };
     if (after === null) return { state, after, options: opts, ...(ov.n || imported.length ? { overlap: shown } : {}) };
     // Decline only when what is already present, once adopt has moved the file's own copies, covers every rule.
@@ -323,7 +323,8 @@ function overlap(body, base, imported) {
 // The text with every rule unit that body also holds taken out, a heading of body too when its section held only such
 // units, and one blank line after a removed run that had blank lines around it. block goes before the first level 1 or 2
 // heading at column 0 after the first removed line, else at the end, so no user text ends up after the end marker where it
-// would read as part of the block.
+// would read as part of the block. block(join) renders the block. Above a heading that had a blank line before it, the
+// block gets a blank line on each side and join=blank, so remove still gives the trimmed file.
 export function adoptRules(text, block, body) {
   const { lines, list } = units(text), mine = units(body).list;
   const same = (head) => new Set(mine.filter((u) => (u.kind === 'head') === head).map((u) => u.norm));
@@ -347,8 +348,10 @@ export function adoptRules(text, block, body) {
   const kept = (from, to) => lines.slice(from, to).filter((_, k) => !gone[from + k] && !extra.has(from + k));
   const [pre, post] = [kept(0, at), kept(at, lines.length)];
   const tail = (l) => text.slice(l.s, l.e);
-  return text.slice(0, lines[0]?.s ?? 0) + pre.map(tail).join('') + (pre.length && !tail(pre.at(-1)).endsWith('\n') ? eol : '') + block
-    + post.map(tail).join('');
+  const spaced = post.length > 0 && blank(at - 1) && pre.some((l) => !isBlank(l.t));
+  while (spaced && isBlank(pre.at(-1).t)) pre.pop();
+  const head = text.slice(0, lines[0]?.s ?? 0) + pre.map(tail).join('') + (pre.length && !tail(pre.at(-1)).endsWith('\n') ? eol : '');
+  return spaced ? head + eol + block('blank') + eol + post.map(tail).join('') : head + block('none') + post.map(tail).join('');
 }
 
 // A unit's text with its code spans blanked. A span is a backtick run and the next run of the same length in the unit; a
