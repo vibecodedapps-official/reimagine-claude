@@ -88,7 +88,7 @@ long() { # a 9000-byte line, built by concatenation
 	awk 'BEGIN { s = ""; for (i = 0; i < 900; i++) s = s "0123456789"; print s }'
 }
 
-H=45419c3e70cbb08c5dd8b359f58d0d11e41b755a63dc40212161a724656d737f
+H=391038690c69a24c1063824adf4fc1fa2858fd8bbbcc341a78e7a7b62253de90
 Z=0000000000000000000000000000000000000000000000000000000000000000
 
 # ---------------------------------------------------------------------------
@@ -392,7 +392,7 @@ EOF
 
 rm -rf "$w/i1" && mkdir "$w/i1"
 run "import, no live" 0 "live: imported live/results-1.md" "" import valid.md report.md i1
-[ "$(sha "$w/i1/live/results-1.md")" = f651dc2f65c68c959027d31e78911b056b34a305b5e5c788b2e9657bad5941b0 ] || fail "import, no live: the kept file is not the source"
+[ "$(sha "$w/i1/live/results-1.md")" = 8516d6b55f04990e4b63b8a27a14c38354742c1e304d9d4da5e3c2c8c48a2b5f ] || fail "import, no live: the kept file is not the source"
 absent "import, no live" "$w/i1/live/results-1.md.pending"
 
 rm -rf "$w/i2" && mkdir -p "$w/i2/live"
@@ -402,7 +402,7 @@ printf 'notes\n' > "$w/i2/live/notes.md"
 run "import, next number" 0 "live: imported live/results-2.md" "" import valid.md report.md i2
 absent "import, next number" "$w/i2/live/results-7.md.pending"
 absent "import, next number" "$w/i2/live/results-8.md"
-[ "$(sha "$w/i2/live/results-2.md")" = f651dc2f65c68c959027d31e78911b056b34a305b5e5c788b2e9657bad5941b0 ] || fail "import, next number: the kept file is not the source"
+[ "$(sha "$w/i2/live/results-2.md")" = 8516d6b55f04990e4b63b8a27a14c38354742c1e304d9d4da5e3c2c8c48a2b5f ] || fail "import, next number: the kept file is not the source"
 same "import, next number" "$w/i2/live/notes.md" notes
 
 set_line "$v" "$w/b.md" 2 "reimagine-live: 2"
@@ -419,7 +419,7 @@ run "import, no run directory" 2 "" "live: cannot read run directory nope" impor
 run "import, unreadable file" 2 "" "live: cannot read nope.md" import nope.md report.md i4
 rm -rf "$w/i5" && mkdir "$w/i5"
 run "import, long result" 0 "live: imported live/results-1.md" "" import longres.md report.md i5
-[ "$(sha "$w/i5/live/results-1.md")" = 53e82444536d4c2c202e313227e7d14d35646831e9cd9a4ae512c37cd57c6e7c ] || fail "import, long result: the kept file differs"
+[ "$(sha "$w/i5/live/results-1.md")" = 2eace18dd07769fa15572e2435cc6a82605d99ecfce7513de4651a088c3f71a3 ] || fail "import, long result: the kept file differs"
 
 # Without jq, import exits 2 before it writes anything, since the reconcile after it runs
 # `active`, which needs jq. Runs only where PATH without jq's directories still has the

@@ -658,7 +658,7 @@ fi
 
 if [ "$name" = full ]; then
 	mb=6b27db42e063b1881b90f0b4c277d0a8ce2f3ab3
-	later=5a6d60c0a485e6a069f04e0f73f8dfedcb498ff2
+	later=a561bd9df3fa1f989f70cbad1756a5988613802f
 	head=191e0ad183ea7509077bff3fd3b462d57d4b70e1
 else
 	mb=bd5d5e1e67a1fc55adeaa1452920245b1d368f7f
@@ -726,9 +726,9 @@ solo | solo-dirty)
 		claims-verdicts-stale.md manifest-working-tree.json; do
 		[ -f "$F/$f" ] || fail "$f is missing"
 	done
-	same "handoff.md hash" 36b30bd89b131ec1eed669ab0a0c58bbc9c5aaa8 \
+	same "handoff.md hash" 1fb12a61bed320e07e48335abb48f9cb455d552e \
 		"$(git hash-object --no-filters "$F/handoff.md" 2>/dev/null)"
-	same "claims-verdicts.md heading hash" 36b30bd89b131ec1eed669ab0a0c58bbc9c5aaa8 \
+	same "claims-verdicts.md heading hash" 1fb12a61bed320e07e48335abb48f9cb455d552e \
 		"$(sed -n 's/^## .* (handoff), hash //p' "$F/claims-verdicts.md" 2>/dev/null)"
 	same "claims-verdicts-stale.md heading hash" 0000000000000000000000000000000000000000 \
 		"$(sed -n 's/^## .* (handoff), hash //p' "$F/claims-verdicts-stale.md" 2>/dev/null)"

@@ -70,9 +70,9 @@ bad=0
 tab=$(printf '\t')
 
 parent=0c23936980b254c4abd489d3ecfd296f5e7bc0db
-head1=1fcf8c53acc3f6e064fcb29ec0a05963b4949f2a
+head1=ba95cc541264a8b32917d14ba729ae9729f76aac
 tree1=44cdf018ff3489bd74ad79d5cd4e74b76ff56773
-head3=f4884c80127957fe66550d27ef6058ad1a4679ce
+head3=c39dbabef2b57617d583302c6c2716a93b7445ef
 tree3=0b04038bef9a0703ea8527c554992e0c9d05ba9d
 
 mismatch() {
@@ -479,7 +479,7 @@ git -C "$A" add README.md
 git -C "$A" update-index --skip-worktree README.md
 printf '%s\n' 'Edit after the flag.' >> "$A/README.md"
 run build "$A"
-expect "case 6o" 0 "$(lines 674815062fc5c9d1520dc04b1a0036eeff451fc9 b4175eb563d079abe6a8973daf894166c7326d1f)\nflagged README.md\n" ''
+expect "case 6o" 0 "$(lines 3f3a52c16e1a0c23ccfa9c65cb8646ddfe341f41 b4175eb563d079abe6a8973daf894166c7326d1f)\nflagged README.md\n" ''
 n=$(git -C "$A" ls-tree b4175eb563d079abe6a8973daf894166c7326d1f README.md) || mismatch "case 6o: ls-tree failed"
 [ "$n" = "$(printf '100644 blob cae47f9d255c52d5cb83e25eb2ceea54b66b4a5b\tREADME.md')" ] ||
 	mismatch "case 6o: the tree does not hold the staged blob: $n"
@@ -521,7 +521,7 @@ add_sub
 g -C "$A/sub" commit -q --allow-empty -m two
 run build "$A"
 parent=aebccb87d9e1aedcc385077ab8e7fb3c5fdd9d08
-expect "case 7" 0 "$(lines 13b5b5dd7bf07019ded0131a259304b409569d13 b7ee471ca53a263fc37df0e2e28032e64495f193)\n" ''
+expect "case 7" 0 "$(lines 30acaa5920470f61a2579308298a619bbb523445 b7ee471ca53a263fc37df0e2e28032e64495f193)\n" ''
 parent=0c23936980b254c4abd489d3ecfd296f5e7bc0db
 n=$(git -C "$A" ls-tree b7ee471ca53a263fc37df0e2e28032e64495f193 sub) || mismatch "case 7: ls-tree failed"
 [ "$n" = "$(printf '160000 commit 3568a00fd681353143030ce4c197f52904eba9c0\tsub')" ] ||
@@ -584,7 +584,7 @@ printf 'staged\n' > "$A/.test-output/keep.txt"
 git -C "$A" add -f .test-output/keep.txt
 i0=$(idx "$A")
 run build "$A"
-expect "case 10" 0 "$(lines 38bd28c7b7222e6064df2e0e4a667ba31bc58f2b 5e0ec0a263096b090c7abdcfcd4c74cd27864dfe)\n" ''
+expect "case 10" 0 "$(lines 395eb9520854dd6bd3c54fe6d1c95af7f262ba44 5e0ec0a263096b090c7abdcfcd4c74cd27864dfe)\n" ''
 [ "$(idx "$A")" = "$i0" ] || mismatch "case 10: the index changed"
 n=$(git -C "$A" ls-tree -r --name-only 5e0ec0a263096b090c7abdcfcd4c74cd27864dfe | grep -c '^\.test-output/keep\.txt$')
 [ "$n" = 1 ] || mismatch "case 10: the staged ignored file is not in the tree"
@@ -744,7 +744,7 @@ fresh
 add_sub
 parent=aebccb87d9e1aedcc385077ab8e7fb3c5fdd9d08
 run build "$A"
-expect "case 18, no flags" 0 "$(lines f08748ff8ea56abe2d0bcf8528357b7856f6a17a a6f2db975cb09e816d98b7ffc566a62a93000069)\n" ''
+expect "case 18, no flags" 0 "$(lines 040c8dd3cb7a8e45e9265001b527907f177ba605 a6f2db975cb09e816d98b7ffc566a62a93000069)\n" ''
 git -C "$A" update-index --skip-worktree README.md
 printf '%s\n' 'Local edit, not committed.' >> "$A/README.md"
 git -C "$A/sub" update-index --assume-unchanged s.txt
@@ -752,7 +752,7 @@ printf '%s\n' 'edit' >> "$A/sub/s.txt"
 run check "$A"
 expect "case 18, check" 0 '' ''
 run build "$A"
-expect "case 18, build" 0 "$(lines f08748ff8ea56abe2d0bcf8528357b7856f6a17a a6f2db975cb09e816d98b7ffc566a62a93000069)\nflagged README.md\nflagged sub/s.txt\n" ''
+expect "case 18, build" 0 "$(lines 040c8dd3cb7a8e45e9265001b527907f177ba605 a6f2db975cb09e816d98b7ffc566a62a93000069)\nflagged README.md\nflagged sub/s.txt\n" ''
 parent=0c23936980b254c4abd489d3ecfd296f5e7bc0db
 
 # 19. a checked-out submodule whose path git quotes (a DEL in the name), with its own
@@ -815,7 +815,7 @@ fresh
 git -C "$A" config core.autocrlf true
 printf 'one\ntwo\n' > "$A/notes/lf.txt"
 run build "$A"
-expect "case 20" 0 "head 439a2d83c3ce4f770ac61cd88234e4176e51027f\nparent 0c23936980b254c4abd489d3ecfd296f5e7bc0db\ntree b2943d241184d80d26a88e5e3534be7989c52dc0\nuntracked notes/deactivate-draft.txt\nuntracked notes/lf.txt\n" ''
+expect "case 20" 0 "head fbdbf98dc32c8b3ab8d7f13e458ee4f2c90e20eb\nparent 0c23936980b254c4abd489d3ecfd296f5e7bc0db\ntree b2943d241184d80d26a88e5e3534be7989c52dc0\nuntracked notes/deactivate-draft.txt\nuntracked notes/lf.txt\n" ''
 
 # 21. the object count is git's: a stray .git/objects/maintenance.lock or a tmp_obj file
 # in a real fan-out directory (ab; git warns about it on stderr) does not change it

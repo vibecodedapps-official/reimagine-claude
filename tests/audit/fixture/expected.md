@@ -161,7 +161,7 @@ Expected audit outcomes, each only when the stage that judges it completes:
 - With `manifest-scratch.json`, the run directory lands under `app/.test-output/audit/`.
 - With `manifest-working-tree.json`, stage 1 builds the head from the working tree
   (`working-tree.sh build $F/app`, with `GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1`):
-  head `1fcf8c53acc3f6e064fcb29ec0a05963b4949f2a`, parent
+  head `ba95cc541264a8b32917d14ba729ae9729f76aac`, parent
   `0c23936980b254c4abd489d3ecfd296f5e7bc0db`, tree
   `44cdf018ff3489bd74ad79d5cd4e74b76ff56773`, and one untracked file,
   `notes/deactivate-draft.txt`. The brief lists that file as untracked at audit time and
@@ -172,9 +172,9 @@ Expected audit outcomes, each only when the stage that judges it completes:
 
 ### Verdicts
 
-`git hash-object --no-filters $F/handoff.md` is `36b30bd89b131ec1eed669ab0a0c58bbc9c5aaa8`.
+`git hash-object --no-filters $F/handoff.md` is `1fb12a61bed320e07e48335abb48f9cb455d552e`.
 `claims-verdicts.md` holds one claims file heading,
-`## $F/handoff.md (handoff), hash 36b30bd89b131ec1eed669ab0a0c58bbc9c5aaa8`, and five
+`## $F/handoff.md (handoff), hash 1fb12a61bed320e07e48335abb48f9cb455d552e`, and five
 entries, each a main line with `ticket:`, `text:`, and `correction:` sub-lines (`ticket:` is
 `APP-1` in all five, the ticket field `handoff.sh claims` prints for each claim):
 
@@ -326,7 +326,7 @@ commit has more files.
 | `initial user records tool` (merge-base) | `6b27db42e063b1881b90f0b4c277d0a8ce2f3ab3` | solo's files plus `.gitattributes`, `config/settings.ini`, `src/export.sh`, `src/output.sh` |
 | `APP-1: add status column migration` | `909a5186760b952463e561b7b8ffa254fe9774fe` | `migrations/002_add_status.sh`, `tests/test_users.sh` |
 | `APP-1: add deactivate command` | `b56d1014729f12dc419e848564d5a908c93a4c67` | `src/users.sh`, `tests/test_users.sh` |
-| `add a count command` (main head) | `5a6d60c0a485e6a069f04e0f73f8dfedcb498ff2` | `README.md`, `src/users.sh` |
+| `add a count command` (main head) | `a561bd9df3fa1f989f70cbad1756a5988613802f` | `README.md`, `src/users.sh` |
 | `APP-3: paginate the user list` | `f543701150a8c73173285750243dec598fe9c998` | `config/settings.ini`, `src/output.sh`, `tests/test_output.sh` |
 | `APP-4: short export keys as an option` | `262fad8c7cc3f312ecf6a119259882a86bb0dd00` | `config/settings.ini`, `src/export.sh`, `src/output.sh` |
 | `APP-5: audit log for commands` (feature head) | `191e0ad183ea7509077bff3fd3b462d57d4b70e1` | `src/audit-log.sh`, `src/output.sh` |
