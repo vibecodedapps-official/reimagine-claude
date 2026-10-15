@@ -32,6 +32,21 @@ Hand-run checks for the suite. Each milestone adds its items. An item is `N. **T
 
 ## Record of runs
 
+### 2026-10-15: code review of the rules and loop milestones
+
+Windows 11 Pro 10.0.26200, Claude Code 2.1.300, Node 26.4.0, git 2.56.0. A `code-review` pass at level `xhigh` over the rules and loop plugins gave 15 findings. Each script fix below has a test that failed before the fix and passes after it; each skill text fix was checked by reading, and only those named carry a text test.
+
+- **Defect, fixed: remove joined two user lines.** A block with user text below it, a blank join the user had deleted, or a blank-joined block at the end of the file lost a line break on remove (commit `fix(rules): never join two user lines when removing a block`). Test: R31.
+- **Defect, fixed: remove deleted a file holding the user's lines.** A block edited by hand planned as a plain removal, and apply deleted the created file with no backup. remove now reports `edited` and plans no change (commit `fix(rules): refuse to remove a block the user edited`). Tests: R31, and R29 with R31 in a sandbox.
+- **Defect, fixed: adopt failed off Windows for a block holding the windows option.** The skill passed the plan's options line back as `--options` (commit `fix(rules): adopt passes only the options the user gave`). A text test on the skill's adopt line failed before and passes after; a sandbox test shows the command the skill now runs works on Linux, and it passes on both trees.
+- **Defect, fixed: a wildcard allow rule pre-approved a commit.** In default permission mode, in a throwaway repository, `git -C <repo> -c user.email=x@example.com -c user.name=x commit --allow-empty -m "fix the status line"` ran unprompted under `--allowedTools "Bash(git -C * status *)"` and was denied under `Bash(git -C * diff *)` and with no rule. The `git -C` forms are dropped (commit `fix(loop): pre-approve no git command with a wildcard before its end`). Test: R59.
+- **Defects, fixed in the skill text, not run:** the branch rule is in SKILL.md, where the reading block can use it (text test); a question after Step 3.7 compares with a snapshot instead of needing a clean tree; `gh api` names an additional repository in its endpoint; a plan-only run never switches the checkout, and the switch waits for the checks that can end the run; `comment-<n>.md` counts comments apart from the pull request number; an effort word counts only as its own phrase; and the deploy check reads the pushed commit's workflows as well as the default branch's, with R56 changed to match.
+- **Open, for the idempotency milestone:** record.md has no "An existing record" section; a predicted branch changes when tickets are added or reordered; Step 7.2 never edits the body of a pull request this loop opened, against R91; `commit: true` points at rules record.md does not hold.
+- **Open, not fixed:** `Bash(git diff *)` also allows `git diff --output=<file>`, which writes a file.
+- **Finding: the R30 lock test is flaky on Windows.** `R30: two applies started at once are serialized` failed with `EPERM` on the lock directory in 1 of 20 runs on an export of `main` before these fixes, and in 2 further runs during them.
+- **npm test passed on Windows.** 134 tests, 128 passed, 6 skipped, exit 0.
+- **Validation passed.** `claude plugin validate --strict` exit 0 for `plugins/loop` and for `plugins/rules`.
+
 ### 2026-10-15: rules milestone, interactive
 
 Windows 11 Pro 10.0.26200, Claude Code 2.1.296, Node 26.4.0. Sessions run by hand on a logged-in scratch profile that started with no `CLAUDE.md`, with a byte copy of `plugins/rules` loaded through `--plugin-dir`, in the order 2, 4, 6, 5, 3. Items 4 and 6 each appended one line to `rules/core.md` in the copy, so item 3 ran against a shipped text of 35 rules.
