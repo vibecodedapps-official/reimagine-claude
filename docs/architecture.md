@@ -222,35 +222,36 @@ The record is keyed by branch, not by run, so a second invocation finds it:
   audit-manifest.json
   pre-<n>.status, pre-<n>.patch, pre-<n>.hashes   snapshots before implementer calls
   diff.patch, diff-<slug>.patch                   review patches
-  pr-body.md, comment-<n>.md, ticket-<id>.md      never committed
+  pr-body.md, comment-<n>.md, ticket-<id>.md      never committed; per-run names take -run<n> from run 2 on
 ```
 
-`<branch-slug>` is the branch name lowercased with each run of characters outside `[a-z0-9]` replaced by `-`, at most 60 characters; `steps.json` keeps the exact branch name, and a record whose branch differs from the run's is a collision that ends preflight `blocked`. The branch is known at preflight: the continued branch, the "on branch" name, or the predicted `fix/<ids>-<slug>`, `feat/<ids>-<slug>` or `work/<slug>`. `.reimagine/` is excluded through `.git/info/exclude` so that a run that commits nothing leaves the tree clean (verified, spike 7).
+`<branch-slug>` is the branch name lowercased with each run of characters outside `[a-z0-9]` replaced by `-`, at most 60 characters; `steps.json` keeps the exact branch name, and a record whose branch differs from the run's is a collision that ends preflight `blocked`. The branch is known at preflight: the continued branch, the "on branch" name, the branch of the one existing record whose `tickets` list holds one of the request's tickets, or the predicted `fix/<ids>-<slug>`, `feat/<ids>-<slug>` or `work/<slug>`. `.reimagine/` is excluded through `.git/info/exclude` so that a run that commits nothing leaves the tree clean (verified, spike 7).
 
 `steps.json`:
 
 ```json
 {
   "branch": "feat/68-4567-export",
+  "tickets": ["github:owner/app#68", "ado:org/project#4567"],
   "runs": [
     { "n": 1, "started": "2026-10-14T18:02:11Z", "ended": "2026-10-14T19:40:02Z", "state": "done", "pr": "github:owner/app#73" },
     { "n": 2, "started": "2026-10-15T09:00:40Z", "ended": null, "state": "running" }
   ],
   "steps": {
-    "0": { "status": "complete", "run": 2, "started": "...", "ended": "...", "inputs": { "inputs.md": "<hash>", "base": "<sha>" }, "outputs": ["inputs.md", "run.md"] },
-    "2": { "status": "complete", "run": 2, "inputs": { "plan.md": "<hash>" }, "outputs": ["plan.md"] },
-    "4": { "status": "running", "run": 2, "slices": { "export-api": { "status": "complete", "commit": "<sha>" }, "docs": { "status": "running" } } }
+    "0": { "status": "complete", "run": 2, "started": "...", "ended": "...", "inputs": { "base": "<sha>", "head": "<sha>" }, "outputs": ["inputs.md", "run.md"] },
+    "1": { "status": "complete", "run": 1, "inputs": { "github:owner/app#68": "2026-10-14T17:55:02Z" }, "outputs": ["inputs.md"] },
+    "4": { "status": "running", "run": 2, "slices": { "export-api": { "status": "complete", "run": 1, "tickets": ["github:owner/app#68"], "commit": "<sha>" }, "export-docs": { "status": "running", "run": 2, "tickets": ["ado:org/project#4567"] } } }
   }
 }
 ```
 
-An entry is written `running` with its input hashes when the step starts and `complete` only after its outputs exist, through a temporary file and a rename. It is the only record of completion; `run.md` is the narrative.
+An entry is written `running` with its inputs when the step starts and `complete` only after its outputs exist, through a temporary file and a rename. It is the only record of completion; `run.md` is the narrative. Inputs are file hashes and shas, except that Steps 1 and 2 record each open input's version (`updatedAt` of a GitHub issue, `rev` of an Azure DevOps work item, `SystemModstamp` of a Salesforce case, the hash of a file or a description), since `inputs.md` gains a section every run and its hash would never match. `pr` is written only by the run that opened the pull request, so a later run edits only a body this loop wrote.
 
 A run on an existing record:
 
-- Preflight fetches the branch with the explicit refspec when it exists on the remote (a branch left by a `prepared` run may be local only), fast-forwards when the local tip is at or behind the remote head, lists `git log <merge-base>..HEAD`, marks each commit as its own (named in `run.md`) or foreign, writes the foreign commits to `inputs.md`, and marks tickets done by their recorded closing commit.
+- Preflight finds the record by ticket id or by the predicted branch, fetches the branch with the explicit refspec when it exists on the remote (a branch left by a `prepared` run may be local only, and one left by a plan-only run may exist nowhere), fast-forwards when the local tip is at or behind the remote head, lists `git log <merge-base>..HEAD`, marks each commit as its own (named in `run.md`) or foreign, writes the list to `inputs.md`, and marks tickets done when every slice serving them has its commit on the branch.
 - Steps whose inputs are unchanged and whose outputs exist are reused. Slices with a closing commit on the branch are not rebuilt.
-- Same tickets and no open slice: step 6 verifies the checks, the report is rewritten, nothing is committed or posted, state `done`.
+- Same tickets and no open slice: step 6 verifies the checks, the report is rewritten, nothing is committed or posted, state `done`. A ticket done at preflight gets no ticket comment in any run.
 - New tickets: slices are appended to `plan.md`, which is reviewed again; the new slices are built and reviewed; the whole diff from the merge-base goes through step 5; step 7 pushes, updates the body of the pull request this loop opened with `gh pr edit --body-file` (once per run), posts one comment per run, and comments on the new tickets. A pull request the loop did not open gets a comment only; its body is never edited.
 - An interrupted run resumes at the first step whose entry is not `complete` or whose inputs changed, after the tree is rechecked.
 - The loop never force pushes, rebases, resets or amends; before every push it compares the remote head with what preflight fetched and ends `blocked` if it moved; a dirty tree ends preflight `blocked`.
