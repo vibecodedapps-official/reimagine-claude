@@ -40,7 +40,7 @@ Closing rules:
 
 ## Continued pull request comment
 
-Use this when the branch has one open pull request. Its body is never edited. Write the comment to `comment-<n>.md` with the sections of the body template above, with `## Closes` replaced by:
+Use this when the branch has one open pull request. Its body is never edited. Write the comment to `comment-<n>.md`, numbered as `record.md` says, with the sections of the body template above, with `## Closes` replaced by:
 
 ```
 ## Issues

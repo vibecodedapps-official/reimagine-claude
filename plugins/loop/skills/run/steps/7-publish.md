@@ -12,7 +12,7 @@ Publication runs only when all of these hold:
 - The host is `github`. On any other host the run ends `prepared` with the push command.
 - The request has no "do not publish".
 
-When publication does not run, the run ends `prepared`. Before it ends, write the body for the publish commands the report gives. With one open pull request on the branch, read `pr-body.md` and write the continued pull request comment to `<record>/comment-<n>.md`, so the report can give the `gh pr comment <n> --body-file <absolute path>` command. With no pull request, write the pull request body to `<record>/pr-body.md`, so the report can give the `gh pr create` command.
+When publication does not run, the run ends `prepared`. Before it ends, write the body for the publish commands the report gives. With one open pull request on the branch, read `pr-body.md` and write the continued pull request comment to `<record>/comment-<n>.md`, numbered as `record.md` says, so the report can give the `gh pr comment <pr> --body-file <absolute path>` command. With no pull request, write the pull request body to `<record>/pr-body.md`, so the report can give the `gh pr create` command.
 
 A question about a commit, a push or a pull request, raised because an ask-first rule applies, ends the run `prepared` when the answer before any push is anything but a clear yes. The same answer after the run's first push ends `blocked` and the pushed work stays as it is.
 
@@ -51,9 +51,9 @@ Add `--head <branch>` on a continued branch. The title is the single ticket's ti
 
 A pull request opened on a continued branch lists, under "Decisions for the reviewer", the commits that were on the branch before the run (the foreign commits from `inputs.md`) and says they were reviewed as part of this run's diff.
 
-**One open pull request on the branch.** Read `pr-body.md`, write the continued pull request comment from its `## Continued pull request comment` template to `<record>/comment-<n>.md`, and post it after the push:
+**One open pull request on the branch.** Read `pr-body.md`, write the continued pull request comment from its `## Continued pull request comment` template to `<record>/comment-<n>.md`, numbered as `record.md` says, and post it after the push:
 
-`gh pr comment <n> --body-file <absolute path to comment-n.md>`
+`gh pr comment <pr> --body-file <absolute path to comment-<n>.md>`, where `<pr>` is the pull request number.
 
 Never edit the body of that pull request. Record it as `runs[].pr`.
 

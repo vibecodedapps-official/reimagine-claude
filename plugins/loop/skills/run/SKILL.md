@@ -150,7 +150,7 @@ Every run ends in exactly one state.
 
 - `done`: the pull request is open, CI is green or not applicable, and the report is written.
 - `plan-only`: the plan was reviewed and nothing in the tree changed, or a plan confirmation was not answered with a clear yes.
-- `prepared`: every step through 6 is complete and publication is withheld before any push. Print the exact commands: `git add <paths>`, `git commit`, `git push -u <remote> <branch>` and `gh pr create --title "<title>" --body-file <absolute path>`. For a continued branch with one open pull request, print `gh pr comment <n> --body-file <absolute path>` in place of the last. On a non-GitHub host, add a note that the pull request is opened with the host's own tooling. With several repositories, give the set per repository with `git -C <path>`.
+- `prepared`: every step through 6 is complete and publication is withheld before any push. Print the exact commands: `git add <paths>`, `git commit`, `git push -u <remote> <branch>` and `gh pr create --title "<title>" --body-file <absolute path>`. For a continued branch with one open pull request, print `gh pr comment <pr> --body-file <absolute path>` in place of the last. On a non-GitHub host, add a note that the pull request is opened with the host's own tooling. With several repositories, give the set per repository with `git -C <path>`.
 - `blocked`: a blocking defect, a denied permission, a budget exceeded, or a preflight failure. After `blocked` nothing more is published; pushed work stays and is linked.
 - `stopped`: a question the run cannot decide, before any branch is created.
 

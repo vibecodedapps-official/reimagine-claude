@@ -26,7 +26,7 @@ All names are relative to the record directory. Times in every file are copied f
 | `pre-<n>.status`, `pre-<n>.patch`, `pre-<n>.hashes` | Before every implementer or fix call, and before a question from Step 3.7 on | `git status`, a patch and file hashes of the checkout, for restoring after a failed call and for comparing after a reply. `<n>` is unique across checkouts |
 | `diff.patch`, `diff-<slug>.patch` | Before a review that reads a patch | The review patch of the primary checkout, and of an additional repository named by `<slug>` |
 | `pr-body.md`, `pr-body-<slug>.md` | Step 7.2 | The pull request body, and the body for an additional repository |
-| `comment-<n>.md` | Step 7 | The text of the pull request comment, one per comment |
+| `comment-<n>.md` | Step 7 | The text of the pull request comment, one per comment. `<n>` is one more than the highest number among the record's `comment-*.md` files, or 1 when there is none |
 | `ticket-<id-slug>.md` | Step 7.4 | The status comment text for one ticket |
 | `text-<k>.md` | Step 0.5 | One ad-hoc description, `<k>` numbered from 1 across runs, so the handoff can name it |
 
