@@ -1,0 +1,28 @@
+{
+  "name": "reimagine-claude",
+  "owner": { "name": "vibecodedapps.net" },
+  "metadata": {
+    "description": "A suite of Claude Code plugins: house rules, a ticket-to-pull-request loop, and a read-only audit of finished pull requests. Prerelease catalog of the built plugins.",
+    "version": "0.1.0-alpha.1"
+  },
+  "plugins": [
+    {
+      "name": "rules",
+      "source": "./plugins/rules",
+      "description": "House rules for Claude Code sessions: one block in your CLAUDE.md, kept current, plus the Concise Plain output style.",
+      "version": "0.1.0-alpha.1"
+    },
+    {
+      "name": "loop",
+      "source": "./plugins/loop",
+      "description": "Plan, build, review and publish a bundle of tickets as one reviewed pull request per repository, resuming on the same branch when run again.",
+      "version": "0.1.0-alpha.1"
+    },
+    {
+      "name": "audit",
+      "source": "./plugins/audit",
+      "description": "A read-only, adversarial audit of finished pull requests that stops at a report, with an act step that commits approved items.",
+      "version": "0.1.0-alpha.1"
+    }
+  ]
+}
