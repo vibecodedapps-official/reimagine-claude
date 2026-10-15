@@ -37,6 +37,8 @@ An alpha updates to 0.1.0 with `/plugin update <name>@reimagine-claude` once tha
 
 ## Install
 
+The blocks in this section and the two below are the 0.1.0 form; until then only the three plugins the alpha section names are in the catalog.
+
 ```
 /plugin marketplace add vibecodedapps-official/reimagine-claude
 /plugin install rules@reimagine-claude
