@@ -6,7 +6,7 @@ These texts are published. Name the activity and the date, never a model, an age
 
 ## Pull request body
 
-Write the body to `pr-body.md` in the record (`pr-body-<slug>.md` for an additional repository) with these sections, in this order:
+Write the body to the run's body file in the record: `pr-body.md`, or `pr-body-<slug>.md` for an additional repository, each with the suffix `-run<n>` from run 2 on (`record.md`, Files). On a continued branch whose pull request this loop opened, the body covers every input of every run of the record. It has these sections, in this order:
 
 ```
 ## What changed
@@ -40,7 +40,7 @@ Closing rules:
 
 ## Continued pull request comment
 
-Use this when the branch has one open pull request. Its body is never edited. Write the comment to `comment-<n>.md`, numbered as `record.md` says, with the sections of the body template above, with `## Closes` replaced by:
+Use this when the branch has one open pull request: after the body edit when this loop opened the pull request, and alone when it did not, since a body this loop did not write is never edited. The comment covers this run's work. Write it to `comment-<n>.md`, numbered as `record.md` says, with the sections of the body template above, with `## Closes` replaced by:
 
 ```
 ## Issues
@@ -52,7 +52,7 @@ One line per ticket. End the comment with the sentence "The pull request's own b
 
 ## Ticket comment
 
-Write one comment per ticket per run to `ticket-<id-slug>.md`:
+Write one comment for each ticket this run took up to `ticket-<id-slug>.md` (`ticket-<id-slug>-run<n>.md` from run 2 on):
 
 ```
 Status from the loop run on <branch>: <complete | partial | blocked>

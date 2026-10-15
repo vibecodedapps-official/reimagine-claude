@@ -25,7 +25,7 @@ The primary is the session's repository, or its worktree when Step 0.3 made one.
 **Step 7.** Publish one pull request per repository with a diff, each on its own branch and base:
 
 - Write each body with "Related pull requests" set to "pending". Write the primary's to `pr-body.md` and each other to `pr-body-<slug>.md`.
-- When every pull request is open, edit each body this loop opened once, to fill in the sibling links: `gh pr edit <n> --body-file <absolute path>`.
+- When every pull request is open, edit each body this loop opened once, to fill in the sibling links: `gh pr edit <n> --body-file <absolute path>`. On a continued branch whose pull request this loop opened, that edit and Step 7.2's body update are one edit, written with the sibling links.
 - `done` needs every pull request green.
 - A block in any repository stops publication in all. The one exception is the sibling-link edit of a pull request this run already opened.
 - Closing references appear only in the ticket's own repository, as `pr-body.md` says.

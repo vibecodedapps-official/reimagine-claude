@@ -4,7 +4,7 @@ Read this file at the start of Step 7. `<checkout>` is the primary repository's 
 
 ## Opening
 
-Take `date -u +%Y-%m-%dT%H:%M:%SZ` now and copy the output into `run.md`. Write the `7` entry `running` in steps.json with its input hashes.
+Take `date -u +%Y-%m-%dT%H:%M:%SZ` now and copy the output into `run.md`. Apply `record.md`, Reuse and resume: a reused Step 7 is not run. Otherwise write the `7` entry `running` in steps.json with its inputs (`plan.md` and `head`).
 
 Publication runs only when all of these hold:
 
@@ -12,19 +12,21 @@ Publication runs only when all of these hold:
 - The host is `github`. On any other host the run ends `prepared` with the push command.
 - The request has no "do not publish".
 
-When publication does not run, the run ends `prepared`. Before it ends, write the body for the publish commands the report gives. With one open pull request on the branch, read `pr-body.md` and write the continued pull request comment to `<record>/comment-<n>.md`, numbered as `record.md` says, so the report can give the `gh pr comment <pr> --body-file <absolute path>` command. With no pull request, write the pull request body to `<record>/pr-body.md`, so the report can give the `gh pr create` command.
+When publication does not run, the run ends `prepared`. Before it ends, write the body for the publish commands the report gives. With one open pull request on the branch, read `pr-body.md` and write the continued pull request comment to `<record>/comment-<n>.md`, numbered as `record.md` says, so the report can give the `gh pr comment <pr> --body-file <absolute path>` command; when this loop opened that pull request (7.2), also write the run's body file, so the report can give the `gh pr edit <pr> --body-file <absolute path>` command before it. With no pull request, write the pull request body to the run's body file, so the report can give the `gh pr create` command.
 
 A question about a commit, a push or a pull request, raised because an ask-first rule applies, ends the run `prepared` when the answer before any push is anything but a clear yes. The same answer after the run's first push ends `blocked` and the pushed work stays as it is.
 
 ## 7.1 Commit
 
-Commit the work of each slice whose closing commit is not yet on the branch, one commit per slice, and record each sha as the slice's `commit` in steps.json.
+Commit the work of each slice whose closing commit is not yet on the branch, one commit per slice, and record each sha as the slice's `commit` in steps.json. Log each commit's full sha and subject in `run.md`; a later run tells the loop's own commits from foreign ones by these lines.
 
 - Write the message as `type(scope): subject`, lowercase, with a body that says why the change was made. When the repository's instruction files set another form, follow them.
 - Write a bare `@token` in backticks.
 - Name no model, no agent type and no tool, in the subject or the body. Type no attribution trailer.
 - Stage paths by name only. Never run `git add -A` or `git add .`.
 - Before each commit run `git -C <checkout> diff --cached --name-only` and confirm the list is exactly the slice's paths and holds nothing under `.reimagine/`. Unstage anything else with `git -C <checkout> restore --staged <path>`.
+
+With `.reimagine.json` `commit: true`, commit the snapshot after the slice commits and before the first push, as `record.md`, Commit snapshot, says. Its staged list is exactly its two paths.
 
 After the run's first push returns, commit only CI repairs (item 5 of Step 7.3).
 
@@ -43,19 +45,21 @@ For a continued branch, also run Step 0.2's pull request query again before the 
 
 Push with `git -C <checkout> push -u <remote> <branch>`. When it returns, take `date -u +%Y-%m-%dT%H:%M:%SZ`, run `git -C <checkout> rev-parse HEAD`, and keep both as the last push time and the last pushed sha. Do the same after every later push.
 
-**No open pull request on the branch.** Read `pr-body.md`. Write the body from its `## Pull request body` template to `<record>/pr-body.md`. Open the pull request against the default branch:
+**No open pull request on the branch.** Read `pr-body.md`. Write the body from its `## Pull request body` template to the run's body file: `<record>/pr-body.md`, or `<record>/pr-body-run<n>.md` from run 2 on (`record.md`, Files). Open the pull request against the default branch:
 
-`gh pr create --title "<title>" --body-file <absolute path to pr-body.md> --base <default>`
+`gh pr create --title "<title>" --body-file <absolute path to the body file> --base <default>`
 
 Add `--head <branch>` on a continued branch. The title is the single ticket's title, or the plan's one-line summary when there are several inputs, at most 70 characters. Record the pull request in steps.json as `runs[].pr`, in the form `github:<owner>/<repo>#<n>`, from the url `gh pr create` prints.
 
-A pull request opened on a continued branch lists, under "Decisions for the reviewer", the commits that were on the branch before the run (the foreign commits from `inputs.md`) and says they were reviewed as part of this run's diff.
+A pull request opened on a continued branch lists, under "Decisions for the reviewer", the commits that were on the branch before the run (the Branch state list in this run's section of `inputs.md`, own and foreign) and says they were reviewed as part of this run's diff.
 
-**One open pull request on the branch.** Read `pr-body.md`, write the continued pull request comment from its `## Continued pull request comment` template to `<record>/comment-<n>.md`, numbered as `record.md` says, and post it after the push:
+**One open pull request on the branch.** It is this loop's own when a `runs` entry in `steps.json` names it in `pr` (`record.md`, steps.json, item 2). Read `pr-body.md`. After the push, with `<pr>` the pull request number:
 
-`gh pr comment <pr> --body-file <absolute path to comment-<n>.md>`, where `<pr>` is the pull request number.
+1. When it is this loop's own, update its body once in this run. Write the body for the whole branch from the `## Pull request body` template, covering every input of every run of the record, to the run's body file, and run `gh pr edit <pr> --body-file <absolute path>`. This is the run's only edit of that body; in a multi-repository run it also carries the sibling links (`multi-repo.md`).
+2. Write the continued pull request comment from the `## Continued pull request comment` template to `<record>/comment-<n>.md`, numbered as `record.md` says, and post it: `gh pr comment <pr> --body-file <absolute path to comment-<n>.md>`. This is the run's one comment on the pull request. Under `commit: true` post none here: the report comment at `done` is that one comment (`record.md`, Commit snapshot).
+3. When it is not this loop's own, the comment is all: never edit its body.
 
-Never edit the body of that pull request. Record it as `runs[].pr`.
+Write no `runs[].pr` for a pull request this run did not open. Log in `run.md` the pull request, the body edit and the comment, with their files.
 
 Every `--body-file` is an absolute path.
 
@@ -75,9 +79,9 @@ At most three cycles run. A result still red after the third, or a repair the ro
 
 ## 7.4 Ticket comments
 
-After the pull request is open and 7.3 has ended without a block (green, or not applicable), post one status comment per ticket per run. Read the `## Ticket comment` template in `pr-body.md` and write each body first.
+After the pull request is open and 7.3 has ended without a block (green, or not applicable), post one status comment for each ticket this run took up. A ticket that was done at Step 0 (`record.md`, An existing record) gets no comment. Read the `## Ticket comment` template in `pr-body.md` and write each body first.
 
-- GitHub: write the body to `<record>/ticket-<id-slug>.md` and post `gh issue comment <n> --body-file <absolute path>`.
+- GitHub: write the body to `<record>/ticket-<id-slug>.md` (`ticket-<id-slug>-run<n>.md` from run 2 on) and post `gh issue comment <n> --body-file <absolute path>`.
 - Azure DevOps: use the Azure DevOps MCP tool when one is listed, else `az boards work-item update --id <n> --discussion "<text>"`, reading the text from a file when quoting fails.
 - Salesforce: use the Salesforce MCP tool when one is listed.
 - A host with no tool: put the comment text in the report instead of posting.

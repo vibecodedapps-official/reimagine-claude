@@ -2,7 +2,7 @@
 
 Read this file at the start of Step 1. It holds the reviewer request (used by Step 3 and by Step 5), Step 1, Step 2 and Steps 3.1 to 3.5. A plan-only run reads no step file after it.
 
-At the start of each of Steps 1, 2 and 3, run `date -u +%Y-%m-%dT%H:%M:%SZ` and copy the output. Write that step's `steps.json` entry with status `running`, the start time and the hashes of its inputs (`git hash-object --no-filters <file>`): Step 1 hashes `inputs.md`, Step 2 hashes `inputs.md`, Step 3 hashes `plan.md`. Write the entry `complete`, with the end time from a fresh `date`, only when its outputs exist: `inputs.md` for Step 1, `plan.md` for Step 2 and Step 3. Every write goes to `steps.json.tmp` and then a plain `mv` over `steps.json`, as `record.md` says. Log each step in `run.md`.
+At the start of each of Steps 1, 2 and 3, run `date -u +%Y-%m-%dT%H:%M:%SZ` and copy the output. Then apply `record.md`, Reuse and resume: a reused step is not run, and its entry stays as it is. Otherwise write that step's `steps.json` entry with status `running`, the start time and its inputs as `record.md`, steps.json, item 5, lists them: for Steps 1 and 2 the version of each input the step takes up, for Step 3 the hash of `plan.md` (`git hash-object --no-filters <file>`). Write the entry `complete`, with the end time from a fresh `date`, only when its outputs exist: `inputs.md` for Step 1, `plan.md` for Step 2 and Step 3. Every write goes to `steps.json.tmp` and then a plain `mv` over `steps.json`, as `record.md` says. Log each step in `run.md`.
 
 ## Reviewer request
 
@@ -27,7 +27,7 @@ On a model or tool error, retry once at the `fallback-reviewer` model (`opus` un
 
 ## Step 1: review and verify the inputs
 
-1.1 Read every input in full: each ticket as fetched, each file, each text.
+1.1 Read every input in full: each ticket as fetched, each file, each text. On an existing record, Step 1 takes up only the open inputs (`record.md`, An existing record); a done input keeps the notes of the run that verified it.
 
 1.2 Repository gate. Run it on the inputs alone, before you verify any claim. A candidate is an absolute path in the inputs that, after you strip trailing `,` `.` `;` `:` `)` and quotes and accept either separator, is an existing directory or file (a file maps to its parent directory) where `git -C <dir> rev-parse --show-toplevel` succeeds. The candidate is that toplevel. These are not candidates: a path inside the primary repository, a submodule of the primary (listed in `.gitmodules`), and a path the request already names with "also edit". Flag a candidate only when the inputs ask to change it.
 
@@ -48,7 +48,9 @@ Never adopt multi-repository scope from prose alone. The gate stays in force for
 
 ## Step 2: plan
 
-Write `plan.md`. For each input: scope, acceptance criteria and buildable status. Across the inputs: shared changes, migrations and API changes, tests, checks, the order of work, and the slices. For each slice: the files it owns (created files included), the change, the criteria it serves, the tests, the checks, and the implementer (`sonnet`, or the `implementer` model of `.reimagine.json`).
+Write `plan.md`. For each input: scope, acceptance criteria and buildable status. Across the inputs: shared changes, migrations and API changes, tests, checks, the order of work, and the slices. For each slice: the files it owns (created files included), the inputs it serves by their normalized ids (`record.md`, steps.json, item 1), the change, the criteria it serves, the tests, the checks, and the implementer (`sonnet`, or the `implementer` model of `.reimagine.json`).
+
+On an existing record, leave the sections of `plan.md` as they are and append a section `## Run <n> slices` holding the open inputs' scope, criteria and buildable status, their slices, and what the parts across inputs gain from them. A prior run's open slice stays in its own section and is built in this run. A slice name is never used twice in one record.
 
 Slice count is a property of the plan. Split when parts touch disjoint files and one agent would otherwise carry more than one area, or more than one subagent budget of work. Never split work that shares a file; slices own disjoint files. The order of work says which slices are independent and may run in parallel.
 
@@ -58,7 +60,7 @@ A plan that needs a writable checkout outside the scope ends `blocked`, as 1.2 s
 
 ## Step 3: plan review
 
-3.1 Send the plan to the plan reviewer with the reviewer request above.
+3.1 Send the plan to the plan reviewer with the reviewer request above. On an existing record, send the whole plan and name this run's section as the part to review; the review log goes after that section.
 
 3.2 Verify each objection against the code, the blocking and the non-blocking ones. The reviewer can be wrong.
 

@@ -118,7 +118,7 @@ For `prepared`, also give the branch, the commit state, and the exact commands i
 1. `git add <paths>`
 2. `git commit`
 3. `git push -u <remote> <branch>`
-4. `gh pr create --title "<title>" --body-file <absolute path of pr-body.md>`; for a continued branch with one open pull request, `gh pr comment <pr> --body-file <absolute path>` instead; on a non-GitHub host, the note that the pull request opens with that host's own tooling.
+4. `gh pr create --title "<title>" --body-file <absolute path of the body file>`; for a continued branch with one open pull request, `gh pr comment <pr> --body-file <absolute path>` instead, preceded by `gh pr edit <pr> --body-file <absolute path of the body file>` when this loop opened that pull request; on a non-GitHub host, the note that the pull request opens with that host's own tooling.
 
 ### Log
 
@@ -130,7 +130,7 @@ The implementer per slice and its model; the rounds used per step; the CI repair
 - Name every reviewer swap. Give each rejected finding with its reason. Give each baseline match with its evidence.
 - For `plan-only`, the What changed, Checks and Blocked sections say `not run`, and the plan path is given.
 - For `blocked` and `stopped`, nothing is published after the state.
-- The report may name models, agents and tools, because it stays in the record. Anything posted from it follows the external form in `record.md`.
-- With `commit: true`, `record.md` says which sections the posted form keeps.
+- The report may name models, agents and tools, because it stays in the record. Anything posted from it follows the external form in `record.md`, Commit snapshot.
+- With `commit: true`, `record.md`, Commit snapshot, says which sections the posted form keeps.
 
 Return to Final report handling in SKILL.md.
