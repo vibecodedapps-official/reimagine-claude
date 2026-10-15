@@ -197,6 +197,9 @@ Unknown keys and bad values are reported and ignored. A file that does not parse
 
 The record lives at `.reimagine/loop/<branch-slug>/` in the primary repository's original checkout, keyed by branch so a second invocation finds it. `steps.json` is the only record of completion. `record.md` holds the layout, the files and the rules; read it at Step 0.5.
 
+1. `<branch-slug>` is the branch name lowercased, with each run of characters outside `[a-z0-9]` replaced by `-`, cut to at most 60 characters, then trailing `-` removed. For `feat/68-4567-export` it is `feat-68-4567-export`.
+2. The branch is known at preflight. It is the continued branch; else the "on branch" name; else the predicted name: `fix/<ids>-<slug>` when any ticket is labeled bug or titled "fix" (any case), else `feat/<ids>-<slug>` when there is a ticket, else `work/<slug>`. `<ids>` are the ticket numbers joined with `-`. `<slug>` comes from the first ticket's title, else the redacted description, else the file name, made mechanically so every run predicts the same name: lowercase it, replace each run of characters outside `[a-z0-9]` with `-`, drop `-` at both ends, keep the first 40 characters even when that cuts a word, then drop a trailing `-`. For the title "count() should accept an optional predicate" the slug is `count-should-accept-an-optional-predicat`. A predicted name that matches an existing local or remote branch with no record ends preflight `blocked`.
+
 ## Final report handling
 
 At every terminal state:

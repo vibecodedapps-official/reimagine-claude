@@ -44,6 +44,11 @@ test('the SKILL.md core stays within 5800 words', () => {
   assert.ok(words <= 5800, `SKILL.md has ${words} words`);
 });
 
+test('the SKILL.md core holds the branch prediction rule and its slug example', () => {
+  assert.ok(SKILL.includes('count-should-accept-an-optional-predicat'));
+  assert.ok(SKILL.includes('`fix/<ids>-<slug>`'));
+});
+
 test('R59: every Bash rule in allowed-tools has at most one *, and only at its end', () => {
   const frontmatter = SKILL.match(/^---\n([\s\S]*?)\n---\n/)[1];
   const rules = frontmatter.split('\n').map((line) => line.match(/^\s*-\s*Bash\((.*)\)\s*$/)).filter(Boolean).map((m) => m[1]);
