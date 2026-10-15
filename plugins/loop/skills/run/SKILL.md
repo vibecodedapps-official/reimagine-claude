@@ -86,7 +86,7 @@ Scope: primary C:/src/app; also edit C:/src/app-infra
 Effort: thorough (reviewers at high; risk floor not yet judged)
 ```
 
-Each ticket names how it resolved: `gh`, `az boards`, `mcp:<tool>`, `file`, `text`. Mode is one of `build and publish`, `plan only`, `build without publishing`, plus `; continue branch <b>` and `; confirm the plan` when they apply. A pull request reference, "continue <branch>", or an existing record for the predicted branch (Step 0 finds it) makes the run a continuation. The Effort line names the word you read, or `default` when there is none. The block has no length cap.
+Each ticket names how it resolved: `gh`, `az boards`, `mcp:<tool>`, `file`, `text`. Mode is one of `build and publish`, `plan only`, `build without publishing`, plus `; continue branch <b>` and `; confirm the plan` when they apply. A pull request reference, "continue <branch>", or an existing record (Step 0 finds it by ticket id or by the predicted branch) makes the run a continuation. The Effort line names the word you read, or `default` when there is none. The block has no length cap.
 
 After the block, read `steps/0-preflight.md` and start Step 0.
 
@@ -198,7 +198,7 @@ Unknown keys and bad values are reported and ignored. A file that does not parse
 The record lives at `.reimagine/loop/<branch-slug>/` in the primary repository's original checkout, keyed by branch so a second invocation finds it. `steps.json` is the only record of completion. `record.md` holds the layout, the files and the rules; read it at Step 0.5.
 
 1. `<branch-slug>` is the branch name lowercased, with each run of characters outside `[a-z0-9]` replaced by `-`, cut to at most 60 characters, then trailing `-` removed. For `feat/68-4567-export` it is `feat-68-4567-export`.
-2. The branch is known at preflight. It is the continued branch; else the "on branch" name; else the predicted name: `fix/<ids>-<slug>` when any ticket is labeled bug or titled "fix" (any case), else `feat/<ids>-<slug>` when there is a ticket, else `work/<slug>`. `<ids>` are the ticket numbers joined with `-`. `<slug>` comes from the first ticket's title, else the redacted description, else the file name, made mechanically so every run predicts the same name: lowercase it, replace each run of characters outside `[a-z0-9]` with `-`, drop `-` at both ends, keep the first 40 characters even when that cuts a word, then drop a trailing `-`. For the title "count() should accept an optional predicate" the slug is `count-should-accept-an-optional-predicat`. A predicted name that matches an existing local or remote branch with no record ends preflight `blocked`.
+2. The branch is known at preflight. It is the continued branch; else the "on branch" name; else the branch of the one existing record that holds one of the request's tickets, which Step 0.2 finds by ticket id, so adding or reordering tickets keeps the branch; else the predicted name: `fix/<ids>-<slug>` when any ticket is labeled bug or titled "fix" (any case), else `feat/<ids>-<slug>` when there is a ticket, else `work/<slug>`. `<ids>` are the ticket numbers joined with `-`. `<slug>` comes from the first ticket's title, else the redacted description, else the file name, made mechanically so every run predicts the same name: lowercase it, replace each run of characters outside `[a-z0-9]` with `-`, drop `-` at both ends, keep the first 40 characters even when that cuts a word, then drop a trailing `-`. For the title "count() should accept an optional predicate" the slug is `count-should-accept-an-optional-predicat`. A predicted name that matches an existing local or remote branch with no record ends preflight `blocked`.
 
 ## Final report handling
 
@@ -216,10 +216,10 @@ Read each file at its point and not before. A sentence that only says where a la
 
 - `steps/0-preflight.md`: after the reading block.
 - `steps/1-plan.md`: at the start of Step 1.
-- `steps/4-build.md`: when Step 3 ends with a final plan in a run that is not plan-only. Read it at 3.6 when the plan is to be confirmed, else at 3.7.
+- `steps/4-build.md`: when Step 3 ends with a final plan in a run that is not plan-only. Read it at 3.6 when the plan is to be confirmed, else at 3.7. On an existing record with no new work, read it at the end of Step 0 to run Step 6.
 - `steps/7-publish.md`: at the start of Step 7.
 - `risk.md`: at Step 1.6, and whenever the floor or the higher-risk rule is judged.
-- `record.md`: at Step 0.5.
+- `record.md`: at Step 0.2 when the run's record directory exists, else at Step 0.5.
 - `ci-watch.md`: at Step 7.3.
 - `multi-repo.md`: at the start of Step 0 when the request says "also edit", or when Step 1.2 adopts a repository.
 - `worktree.md`: when the exception of Step 0.3 applies, before the worktree is created.
