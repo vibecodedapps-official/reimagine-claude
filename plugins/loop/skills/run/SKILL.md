@@ -57,7 +57,7 @@ Recognized phrases:
 - "budget <n> minutes": set the run budget.
 - Effort words.
 
-Effort words and the effort they set: "quick" or "low" gives `low`; "medium" gives `medium`; "thorough" or "high" gives `high`; "very thorough" or "xhigh" gives `xhigh`; "max" gives `max`. With no word, no effort argument is passed to Agent calls and the `code-review` level is `high`. A floored run (`risk.md`) passes at least `high` to every reviewer, and no hint lowers that.
+Effort words and the effort they set: "quick" or "low" gives `low`; "medium" gives `medium`; "thorough" or "high" gives `high`; "very thorough" or "xhigh" gives `xhigh`; "max" gives `max`. A word counts only when it is a whole phrase of the request by itself, alone or with "effort" before or after it ("thorough", "effort high", "high effort"). A phrase is the text between commas, semicolons, periods, or the ends of the request, once the trigger phrase and the ticket ids are set aside. "reimagine loop #12, thorough" and "reimagine loop #12 thorough" give `high`; "quick fix for #12" and "fix the low disk space warning" give nothing. With no word, no effort argument is passed to Agent calls and the `code-review` level is `high`. A floored run (`risk.md`) passes at least `high` to every reviewer, and no hint lowers that.
 
 Ticket forms, resolved per id in this order:
 

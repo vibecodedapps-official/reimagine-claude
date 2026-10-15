@@ -28,7 +28,7 @@ Phrases the loop recognizes:
 - `on branch <name>`: use that branch name.
 - `also edit <path>` and `also edit <path> on <branch>`: add a second checkout the run may change, with its own pull request.
 - `budget <n> minutes`: set the run budget.
-- Effort words: `quick` or `low`, `medium`, `thorough` or `high`, `very thorough` or `xhigh`, `max`. They set how hard the reviewers work. Work that touches auth, permissions, schemas, row-level security, data access or a public API is always reviewed at `high` or above.
+- Effort words: `quick` or `low`, `medium`, `thorough` or `high`, `very thorough` or `xhigh`, `max`. They set how hard the reviewers work. A word counts when it stands as its own phrase, for example after a comma (`reimagine loop #12, thorough`). Work that touches auth, permissions, schemas, row-level security, data access or a public API is always reviewed at `high` or above.
 
 Ticket forms:
 
