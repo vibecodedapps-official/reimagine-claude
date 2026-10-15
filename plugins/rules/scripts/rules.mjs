@@ -82,12 +82,14 @@ export function inspect(text) {
   return { kind: 'block', start: b.at, bodyStart: b.next, bodyEnd: e.at, end: e.next, version: m[1], options, join: m[3], digest: m[4] };
 }
 
-// The text with the block and the bytes its join added taken out. When the join bytes are not there, only the block is taken.
+// The text with the block taken out, and the bytes its join added when taking them joins no two lines.
 export function removeBlock(text, found) {
   const eol = eolOf(text);
   const joinBytes = eol.repeat(JOINS[found.join]);
-  const from = text.slice(found.start - joinBytes.length, found.start) === joinBytes ? found.start - joinBytes.length : found.start;
-  return text.slice(0, from) + text.slice(found.end);
+  const before = text.slice(0, found.start);
+  const kept = before.slice(0, before.length - joinBytes.length);
+  const takeJoin = before.endsWith(joinBytes) && (kept === '' || kept.endsWith('\n') || (found.join === 'newline' && found.end === text.length));
+  return (takeJoin ? kept : before) + text.slice(found.end);
 }
 
 // The first line (1-based) outside the block that holds Markdown adopt does not handle: a comment mark, a fence, a quote, a

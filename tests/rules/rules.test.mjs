@@ -208,8 +208,13 @@ test('R31: remove takes the block and the bytes of its join, for each join value
   assert.equal(removeBlock(`mine\n\n${b('newline')}`, inspect(`mine\n\n${b('newline')}`)), 'mine');
   const crlf = `mine\r\n\r\n${begin('core', 'blank', 'cb477dddc15de845')}\r\nC1\r\nC2\r\n${END}\r\n`;
   assert.equal(removeBlock(crlf, inspect(crlf)), 'mine\r\n');
-  // Join bytes the user has since deleted are not taken from the user's text.
+  // Join bytes are taken only when that joins no two lines of the user's text.
   assert.equal(removeBlock(`mine\n${b('blank').replace('blank', 'newline')}`, inspect(`mine\n${b('newline')}`)), 'mine\n');
+  assert.equal(removeBlock(`last line\n\n${b('newline')}below\n`, inspect(`last line\n\n${b('newline')}below\n`)), 'last line\n\nbelow\n');
+  assert.equal(removeBlock(`a\n${b('blank')}b\n`, inspect(`a\n${b('blank')}b\n`)), 'a\nb\n');
+  assert.equal(removeBlock(`a\n${b('blank')}`, inspect(`a\n${b('blank')}`)), 'a\n');
+  const crlfJoined = `a\r\n${begin('core', 'blank', 'cb477dddc15de845')}\r\nC1\r\nC2\r\n${END}\r\nb\r\n`;
+  assert.equal(removeBlock(crlfJoined, inspect(crlfJoined)), 'a\r\nb\r\n');
   const middle = `top\n\n${b('blank')}below\n`;
   assert.deepEqual(plan(middle, { remove: true }), { state: 'remove', after: 'top\nbelow\n', options: ['core'], recommend: 'apply' });
   assert.deepEqual(plan('mine\n', { remove: true }), { state: 'absent', after: null, note: 'there is no block to remove' });
