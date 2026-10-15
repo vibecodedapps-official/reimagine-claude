@@ -43,3 +43,12 @@ test('the SKILL.md core stays within 5800 words', () => {
   const words = SKILL.split(/\s+/).filter(Boolean).length;
   assert.ok(words <= 5800, `SKILL.md has ${words} words`);
 });
+
+test('R59: every Bash rule in allowed-tools has at most one *, and only at its end', () => {
+  const frontmatter = SKILL.match(/^---\n([\s\S]*?)\n---\n/)[1];
+  const rules = frontmatter.split('\n').map((line) => line.match(/^\s*-\s*Bash\((.*)\)\s*$/)).filter(Boolean).map((m) => m[1]);
+  assert.ok(rules.length > 0, 'no Bash rule found in allowed-tools');
+  for (const rule of rules) {
+    assert.ok(!rule.slice(0, -1).includes('*'), `Bash(${rule}) has a * before its end`);
+  }
+});

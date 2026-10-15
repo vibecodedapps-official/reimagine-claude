@@ -1,6 +1,6 @@
 # Step 7 Publish
 
-Read this file at the start of Step 7. `<checkout>` is the primary repository's checkout (its worktree when Step 0.3 made one), `<record>` is the record directory, `<remote>` and `<default>` come from Step 0.2, and `<branch>` is the run's branch. In a run with a worktree, read `worktree.md` for the commands; with more than one repository, read `multi-repo.md` for Step 7. Every git command in this step runs as `git -C <checkout>`.
+Read this file at the start of Step 7. `<checkout>` is the primary repository's checkout (its worktree when Step 0.3 made one), `<record>` is the record directory, `<remote>` and `<default>` come from Step 0.2, and `<branch>` is the run's branch. In a run with a worktree, read `worktree.md` for the commands; with more than one repository, read `multi-repo.md` for Step 7. Every git command in this step runs as `git -C <checkout>`, except when `<checkout>` is the session's own directory: then it runs without `-C <checkout>`, since the skill pre-approves only the plain read-only forms.
 
 ## Opening
 
