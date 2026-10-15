@@ -36,3 +36,10 @@ test('R87: Step 0.5 appends a run to an existing record instead of creating run 
   assert.ok(text.includes('n+1') || text.includes('<n>'), 'Step 0.5 does not number a new run on an existing record');
   assert.ok(text.includes('Branch state'), 'Step 0.5 does not write the branch state to inputs.md');
 });
+
+test('R82: Step 0.5 asks git about .reimagine/ with its trailing slash, so an excluded directory that does not exist yet reads as ignored', () => {
+  const text = section(PREFLIGHT, '0.5 The record');
+  assert.notEqual(text, null);
+  assert.ok(text.includes('`git check-ignore -q .reimagine/`'));
+  assert.ok(!text.includes('`git check-ignore -q .reimagine`'));
+});
