@@ -7,7 +7,26 @@ A suite of four Claude Code plugins built on three ideas: achieve more with less
 - `audit`: a read-only, adversarial audit of finished pull requests that stops at a report, with an act step for approved items.
 - `repo-docs`: instruction files in hub and spoke form, with a hook that blocks a commit when the hub points at a missing file or a file outgrows its cap.
 
-Status: pre-implementation. The design is complete in `docs/`; no plugin has shipped yet. The build order is in `docs/build-plan.md`.
+Status: alpha. `rules`, `loop` and `audit` are built and published as a prerelease from `main`; `repo-docs` is not built yet. The build order is in `docs/build-plan.md`.
+
+## Alpha install
+
+The catalog on `main` lists the three built plugins at `0.1.0-alpha.1`. On a Windows machine:
+
+1. Install Git for Windows and put it on `PATH`, and Node 22 or later. For the audit's live checks, work-item validation and collision check, install `jq` (`winget install jqlang.jq`); without it the audit still runs and says what it skipped.
+2. Without a GitHub SSH key on the machine, set `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1` in the environment before starting Claude Code, so the marketplace is cloned over HTTPS.
+3. In Claude Code:
+
+```
+/plugin marketplace add vibecodedapps-official/reimagine-claude
+/plugin install rules@reimagine-claude
+/plugin install loop@reimagine-claude
+/plugin install audit@reimagine-claude
+```
+
+4. Restart the session, run `/rules` and answer its question, then pick the output style with `/output-style rules:Concise Plain`.
+
+An alpha updates to 0.1.0 with `/plugin update <name>@reimagine-claude` once that version is in the catalog; the alpha version sorts below it.
 
 ## Requirements
 
