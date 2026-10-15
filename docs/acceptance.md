@@ -41,7 +41,7 @@ Windows 11 Pro 10.0.26200, Claude Code 2.1.296, Node 26.4.0. Sessions run by han
 - **Item 6 passed.** After a second change the notice showed again; `/rules --decline` declined without a question; the next session recorded no notice, and `/rules` planned `stale (you declined this text before)`.
 - **Item 5 passed.** `/output-style rules:Concise Plain` selected the style, and the next reply was in it. The host wrote `outputStyle` to the project's `.claude/settings.local.json`; the profile's `settings.json` still held only its theme.
 - **Item 3 passed.** Over a hand copy between user lines, `/rules` counted 33 of 35 rules present and recommended adopt; the adopt wrote the block in place and a backup that matches the hand copy byte for byte. `/rules --remove` asked, noting that the 33 adopted rules go with the block, and left a file equal byte for byte to the user lines of the hand copy.
-- **Finding: no blank line after an adopted block.** The adopt drops the blank line between the last adopted rule and the next heading, so the end marker sits directly above `## Mine`. Markdown still reads the heading; the remove puts the blank line back.
+- **Defect, fixed: no blank line after an adopted block.** The adopt dropped the blank line between the last adopted rule and the next heading, so the end marker sat directly above `## Mine`. Markdown still read the heading, and the remove put the blank line back. With the fix (commit `fix(rules): keep a blank line between an adopted block and a heading`), the script adopted the same hand copy with a blank line after the end marker, and the remove left a file equal byte for byte to the user lines; a regression test fails without the fix and passes with it.
 
 ### 2026-10-15: loop milestone, interactive and GitHub
 
