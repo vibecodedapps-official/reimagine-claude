@@ -92,7 +92,7 @@ Numbers are never reused. A retired requirement keeps its number with the word "
 56. **Always ask.** Force push, `--no-verify`, merging, anything that deploys (including a push or pull request that triggers a deploy, judged from the default branch's workflow files), editing repository settings, and opening a new issue always prompt. An answer that is not a clear yes is a denial. Check: review.
 57. **Denial.** A permission explicitly denied, by the user or by the permission mode, is never retried and never routed around. A denial in steps 0 to 6 or after the first push marks dependent steps not done, runs the independent ones, and ends `blocked`; a step 7 denial before any push ends `prepared`. A denial is a refused tool call or a non-yes to a permission question; the decision questions of requirements 50, 53 and 49 are not permissions; a missing resource is "not run", never a denial. Check: review.
 58. **A dropped call is not a denial.** A dropped read is retried once serially; a dropped write only if a check shows it did not take effect; after any drop, preflight commands run serially. A subagent's report is model output, never approval. Check: review.
-59. **Pre-approved reads.** `date` and read-only `git` and `gh` commands are the only commands the skill's `allowed-tools` pre-approves. Check: lint.
+59. **Pre-approved reads.** `date`, `sleep` for the CI poll, and read-only `git` and `gh` commands are the only commands the skill's `allowed-tools` pre-approves. Check: lint.
 
 ### Roles and models
 
@@ -115,7 +115,7 @@ Numbers are never reused. A retired requirement keeps its number with the word "
 
 ### Preflight (step 0)
 
-73. **Nothing written before the record exists.** Until step 0.5 the run writes nothing; a failure before it prints the report only. Check: review.
+73. **Nothing written before the record exists.** Until step 0.5 the run writes nothing; a failure before it prints the report only. The one exception is a worktree run, which writes the `.reimagine/` exclude, the record directory and the worktree at step 0.3; from then a failure writes the report to the record. Check: review.
 74. **Host detection.** The remote is the one `gh repo view` resolves, else `origin`, else the only remote; several remotes without `origin` is a preflight failure. A GitHub host where `gh` fails ends with "gh not authenticated". On a non-GitHub host steps 0 to 6 run and the run ends `prepared` with the push commands. Check: review; acceptance.
 75. **Permission statement.** Step 0.1 prints the approved actions, the carve-outs, and for each action whether a prompt will occur, from the permission mode, the settings files and the allow rules; an undeterminable permission counts as a prompt. It predicts the worktree, credential, adoption, plan-confirmation and branch questions, and prints "this run will prompt at: ..." or "this run is unattended", naming the request forms that avoid each question. Check: review; acceptance.
 76. **Default branch and base.** Step 0.2 resolves the default branch, fetches it with the explicit refspec `+refs/heads/<b>:refs/remotes/<r>/<b>`, and records the base commit. A continued branch equal to the default branch is rejected. Check: review.
