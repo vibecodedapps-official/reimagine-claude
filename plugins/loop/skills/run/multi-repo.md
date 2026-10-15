@@ -6,9 +6,9 @@ The primary is the session's repository, or its worktree when Step 0.3 made one.
 
 ## Rules by step
 
-**Host.** Every repository has the same host class and hostname. A mismatch ends the run `blocked`. Off github.com, every `gh` call that names a repository passes `-R <host>/<owner>/<repo>`.
+**Host.** Every repository has the same host class and hostname. A mismatch ends the run `blocked`. Off github.com, every `gh` command except `gh api` that names a repository passes `-R <host>/<owner>/<repo>`.
 
-**Commands.** Run git as `git -C <path>`. Run `gh` with `-R`, or inside the checkout in one Bash call as `cd <path> && <command>`. Spell each API read out on one line with its endpoint and `--hostname <host>`.
+**Commands.** Run git as `git -C <path>`. Run `gh` with `-R`, or inside the checkout in one Bash call as `cd <path> && <command>`. `gh api` takes no `-R`: for an additional repository, write its owner and name in the endpoint in place of `{owner}/{repo}` (for example `repos/owner/app-infra/pulls/<n>`). Spell each API read out on one line with its endpoint and `--hostname <host>`.
 
 **Step 0.1.** Read the instruction files and the ask-first rules of every repository and union them. The permission statement lists each repository's push and pull request.
 

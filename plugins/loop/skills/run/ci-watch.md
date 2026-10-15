@@ -1,6 +1,6 @@
 # CI watch
 
-Read this file from Step 7.3 in `steps/7-publish.md`, after the pull request is open and the first push has returned. It holds items 1 to 4 of Step 7.3; item 5 (repair) is in `steps/7-publish.md`. `<host>` is the host recorded at Step 0, `github.com` included. `<n>` is the pull request number, `<base>` its base branch, `<sha>` a commit sha. `{owner}` and `{repo}` stay as written; `gh` fills them from the repository.
+Read this file from Step 7.3 in `steps/7-publish.md`, after the pull request is open and the first push has returned. It holds items 1 to 4 of Step 7.3; item 5 (repair) is in `steps/7-publish.md`. `<host>` is the host recorded at Step 0, `github.com` included. `<n>` is the pull request number, `<base>` its base branch, `<sha>` a commit sha. `{owner}` and `{repo}` stay as written; `gh` fills them from the repository of the session's directory. For an additional repository, write its owner and name in their place (`multi-repo.md`).
 
 ## 1. Reads
 
