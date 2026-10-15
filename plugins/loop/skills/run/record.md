@@ -68,7 +68,7 @@ The bodies and comment texts (`pr-body*.md`, `comment-<n>.md`, `ticket-*.md`) ar
 3. Hashes are `git hash-object --no-filters <absolute path>`.
 4. Write an entry as `running`, with its input hashes, when the step starts. Write it `complete` only after every output exists. Mark a step you do not take `skipped` (Step 7 in a plan-only run, for example). Mark a step that ended without its outputs `failed`.
 5. In Step 0 the entry is written at the end of 0.5, once `inputs.md` exists to hash, and marked `complete` at 0.6.
-6. Every write goes to `<record>/steps.json.tmp` and is moved over `steps.json` with `mv -f`, both as absolute paths. Write the whole file each time, keeping every entry you did not change.
+6. Every write goes to `<record>/steps.json.tmp` and is moved over `steps.json` with `mv <tmp> <file>`, with no flags (a flag makes the host ask) and both as absolute paths. Write the whole file each time, keeping every entry you did not change.
 7. Only you write `steps.json`; an implementer never does.
 
 ## Redaction

@@ -2,7 +2,7 @@
 
 Read this file at the start of Step 1. It holds the reviewer request (used by Step 3 and by Step 5), Step 1, Step 2 and Steps 3.1 to 3.5. A plan-only run reads no step file after it.
 
-At the start of each of Steps 1, 2 and 3, run `date -u +%Y-%m-%dT%H:%M:%SZ` and copy the output. Write that step's `steps.json` entry with status `running`, the start time and the hashes of its inputs (`git hash-object --no-filters <file>`): Step 1 hashes `inputs.md`, Step 2 hashes `inputs.md`, Step 3 hashes `plan.md`. Write the entry `complete`, with the end time from a fresh `date`, only when its outputs exist: `inputs.md` for Step 1, `plan.md` for Step 2 and Step 3. Every write goes to `steps.json.tmp` and then `mv -f` over `steps.json`. Log each step in `run.md`.
+At the start of each of Steps 1, 2 and 3, run `date -u +%Y-%m-%dT%H:%M:%SZ` and copy the output. Write that step's `steps.json` entry with status `running`, the start time and the hashes of its inputs (`git hash-object --no-filters <file>`): Step 1 hashes `inputs.md`, Step 2 hashes `inputs.md`, Step 3 hashes `plan.md`. Write the entry `complete`, with the end time from a fresh `date`, only when its outputs exist: `inputs.md` for Step 1, `plan.md` for Step 2 and Step 3. Every write goes to `steps.json.tmp` and then a plain `mv` over `steps.json`, as `record.md` says. Log each step in `run.md`.
 
 ## Reviewer request
 
