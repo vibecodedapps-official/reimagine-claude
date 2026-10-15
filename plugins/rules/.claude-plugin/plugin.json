@@ -1,0 +1,8 @@
+{
+  "name": "rules",
+  "version": "0.1.0",
+  "description": "House rules for Claude Code sessions: one block in your CLAUDE.md, kept current, plus the Concise Plain output style.",
+  "author": { "name": "vibecodedapps.net" },
+  "repository": "https://github.com/vibecodedapps-official/reimagine-claude",
+  "license": "Apache-2.0"
+}
