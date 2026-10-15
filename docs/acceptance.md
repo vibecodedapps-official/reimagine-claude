@@ -26,7 +26,7 @@ Hand-run checks for the suite. Each milestone adds its items. An item is `N. **T
 20. **Drift hook.** Setup: item 18 done; add a pointer to a missing path and stage a file under a directory a spoke covers. Command: `git commit -m "x"` inside the session. Expected: the commit is denied with `repo-docs: <finding>` naming the path; after fixing the pointer the commit runs and the spoke to recheck is named; outside a repository with a hub the hook prints nothing. Covers R207 to R211. Rerun when the hook changes. Not yet run.
 21. **CI green.** Setup: the workflow merged. Command: push to `main`. Expected: test on ubuntu, macOS, Windows; mawk; validate all green. Covers R17, R222. Rerun each release. Not yet run.
 22. **Tag rule.** Setup: all plugins tagged 0.1.0. Command: change one line under `plugins/rules/` and run `npm run lint`. Expected: failure naming the tag and the version; after bumping to 0.1.1 lint passes with no 0.1.1 changelog heading, since 0.1.1 is untagged. Covers R14, R15. Rerun each release. Not yet run.
-23. **Forbidden-name sweep.** Setup: the implementer's deny list outside the repository in `LINT_DENY_TOKENS`. Command: `npm run lint`; before M7, a case-insensitive grep over `git ls-files`. Expected: zero hits. Covers decision 10. Rerun before every commit until 0.1.0 is tagged. Run 2026-10-14 on the two documentation commits: zero hits. Run 2026-10-14 before each of the seven rules commits: zero hits. Run 2026-10-15 before each of the nine loop commits: zero hits. Run 2026-10-15 before each of the eight idempotency commits: zero hits.
+23. **Forbidden-name sweep.** Setup: the implementer's deny list outside the repository in `LINT_DENY_TOKENS`. Command: `npm run lint`; before M7, a case-insensitive grep over `git ls-files`. Expected: zero hits. Covers decision 10. Rerun before every commit until 0.1.0 is tagged. Run 2026-10-14 on the two documentation commits: zero hits. Run 2026-10-14 before each of the seven rules commits: zero hits. Run 2026-10-15 before each of the nine loop commits: zero hits. Run 2026-10-15 before each of the nine idempotency commits: zero hits.
 24. **Windows hooks.** Setup: Windows with Git for Windows, `CLAUDE_CODE_USE_POWERSHELL_TOOL=1`. Command: items 4 and 20. Expected: the SessionStart hook runs under node and the drift hook under `sh`; the PowerShell tool name matches. Covers R17, R207. Rerun when a hook changes. Not yet run (the spike of 2026-10-14 showed both hook forms firing under this setting).
 25. **Bundled `/loop` is not ours.** Setup: the loop plugin installed, a throwaway repository with one issue. Command: say `run the loop on #1, plan only`; in a new session type `/loop:run #1, plan only`; in a third, type `/loop`. Expected: the first two invoke `loop:run` and print the reading block; the third runs the host's bundled interval skill, which the README says is expected. Covers R45, decision 35. Rerun when the skill description or the host's bundled skills change. Run 2026-10-15 in part: both phrases invoked `loop:run`; one printed the block after a step file read (record of 2026-10-15, loop milestone, interactive and GitHub).
 
@@ -36,7 +36,7 @@ Hand-run checks for the suite. Each milestone adds its items. An item is `N. **T
 
 Windows 11 Pro 10.0.26200, Claude Code 2.1.300, Node 26.4.0, git 2.56.0. A `code-review` pass at level `high` over the idempotency commits gave 10 findings, each judged by reading the skill text. Each fix carries a text test that failed before the fix and passes after it (commit `fix(loop): judge a record by its committed and published work`); none was run on the sandbox.
 
-- **Fixed: no new work ended `done` on unpublished work.** Commits made and not pushed, or a pull request with red CI, ended the next run `done`. Step 7 runs unless the run that last wrote it ended `done` with its pull request open. Test: R90.
+- **Fixed: no new work ended `done` on unpublished work.** Commits made and not pushed, or a pull request with red CI, ended the next run `done`. Step 7 runs unless the run that last wrote it ended `done` with its pull request open, whoever opened it, so a pull request the user opened from a `prepared` run's commands counts (commit `fix(loop): count work as published whoever opened its pull request`). Tests: R90, two.
 - **Fixed: Step 4 was reused over a cleaned tree.** Step 4 is reused only when the slices it built are committed. Test: R92.
 - **Fixed: a reused Step 3 skipped the checkout setup.** Step 3.7 runs in every run that builds or checks, and the no-new-work path runs 3.7.2 and 3.7.4 before Step 6. Tests: R92, two.
 - **Fixed: a foreign commit could count as the loop's own.** Only the `- commit <full sha> <subject>` lines of Step 7.1 mark a commit as own. Tests: R87, two.
@@ -46,9 +46,9 @@ Windows 11 Pro 10.0.26200, Claude Code 2.1.300, Node 26.4.0, git 2.56.0. A `code
 - **Fixed, as the owner chose: a record whose pull request merged or closed was continued.** Preflight ends `blocked`, naming the pull request and the "on branch <name>" form. Test: R83.
 - **Fixed: under `commit: true` a run with nothing to publish posted a report comment.** Test: R96.
 - **Not rerun: item 10.** The fixes change the record and resume rules, and the states they cover (a push that never happened, red CI, a cleaned tree, a `prepared` run committed by hand, a merged pull request) were not built on the sandbox.
-- **npm test passed on Windows.** 160 tests, 154 passed, 6 skipped, exit 0. Not run on POSIX.
+- **npm test passed on Windows.** 161 tests, 155 passed, 6 skipped, exit 0. Not run on POSIX.
 - **Validation passed.** `claude plugin validate --strict plugins/loop` exit 0.
-- **Item 23 passed** before both review fix commits.
+- **Item 23 passed** before each of the three review fix commits.
 
 ### 2026-10-15: idempotency milestone, GitHub
 

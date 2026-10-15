@@ -96,3 +96,9 @@ test('R96: under commit: true a run with no new work on published work posts no 
   assert.ok(section(RECORD, 'Commit snapshot').includes('except on the no-new-work path of published work'));
   assert.ok(section(SKILL, 'Final report handling').includes('no-new-work path of published work posts nothing'));
 });
+
+test('R90: work is published when its pull request is open, whoever opened it', () => {
+  const text = section(RECORD, 'An existing record');
+  assert.ok(text.includes('Step 0.2 item 7 found one open pull request on the branch'));
+  assert.ok(!text.includes('found an open pull request that a `runs` entry names in `pr`'));
+});
