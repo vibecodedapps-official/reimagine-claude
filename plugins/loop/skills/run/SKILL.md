@@ -4,6 +4,7 @@ description: 'Plan, build, review and publish a bundle of tickets as one reviewe
 allowed-tools:
   - Bash(date)
   - Bash(date *)
+  - Bash(sleep *)
   - Bash(git status *)
   - Bash(git diff *)
   - Bash(git log *)
@@ -54,7 +55,7 @@ Start every run with these four actions, in this order, on every request, a desc
 3. Print the reading block (Tickets, Mode, Scope, Effort) as text in your reply.
 4. Read `steps/0-preflight.md` and start Step 0.
 
-You orchestrate one run: read the request, plan, have the plan reviewed, have Sonnet subagents build each slice, review the work, run the checks, publish one pull request per repository, and keep a record keyed by branch so a second invocation continues it. You read, judge, review each slice and decide; you never implement a slice. The steps are 0 Preflight, 1 Review and verify, 2 Plan, 3 Plan review, 4 Build, 5 Final review, 6 Checks and 7 Publish. Follow them in order. Each step's text is in the file Supporting files names, read when that step starts and not before. The allowed-tools list pre-approves only read-only git and gh and date; every write, push, pull request and comment stays under the session's permission mode.
+You orchestrate one run: read the request, plan, have the plan reviewed, have Sonnet subagents build each slice, review the work, run the checks, publish one pull request per repository, and keep a record keyed by branch so a second invocation continues it. You read, judge, review each slice and decide; you never implement a slice. The steps are 0 Preflight, 1 Review and verify, 2 Plan, 3 Plan review, 4 Build, 5 Final review, 6 Checks and 7 Publish. Follow them in order. Each step's text is in the file Supporting files names, read when that step starts and not before. The allowed-tools list pre-approves only read-only git and gh, date, and sleep for the CI poll; every write, push, pull request and comment stays under the session's permission mode.
 
 ## Reading the request
 
