@@ -73,7 +73,7 @@ this run will prompt at: the credentials question, the checks, the push, the pul
 5. When 0.3 predicts a worktree, do not switch the session's checkout. If it is on the continued branch, detach it in place with `git switch --detach`. Fast-forward a behind local branch with `git fetch . refs/remotes/<remote>/<branch>:refs/heads/<branch>`. The worktree switches to the branch at Step 3.7.
 6. On `github`, list the open pull requests of a continued branch: `gh pr list --head <branch> --state open --limit 100 --json number,state,baseRefName,url,isCrossRepository`. Keep the entries whose `isCrossRepository` is false. Exactly 100 entries returned counts as incomplete and fails. One open pull request is recorded with its number, URL and base branch (CI uses its base). Several end `blocked`. None means Step 7.2 opens one. On `other`, read no pull request.
 7. In a plan-only run, record the pull request outcomes, the local-branch outcomes (ahead or diverged) and the worktree outcome (checked out elsewhere) in `run.md` instead of failing. In a "do not publish" run, record the pull request outcomes instead of failing. Every other failure in this item stands.
-8. When the record directory exists (its path comes from the branch slug, `record.md`, Location), follow `record.md`, An existing record. Read its `steps.json` branch first: a branch that differs from this run's branch is a slug collision and ends preflight `blocked`.
+8. When the record directory exists (its path comes from the branch slug, SKILL.md, Record), follow `record.md`, An existing record. Read its `steps.json` branch first: a branch that differs from this run's branch is a slug collision and ends preflight `blocked`.
 
 ## 0.3 Clean tree, flagged files, worktree
 
