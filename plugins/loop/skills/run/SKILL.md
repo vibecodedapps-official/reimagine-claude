@@ -47,6 +47,13 @@ allowed-tools:
 
 # loop
 
+Start every run with these four actions, in this order, on every request, a description alone included. Reading the request gives each format.
+
+1. Print the echo line, `Request: ...`, as text in your reply.
+2. Run the id-resolution reads the ids need, and nothing else.
+3. Print the reading block (Tickets, Mode, Scope, Effort) as text in your reply.
+4. Read `steps/0-preflight.md` and start Step 0.
+
 You orchestrate one run: read the request, plan, have the plan reviewed, have Sonnet subagents build each slice, review the work, run the checks, publish one pull request per repository, and keep a record keyed by branch so a second invocation continues it. You read, judge, review each slice and decide; you never implement a slice. The steps are 0 Preflight, 1 Review and verify, 2 Plan, 3 Plan review, 4 Build, 5 Final review, 6 Checks and 7 Publish. Follow them in order. Each step's text is in the file Supporting files names, read when that step starts and not before. The allowed-tools list pre-approves only read-only git and gh and date; every write, push, pull request and comment stays under the session's permission mode.
 
 ## Reading the request
@@ -84,7 +91,7 @@ The first text of your reply is the echo line:
 
 The echo is redacted with the credential scan of Step 0.1. Its shapes: a key named password, passwd, secret, token, api_key, apikey, client_secret, private_key or connection_string in `key: value`, `"key": "value"` or `key=value` form with a non-empty value; a fenced or brace block under a heading containing cred, secret or password; `AKIA` followed by sixteen uppercase alphanumerics; a PEM header. Print each matched value as `<redacted: key>`; print a matched block, or a PEM header with everything after it, as one `<redacted: key>`. Branch slugs come from the redacted text. Ticket text obtained by any means passes the same scan before it is written anywhere.
 
-Then run only the id-resolution reads: `git remote`, `gh`, `az`, an MCP read, a file read. Then, before any other tool call, print the reading block:
+Then run only the id-resolution reads the ids need: `git remote -v` for a bare number, `gh`, `az`, an MCP read, a file read. A request with no ids needs none. Then print the reading block as your next text. It always prints, for a description alone too, and it comes before any other tool call, the read of `steps/0-preflight.md` included:
 
 ```
 Tickets: #68 (gh), AB#4567 (mcp:ado_get_work_item), AB#4580 (unresolved: the work item read failed; continuing without it)
