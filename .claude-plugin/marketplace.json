@@ -2,8 +2,7 @@
   "name": "reimagine-claude",
   "owner": { "name": "vibecodedapps.net" },
   "metadata": {
-    "description": "A suite of Claude Code plugins: house rules, a ticket-to-pull-request loop, and a read-only audit of finished pull requests. Prerelease catalog of the built plugins.",
-    "version": "0.1.0-alpha.1"
+    "description": "A suite of Claude Code plugins: house rules, a ticket-to-pull-request loop, and a read-only audit of finished pull requests. Prerelease catalog of the built plugins."
   },
   "plugins": [
     {
