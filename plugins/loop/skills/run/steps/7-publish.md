@@ -30,7 +30,7 @@ After the run's first push returns, commit only CI repairs (item 5 of Step 7.3).
 
 ## 7.2 Push and pull request
 
-Before pushing, judge whether the push or the pull request triggers a deploy. Read the default branch's workflow files with `git -C <checkout> show <remote>/<default>:<path>` for each path that `git -C <checkout> ls-tree -r --name-only <remote>/<default> .github/workflows` lists. A `pull_request_target` workflow is judged from the default branch's file. When a push or the pull request triggers a deploy, ask first, naming the workflow, and treat any answer but a clear yes as a denial.
+Before pushing, judge whether the push or the pull request triggers a deploy. Read the default branch's workflow files with `git -C <checkout> show <remote>/<default>:<path>` for each path that `git -C <checkout> ls-tree -r --name-only <remote>/<default> .github/workflows` lists, and the workflow files of the commit being pushed with `git -C <checkout> show HEAD:<path>` for each path that `git -C <checkout> ls-tree -r --name-only HEAD .github/workflows` lists. Judge a `push` or `pull_request` trigger from either set; a workflow that deploys in either set counts. A `pull_request_target` workflow is judged from the default branch's file. When a push or the pull request triggers a deploy, ask first, naming the workflow, and treat any answer but a clear yes as a denial.
 
 Before every push read the remote head with `git -C <checkout> ls-remote --heads <remote> refs/heads/<branch>`:
 
