@@ -6,9 +6,9 @@ At the start of each step run `date -u +%Y-%m-%dT%H:%M:%SZ` and copy its output.
 
 ## Implementer snapshots
 
-Take a snapshot before every implementer call and every fix call, in the checkout that call edits (the primary checkout, a worktree, or an additional repository).
+Take a snapshot before every implementer call and every fix call, in the checkout that call edits (the primary checkout, a worktree, or an additional repository). From Step 3.7 on, also take a snapshot before each question (SKILL.md, Questions); its `run.md` line names the question instead of a slice.
 
-1. Write three files in the record: `pre-<n>.status` holds the output of `git status --porcelain --untracked-files=all`; `pre-<n>.patch` holds the output of `git diff` (tracked and intent-to-add paths); `pre-<n>.hashes` holds one line per untracked, non-ignored file outside `.reimagine/`, the output of `git hash-object -- <path>` followed by the path. Number `n` from 1 across all checkouts and all calls of the run. Add a line to `run.md` naming `n`, the checkout path and the slice.
+1. Write three files in the record: `pre-<n>.status` holds the output of `git status --porcelain --untracked-files=all`; `pre-<n>.patch` holds the output of `git diff` (tracked and intent-to-add paths); `pre-<n>.hashes` holds one line per untracked, non-ignored file outside `.reimagine/`, the output of `git hash-object -- <path>` followed by the path. Number `n` from 1 across all checkouts and all calls of the run. Add a line to `run.md` naming `n`, the checkout path and the slice (or the question).
 2. A parallel batch (4.2) takes one snapshot per slice before any call of the batch starts.
 3. After a call fails, compare the checkout with its snapshot: status, diff and hashes. A call fails when it ends in a tool error or returns past the subagent budget. For a parallel batch compare after every call of the batch has returned, and treat a path as inside the slice when any slice of the batch owns it.
 4. A path outside the slice that was clean before the call and is now new or changed is restored: a tracked file with `git checkout -- <path>`, an untracked non-ignored file by deleting it. Log each action in `run.md`.

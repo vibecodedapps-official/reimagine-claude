@@ -165,7 +165,7 @@ One mechanic serves every question the run asks: credentials, repository adoptio
 1. Ask with the answer forms in the question. A clear answer in the form the question gives continues. Anything else ends in the state the question names.
 2. Take `date` just before and just after the question. Before Step 0.5, hold the times in memory.
 3. Silence ends your turn and waits.
-4. After the reply, recheck mutable state: the clean-tree check on every repository the run edits. End `blocked`, naming any change.
+4. After the reply, recheck mutable state on every repository the run edits. Before Step 3.7, that is the clean-tree check of Step 0.3. From Step 3.7 on, take a snapshot of each such checkout just before the question, as `steps/4-build.md`, Implementer snapshots, item 1 describes (the `pre-<n>` files, numbered in the same sequence), and after the reply compare the checkout with it: status, diff and hashes. End `blocked`, naming any change.
 
 ## Failure rules
 

@@ -23,7 +23,7 @@ All names are relative to the record directory. Times in every file are copied f
 | `steps.json` | Every step start and end | The completion record (see the next section) |
 | `report.md` | Every terminal state | The report, compiled from `run.md` and never from memory. Every section is present; an empty one says "none". Rewritten each time |
 | `handoff.md`, `audit-manifest.json` | After the run's own commit | The typed handoff and the audit manifest (`handoff.md` in the skill). Rewritten each run. The loop never commits in order to write them |
-| `pre-<n>.status`, `pre-<n>.patch`, `pre-<n>.hashes` | Before every implementer or fix call | `git status`, a patch and file hashes of the checkout, for restoring after a failed call. `<n>` is unique across checkouts |
+| `pre-<n>.status`, `pre-<n>.patch`, `pre-<n>.hashes` | Before every implementer or fix call, and before a question from Step 3.7 on | `git status`, a patch and file hashes of the checkout, for restoring after a failed call and for comparing after a reply. `<n>` is unique across checkouts |
 | `diff.patch`, `diff-<slug>.patch` | Before a review that reads a patch | The review patch of the primary checkout, and of an additional repository named by `<slug>` |
 | `pr-body.md`, `pr-body-<slug>.md` | Step 7.2 | The pull request body, and the body for an additional repository |
 | `comment-<n>.md` | Step 7 | The text of the pull request comment, one per comment |
