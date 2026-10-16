@@ -180,6 +180,18 @@ describe('repo-docs drift hook', () => {
     assert.equal(run('git commit -m x', broken, { tool: 'PowerShell' }), deny(brokenFinding));
   });
 
+  test('PowerShell reads a backslash before a closing quote as a plain character', () => {
+    assert.equal(run('cd "C:\\work\\"; git commit -m x', broken, { tool: 'PowerShell' }), deny(brokenFinding));
+  });
+
+  test('PowerShell reads a backtick before a quote as a literal quote', () => {
+    assert.equal(run('echo "a`"b"; git commit -m x', broken, { tool: 'PowerShell' }), deny(brokenFinding));
+  });
+
+  test('Bash keeps a backslash-escaped quote inside the string', () => {
+    assert.equal(run('echo "x\\"; git commit -m x', broken, { tool: 'Bash' }), '');
+  });
+
   test('detects a commit in pretty-printed stdin', () => {
     const input = {
       session_id: 'test',

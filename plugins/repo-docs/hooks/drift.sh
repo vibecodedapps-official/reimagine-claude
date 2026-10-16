@@ -21,8 +21,14 @@ NL='
 raw=$(printf '%s\n' "$json" | sed -n -E 's/^.*"command"[[:space:]]*:[[:space:]]*"(([^"\\]|\\.)*)".*$/\1/p')
 [ -n "$raw" ] || exit 0
 
+# PowerShell escapes with a backtick and never with a backslash.
+ps=0
+case $json in
+*'"tool_name":"PowerShell"'* | *'"tool_name": "PowerShell"'*) ps=1 ;;
+esac
+
 # One line "D<dir>" per distinct directory where the command runs git commit.
-dirs=$(printf '%s\n' "$raw" | awk '
+dirs=$(printf '%s\n' "$raw" | awk -v ps="$ps" '
 BEGIN { SEP = "\001" }
 
 function unescape(s,    i, n, c, d, out) {
@@ -132,7 +138,8 @@ function split_commands(s,    i, n, c, e, st, cur, inw, cmd, nw, dq) {
 		}
 		if (st == 2) {
 			e = substr(s, i + 1, 1)
-			if (c == "\\" && (e == "\"" || e == "\\")) { cur = cur e; dq = dq e; i++ }
+			if (ps == 1 && c == "`") { if (i < n) { cur = cur e; dq = dq e; i++ } }
+			else if (ps != 1 && c == "\\" && (e == "\"" || e == "\\")) { cur = cur e; dq = dq e; i++ }
 			else if (c == "\"") {
 				st = 0
 				if (index(dq, "$(") || index(dq, "`")) split_commands(dq)
@@ -142,6 +149,11 @@ function split_commands(s,    i, n, c, e, st, cur, inw, cmd, nw, dq) {
 		}
 		if (c == "\047") { st = 1; inw = 1; continue }
 		if (c == "\"") { st = 2; inw = 1; dq = ""; continue }
+		if (ps == 1 && c == "`") {
+			if (i < n) { i++; cur = cur substr(s, i, 1) }
+			inw = 1
+			continue
+		}
 		if (c == " " || c == "\t" || c == "\n" || index(";&|(){}`", c)) {
 			if (inw) { cmd = cmd cur SEP; nw++; cur = ""; inw = 0 }
 			if (c != " " && c != "\t" && nw > 0) { analyze(cmd, nw); cmd = ""; nw = 0 }
