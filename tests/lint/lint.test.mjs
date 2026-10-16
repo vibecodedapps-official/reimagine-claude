@@ -624,6 +624,10 @@ negative('R10: <file>:<line>: names a path under a user\'s home (/home)', (dir) 
   put(dir, extra, 'Open /home/alice/x now.\n');
   bump(dir, 'rules');
 }, 1, [`${extra}:1: names a path under a user's home`]);
+negative('R10: <file>:<line>: names a path under a user\'s home (lower case)', (dir) => {
+  put(dir, extra, 'Open c:/users/alice/x now.\n');
+  bump(dir, 'rules');
+}, 1, [`${extra}:1: names a path under a user's home`]);
 negative('R10: <file>:<line>: names a repository other than this one', (dir) => {
   put(dir, extra, 'See https://github.com/someone/other for it.\n');
   bump(dir, 'rules');

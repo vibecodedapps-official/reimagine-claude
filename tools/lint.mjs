@@ -686,7 +686,7 @@ const isForeignRepo = (m) => {
 
 const OWNER_RULES = [
   { re: /(?<![\w.+-])([A-Za-z0-9._%+-]+)@([A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+)/g, test: isEmail, message: 'names an email address' },
-  { re: /(?:[A-Za-z]:)?[\\/](?:Users|home)[\\/]([^\\/\s`'")\]]+)/g, test: isHome, message: "names a path under a user's home" },
+  { re: /(?:[A-Za-z]:)?[\\/](?:Users|home)[\\/]([^\\/\s`'")\]]+)/gi, test: isHome, message: "names a path under a user's home" },
   {
     re: /(?<![\w.-])(?:github\.com|gitlab\.com|bitbucket\.org|dev\.azure\.com)[/:]([^/\s`'")\]]+)\/([^/\s`'")\]#?]+)/g,
     test: isForeignRepo,
