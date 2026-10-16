@@ -327,17 +327,17 @@ describe('repo-docs drift hook', () => {
   });
 
   describe('malformed index lines', () => {
-    const lines = [
-      '- `docs/api.md`: API rules. Read always.',
-      '- [api](docs/api.md): API rules. Read always.',
-      '- docs/: Docs. Read always.',
-      '- @docs/api.md: API rules. Read always.',
-      '- docs/api.md: API rules',
+    const cases = [
+      ['- `docs/api.md`: API rules. Read always.', deny('CLAUDE.md has a malformed index line: - `docs/api.md`: API rules. Read always.')],
+      ['- [api](docs/api.md): API rules. Read always.', deny('CLAUDE.md has a malformed index line: - [api](docs/api.md): API rules. Read always.')],
+      ['- docs/: Docs. Read always.', deny('CLAUDE.md has a malformed index line: - docs/: Docs. Read always.')],
+      ['- @docs/api.md: API rules. Read always.', deny('CLAUDE.md has a malformed index line: - @docs/api.md: API rules. Read always.')],
+      ['- docs/api.md: API rules', deny('CLAUDE.md has a malformed index line: - docs/api.md: API rules')],
     ];
-    lines.forEach((line, i) => {
+    cases.forEach(([line, expected], i) => {
       test(`denies ${line}`, () => {
         const dir = repo(`bad-${i}`, { 'CLAUDE.md': '# Bad\n\n## Spokes\n\n' + line + '\n', 'docs/api.md': 'a\n' });
-        assert.equal(run('git commit -m x', dir), deny('CLAUDE.md has a malformed index line: ' + line));
+        assert.equal(run('git commit -m x', dir), expected);
       });
     });
     test('denies a path with a .. segment', () => {
