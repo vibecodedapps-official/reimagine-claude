@@ -12,6 +12,10 @@ test('R203: ignored files are listed, and an ignored root instruction file stops
   assert.ok(SKILL.includes('Bootstrap never writes over an existing `CLAUDE.md` or `AGENTS.md`, whether named or chosen: say so and stop.'));
 });
 
+test('R204: adopt checks what it keeps against the code, so the second run finds no drift', () => {
+  assert.ok(SKILL.includes('Check every statement you keep or write against the code it describes, as maintain does: a command does what its line says, and a rule names files and behavior that exist. Correct a statement the code makes untrue in the rewrite that carries it, and list it under `Rewrites`.'));
+});
+
 test('R206: maintain finds every import and nested AGENTS.md again and lists them with no drift', () => {
   assert.ok(SKILL.includes('every `@path` line in the hub and in each spoke (an untracked import is reported)'));
   assert.ok(SKILL.includes('print `repo-docs: no drift`, then one line per reported item in the form `- <item>: <why>`, and write nothing.'));

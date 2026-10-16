@@ -53,6 +53,7 @@ Keep the repository's instruction files in hub and spoke form, in one of three m
    - Every `@path` import except an adapter line becomes a pointer, or is inlined when it is short and every task needs it. An import of an untracked file is reported and left in place.
    - With a root `AGENTS.md`, apply the adapter convention of `spokes.md`. Without one, a nested `AGENTS.md` stays in place and the hub points to it.
    - Dated entries move only verbatim.
+   - Check every statement you keep or write against the code it describes, as maintain does: a command does what its line says, and a rule names files and behavior that exist. Correct a statement the code makes untrue in the rewrite that carries it, and list it under `Rewrites`.
 5. Print the plan, in this form, leaving out empty sections:
 ```
 repo-docs: mode adopt (<reason>)
