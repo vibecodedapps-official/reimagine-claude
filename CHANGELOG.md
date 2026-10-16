@@ -6,6 +6,24 @@ One changelog for the suite. Each plugin releases on its own line; a release get
 
 - Design documents for 0.1.0 under `docs/`: requirements, architecture, build plan, decisions, acceptance.
 
+## repo-docs 0.1.0 - 2026-10-16
+
+- First release.
+- Bootstrap points only to `docs/` files within the 200-line spoke cap and names a longer one in plain text in the hub's opening sentences, so the hub it writes passes its own drift hook.
+
+## audit 0.1.0 - 2026-10-16
+
+- First release, with the behavior of 0.1.0-alpha.1.
+
+## loop 0.1.0 - 2026-10-16
+
+- First release, with the behavior of 0.1.0-alpha.1.
+
+## rules 0.1.0 - 2026-10-16
+
+- First release.
+- On Windows, a `/rules` step that finds the lock still being removed by another step waits its turn instead of stopping with an unexpected error.
+
 ## repo-docs 0.1.0-alpha.1 - 2026-10-15
 
 - First prerelease. `/repo-docs` keeps instruction files in hub and spoke form in three modes: bootstrap writes a hub, adopt inventories existing docs, plans, asks once and commits, and maintain checks the hub and spokes for drift.
