@@ -116,7 +116,7 @@ Check:
 
 Work items:
 
-1. `.claude-plugin/marketplace.json` with four entries at 0.1.0 (R1, R14). Commit: `feat(catalog): add the marketplace`.
+1. `.claude-plugin/marketplace.json` with four entries at `0.1.0-alpha.1` and the catalog's own `metadata.version` (R1, R14, decisions 32 and 58); M9 sets 0.1.0. Commit: `feat(catalog): add the catalog version`.
 2. `README.md`: confirm the install, update and uninstall blocks match the catalog line for line and add whatever R219 requires. Commit only if something changed: `docs(readme): align install lines with the catalog`.
 3. The repository's own `CLAUDE.md` hub, written with `/repo-docs` bootstrap (R16). Commit: `docs(repo): add the instruction hub`.
 
