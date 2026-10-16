@@ -48,7 +48,7 @@ The grammar is `- <path>: <what it holds>. <when to read it>.` One line per spok
 - The line starts at column 0 with `- `.
 - The path is bare and relative to the repository root: no backticks, no Markdown link, no angle brackets, no trailing slash, no leading `@` or `/`, no `.` or `..` segment, no spaces, no colon, forward slashes only.
 - After the path comes `: `, then what the spoke holds as a sentence ending with a full stop, a space, then when to read it as a sentence ending with a full stop.
-- The second sentence may name path prefixes in backticks, such as "Read before editing under `src/api/`." The drift hook uses each backticked token that holds no space as a prefix: a staged file whose path starts with it is covered by the spoke.
+- The second sentence may name path prefixes in backticks, such as "Read before editing under `src/api/`." The drift hook takes as prefixes the backticked tokens of the second sentence that hold no space and name an existing file or directory: a staged file whose path starts with one is covered by the spoke. Tokens in the first sentence, and tokens that name nothing, are ignored.
 - A pointer with no backticked prefix to a spoke beside the code (not at the root and not under `docs/`) covers that spoke's directory. A pointer with no prefix to a spoke under `docs/` or at the root covers nothing.
 - The index runs from `## Spokes` to the next level 1 or 2 heading. Inside it, every column-0 line starting with `- ` must be a pointer; any other such line is malformed and blocks commits. Other lines (blank lines, level 3 group headings, prose) are ignored.
 

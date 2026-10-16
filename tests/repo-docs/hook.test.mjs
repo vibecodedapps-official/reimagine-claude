@@ -446,6 +446,31 @@ describe('repo-docs drift hook', () => {
     assert.equal(run('git commit -m x', dir), deny(brokenFinding));
   });
 
+  describe('coverage prefixes come from the condition clause', () => {
+    const files = (pointer) => ({
+      'CLAUDE.md': '# Cov\n\n## Spokes\n\n' + pointer + '\n',
+      'docs/build.md': 'b\n',
+      'docs/t.md': 't\n',
+      'docs/api.md': 'a\n',
+      'src/a.js': 'a\n',
+      'src/api/x.js': 'x\n',
+      'npm-shrinkwrap.json': '{}\n',
+    });
+    const cases = [
+      ['a token in the first sentence is ignored', '- docs/build.md: How `src` is copied to `dist`. Read before a release.', 'src/a.js', ''],
+      ['a word that is not a path is ignored', '- docs/t.md: How tests run. Read before running `npm`.', 'npm-shrinkwrap.json', ''],
+      ['an existing directory in the second sentence covers', '- docs/api.md: API rules for `src/api/`. Read before editing under `src/api/`.', 'src/api/x.js', advise('docs/api.md')],
+      ['a missing path is dropped and an existing file stays', '- docs/api.md: API rules. Read before editing `src/api/x.js` or `src/gone/`.', 'src/api/x.js', advise('docs/api.md')],
+    ];
+    cases.forEach(([label, pointer, path, expected], i) => {
+      test(label, () => {
+        const dir = repo('clause-' + i, files(pointer));
+        stage(dir, path, 'changed\n');
+        assert.equal(run('git commit -m x', dir), expected);
+      });
+    });
+  });
+
   describe('never writes a file', () => {
     const status = (dir) => git(dir, 'status', '--porcelain=v1', '--ignored', '-uall');
     const unchanged = (dir, command) => {

@@ -264,7 +264,14 @@ check_root() {
 			}
 			if (!ok) { print "M\t" $0; next }
 			pre = ""
-			d = desc
+			d = ""
+			inb = 0
+			nd = length(desc)
+			for (q = 1; q < nd; q++) {
+				ch = substr(desc, q, 1)
+				if (ch == "`") inb = !inb
+				else if (!inb && ch == "." && substr(desc, q + 1, 1) == " ") { d = substr(desc, q + 2); break }
+			}
 			while ((a = index(d, "`")) > 0) {
 				d = substr(d, a + 1)
 				b = index(d, "`")
@@ -305,6 +312,18 @@ check_root() {
 				rest=${rec#P"$TAB"}
 				path=${rest%%"$TAB"*}
 				pre=${rest#*"$TAB"}
+				kept=
+				while [ -n "$pre" ]; do
+					t=${pre%% *}
+					case $pre in
+					*" "*) pre=${pre#* } ;;
+					*) pre= ;;
+					esac
+					if [ -e "$root/${t%/}" ]; then
+						kept="$kept${kept:+ }$t"
+					fi
+				done
+				pre=$kept
 				if [ ! -e "$root/$path" ]; then
 					addf "$cur points to missing path $path"
 				elif [ -f "$root/$path" ]; then
