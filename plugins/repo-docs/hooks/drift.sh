@@ -8,7 +8,10 @@
 #   advise:  additionalContext names spokes that cover changed paths and are not changed
 #   nothing: not a commit, no hub, or no finding
 
-json=$(awk '{ printf "%s", $0 }')
+json=
+while IFS= read -r in_line || [ -n "$in_line" ]; do
+	json=$json$in_line
+done
 case $json in
 *commit*) ;;
 *) exit 0 ;;
