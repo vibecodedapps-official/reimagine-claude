@@ -1,4 +1,4 @@
-// The repo-docs skill text: what it finds before choosing a mode, and what maintain reports when nothing drifts.
+// The repo-docs skill text: what it finds before choosing a mode, what bootstrap points to, and what maintain reports when nothing drifts.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -19,4 +19,9 @@ test('R204: adopt checks what it keeps against the code, so the second run finds
 test('R206: maintain finds every import and nested AGENTS.md again and lists them with no drift', () => {
   assert.ok(SKILL.includes('every `@path` line in the hub and in each spoke (an untracked import is reported)'));
   assert.ok(SKILL.includes('print `repo-docs: no drift`, then one line per reported item in the form `- <item>: <why>`, and write nothing.'));
+});
+
+test('R198: bootstrap points only to files within the spoke cap and names a longer one in plain text', () => {
+  assert.ok(SKILL.includes('a pointer for each existing file under `docs/` that an agent needs for some task and that has at most 200 lines, with a condition saying when. A needed file over 200 lines gets no pointer, since the hook denies every commit while a spoke is over its cap: name it in plain text in the opening sentences with when to read it, and say in the reply that it is over the cap.'));
+  assert.ok(SKILL.includes('4. Check the hub before you finish: at most 60 lines, every pointer in the pointer form, every path it names exists, every file it points to at most 200 lines.'));
 });

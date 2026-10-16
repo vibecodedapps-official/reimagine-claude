@@ -38,8 +38,8 @@ Keep the repository's instruction files in hub and spoke form, in one of three m
 
 1. State the mode.
 2. Read the repository: `README.md`, package manifests and build files (their scripts and targets), CI workflows, the test layout, the top-level directories, and the list of files under `docs/`.
-3. Write the root `CLAUDE.md` in the hub form of `spokes.md`: the name and two or three sentences on what the repository is; under `## Commands` only commands that exist in a manifest, build file or CI workflow; under `## Constraints` only rules the repository states or enforces, never invented ones; under `## Spokes` a pointer for each existing file under `docs/` that an agent needs for some task, with a condition saying when. With no such file, keep the `## Spokes` line with nothing under it.
-4. Check the hub before you finish: at most 60 lines, every pointer in the pointer form, every path it names exists.
+3. Write the root `CLAUDE.md` in the hub form of `spokes.md`: the name and two or three sentences on what the repository is; under `## Commands` only commands that exist in a manifest, build file or CI workflow; under `## Constraints` only rules the repository states or enforces, never invented ones; under `## Spokes` a pointer for each existing file under `docs/` that an agent needs for some task and that has at most 200 lines, with a condition saying when. A needed file over 200 lines gets no pointer, since the hook denies every commit while a spoke is over its cap: name it in plain text in the opening sentences with when to read it, and say in the reply that it is over the cap. With no such file, keep the `## Spokes` line with nothing under it.
+4. Check the hub before you finish: at most 60 lines, every pointer in the pointer form, every path it names exists, every file it points to at most 200 lines.
 5. Write nothing else. Leave `CLAUDE.md` uncommitted, show it, and say it is ready for the user to review and commit.
 
 ## Adopt
