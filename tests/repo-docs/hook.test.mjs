@@ -258,6 +258,31 @@ describe('repo-docs drift hook', () => {
     assert.equal(run('git commit -m x', dir), '');
   });
 
+  describe('fenced code', () => {
+    test('a spoke that shows the hub template in a fence is read as plain text', () => {
+      const dir = repo('fence-spoke', {
+        'CLAUDE.md': '# Fence\n\n## Spokes\n\n- docs/a.md: A. Read always.\n',
+        'docs/a.md': '# A\n\n```\n## Spokes\n\n- <path>: <what>. <when>.\n```\n',
+      });
+      assert.equal(run('git commit -m x', dir), '');
+    });
+    test('a long CLAUDE.md with only a fenced Spokes line is not a hub', () => {
+      const hub = '# Long\n' + 'x\n'.repeat(94) + '```\n## Spokes\n- docs/gone.md: Gone. Read always.\n```\n' + 'y\n';
+      const dir = repo('fence-long', { 'CLAUDE.md': hub });
+      assert.equal(run('git commit -m x', dir), '');
+    });
+    test('a fenced comment line does not end the index', () => {
+      const hub = '# Hub\n\n## Spokes\n\n```sh\n# setup\n```\n- docs/gone.md: Gone. Read always.\n';
+      const dir = repo('fence-comment', { 'CLAUDE.md': hub });
+      assert.equal(run('git commit -m x', dir), deny(brokenFinding));
+    });
+    test('a tilde fence hides its lines from the index', () => {
+      const hub = '# Hub\n\n## Spokes\n\n~~~\n- not a pointer\n~~~\n- docs/a.md: A. Read always.\n';
+      const dir = repo('fence-tilde', { 'CLAUDE.md': hub, 'docs/a.md': 'a\n' });
+      assert.equal(run('git commit -m x', dir), '');
+    });
+  });
+
   test('a clean hub with nothing staged prints nothing', () => {
     assert.equal(run('git commit -m x', spokes), '');
   });

@@ -224,6 +224,19 @@ check_root() {
 		# Prints P/M lines for the index, then N<count>, then S for a ## Spokes line.
 		o="$NL$(awk '
 		{ sub(/\r$/, "") }
+		{
+			s = $0
+			k = 0
+			while (k < 3 && substr(s, k + 1, 1) == " ") k++
+			ch = substr(s, k + 1, 1)
+			isf = 0
+			if (ch == "`" || ch == "~") {
+				for (m = k + 1; substr(s, m, 1) == ch; m++) ;
+				if (m - k - 1 >= 3) isf = 1
+			}
+			if (fch != "") { if (isf && ch == fch) fch = ""; next }
+			if (isf) { fch = ch; next }
+		}
 		$0 == "## Spokes" { insp = 1; hasS = 1; next }
 		insp && (index($0, "# ") == 1 || index($0, "## ") == 1) { insp = 0 }
 		insp && substr($0, 1, 2) == "- " {
