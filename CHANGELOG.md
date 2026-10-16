@@ -4,7 +4,12 @@ One changelog for the suite. Each plugin releases on its own line; a release get
 
 ## Unreleased
 
-- Design documents for 0.1.0 under `docs/`: requirements, architecture, build plan, decisions, acceptance. `repo-docs` is not built yet and is not in the catalog.
+- Design documents for 0.1.0 under `docs/`: requirements, architecture, build plan, decisions, acceptance.
+
+## repo-docs 0.1.0-alpha.1 - 2026-10-15
+
+- First prerelease. `/repo-docs` keeps instruction files in hub and spoke form in three modes: bootstrap writes a hub, adopt inventories existing docs, plans, asks once and commits, and maintain checks the hub and spokes for drift.
+- A PreToolUse drift hook in POSIX sh that denies a Claude Code commit when the hub or a spoke names a missing path, holds a malformed index line or is over its cap, and names the spokes to recheck when staged files fall under them.
 
 ## audit 0.1.0-alpha.1 - 2026-10-15
 
