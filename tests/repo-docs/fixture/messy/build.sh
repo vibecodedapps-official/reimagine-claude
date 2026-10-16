@@ -1,7 +1,7 @@
 #!/bin/sh
 # build.sh: build the messy fixture, a small Node repository with untidy instruction files, for
-# the hand-run acceptance item where /repo-docs runs adopt on it. Builds in a new mktemp -d
-# directory (TMPDIR decides where) and prints that directory's absolute path on stdout, nothing else.
+# the hand-run acceptance item where /repo-docs runs adopt on it. Builds in a new directory
+# under TMPDIR (else /tmp) and prints that directory's absolute path on stdout, nothing else.
 #
 # Usage: sh tests/repo-docs/fixture/messy/build.sh
 #
@@ -10,7 +10,7 @@
 # (Git Bash) the printed path is in C:/ form.
 set -eu
 
-T=$(mktemp -d)
+T=$(mktemp -d "${TMPDIR:-/tmp}/messy.XXXXXX")
 if command -v cygpath >/dev/null 2>&1; then
 	T=$(cygpath -m "$T")
 fi
