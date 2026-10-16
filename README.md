@@ -38,15 +38,17 @@ Each plugin works alone. After installing `rules`, run `/rules` (also reachable 
 
 ## Update
 
+From a shell:
+
 ```
-/plugin marketplace update reimagine-claude
-/plugin update rules@reimagine-claude
-/plugin update loop@reimagine-claude
-/plugin update audit@reimagine-claude
-/plugin update repo-docs@reimagine-claude
+claude plugin marketplace update reimagine-claude
+claude plugin update rules@reimagine-claude
+claude plugin update loop@reimagine-claude
+claude plugin update audit@reimagine-claude
+claude plugin update repo-docs@reimagine-claude
 ```
 
-An alpha install moves to 0.1.0 the same way; the alpha version sorts below it. Restart the session afterwards. When the house rules changed, a one-line notice at startup says to run `/rules`.
+In a session, `/plugin marketplace update reimagine-claude` refreshes the catalog and `/plugin` opens the plugin manager, whose Installed tab updates a plugin; `/plugin update` is not a session command. An alpha install moves to 0.1.0 the same way; the alpha version sorts below it. Restart the session afterwards. When the house rules changed, a one-line notice at startup says to run `/rules`.
 
 ## Uninstall
 
