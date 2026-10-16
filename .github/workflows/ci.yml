@@ -1,0 +1,82 @@
+# Lint and tests on three systems, the audit awk suites under mawk, and manifest validation with a pinned Claude Code.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: lint and test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: lint
+        run: npm run lint
+      - name: test
+        run: npm test
+
+  mawk:
+    name: audit awk suites under mawk
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: put mawk first as awk
+        shell: bash
+        run: |
+          if ! command -v mawk >/dev/null; then sudo apt-get update && sudo apt-get install -y mawk; fi
+          mkdir -p "$RUNNER_TEMP/mawk"
+          ln -sf "$(command -v mawk)" "$RUNNER_TEMP/mawk/awk"
+          echo "$RUNNER_TEMP/mawk" >> "$GITHUB_PATH"
+      - name: check awk is mawk
+        shell: bash
+        run: awk -W version 2>&1 | head -1 | grep -q mawk && awk -W version 2>&1 | head -1
+      - name: audit suites
+        run: node --test tests/audit/sh.test.mjs
+
+  validate:
+    name: validate manifests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: install Claude Code 2.1.296
+        env:
+          DISABLE_AUTOUPDATER: '1'
+        run: npm install -g @anthropic-ai/claude-code@2.1.296
+      - name: validate
+        shell: bash
+        env:
+          DISABLE_AUTOUPDATER: '1'
+          CLAUDE_CONFIG_DIR: ${{ runner.temp }}/claude-config
+        run: |
+          claude --version
+          status=0
+          for dir in . plugins/*/; do
+            echo "validate --strict $dir"
+            claude plugin validate --strict "$dir" || status=1
+          done
+          exit $status
