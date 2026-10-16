@@ -43,7 +43,7 @@ describe('repo-docs messy fixture', () => {
 
       assert.equal(
         out('log', '--format=%H %s'),
-        '59b0e5daf5169f5ae9820ab437a0fc675e4d98de feat(worker): add the queue worker\n3c978f41018607551dba54c7093cb93f9ec2c747 chore: start the project\n',
+        'eb8c0c5ccfce0853d0d4d8be47824f5ff619da9b feat(worker): add the queue worker\n89c10f26d2e18903487c46d46df9c6c078d9f048 chore: start the project\n',
       );
       assert.equal(out('status', '--porcelain'), '');
       assert.equal(
@@ -96,6 +96,13 @@ describe('repo-docs messy fixture', () => {
       });
       assert.equal(hook.status, 0, hook.stderr);
       assert.equal(hook.stdout, '');
+
+      const buildRun = spawnSync('node', ['scripts/build.mjs'], { cwd: repo, encoding: 'utf8' });
+      assert.equal(buildRun.status, 0, buildRun.stderr);
+      assert.equal(
+        readFileSync(join(repo, 'src', 'web', 'dist', 'app.js'), 'utf8'),
+        readFileSync(join(repo, 'src', 'web', 'app.js'), 'utf8'),
+      );
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

@@ -115,9 +115,11 @@ console.log(`lint: checked ${readdirSync('src').length} directories`);
 EOF
 
 put scripts/build.mjs <<'EOF'
-import { cpSync } from 'node:fs';
+import { cpSync, readdirSync } from 'node:fs';
 
-cpSync('src/web', 'src/web/dist', { recursive: true });
+for (const name of readdirSync('src/web')) {
+  if (name !== 'dist') cpSync(`src/web/${name}`, `src/web/dist/${name}`, { recursive: true });
+}
 EOF
 
 put CLAUDE.md <<'EOF'
