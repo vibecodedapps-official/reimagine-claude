@@ -1,11 +1,11 @@
 #!/bin/sh
 # drift.sh: PreToolUse hook for Bash and PowerShell calls. Reads the tool call from stdin
 # and acts only when it runs `git commit`. Reads stdin, the hub (CLAUDE.md, or AGENTS.md
-# behind the adapter), the spokes it indexes and the staged file list; never reads git
+# behind the adapter), the spokes it indexes and the changed file list; never reads git
 # history and never writes a file. Prints at most one JSON object and always exits 0:
 #   deny:    a pointer names a missing path, an index line is malformed, or the hub or a
 #            spoke is over its line cap
-#   advise:  additionalContext names spokes that cover staged paths and are not staged
+#   advise:  additionalContext names spokes that cover changed paths and are not changed
 #   nothing: not a commit, no hub, or no finding
 
 json=$(awk '{ printf "%s", $0 }')
@@ -27,7 +27,8 @@ case $json in
 *'"tool_name":"PowerShell"'* | *'"tool_name": "PowerShell"'*) ps=1 ;;
 esac
 
-# One line "D<dir>" per distinct directory where the command runs git commit.
+# One line "D<dir>" per distinct directory where the command runs git commit, then one line "A"
+# when the command runs git add anywhere.
 dirs=$(printf '%s\n' "$raw" | awk -v ps="$ps" '
 BEGIN { SEP = "\001" }
 
@@ -118,6 +119,7 @@ function analyze(str, nw,    a, i, j, k, w, t, cmd, base, dir, edir, hasc) {
 			else if (t == "-c" || t == "--git-dir" || t == "--namespace" || t == "--config-env") j += 2
 			else j++
 		}
+		if (j <= nw && a[j] == "add") adds = 1
 		if (j <= nw && a[j] == "commit") {
 			for (k = j + 1; k <= nw; k++)
 				if (a[k] == "--dry-run" || a[k] == "--help" || a[k] == "-h") return
@@ -167,8 +169,13 @@ function split_commands(s,    i, n, c, e, st, cur, inw, cmd, nw, dq) {
 }
 
 { split_commands(unescape($0)) }
+END { if (adds) print "A" }
 ')
 [ -n "$dirs" ] || exit 0
+hasadd=
+case "$NL$dirs$NL" in
+*"${NL}A${NL}"*) hasadd=1 ;;
+esac
 
 cwd=$(printf '%s\n' "$json" | sed -n -E 's/^.*"cwd"[[:space:]]*:[[:space:]]*"(([^"\\]|\\.)*)".*$/\1/p' | sed -e 's/\\\\/\\/g' -e 's/\\"/"/g')
 if [ -z "$cwd" ] || [ ! -d "$cwd" ]; then
@@ -331,9 +338,14 @@ EOF
 	done
 
 	[ -n "$havecov" ] || return 0
-	staged=$(git -C "$root" -c core.quotepath=off diff --cached --name-only 2>/dev/null)
-	[ -n "$staged" ] || return 0
-	list=$(printf '%s\n--\n%s\n' "$cov" "$staged" | awk -F '\t' '
+	changed=$(git -C "$root" -c core.quotepath=off diff --cached --name-only 2>/dev/null)
+	if git -C "$root" -c core.quotepath=off rev-parse --verify -q HEAD >/dev/null 2>&1; then
+		changed="$changed$NL$(git -C "$root" -c core.quotepath=off diff HEAD --name-only 2>/dev/null)"
+	fi
+	if [ -n "$hasadd" ]; then
+		changed="$changed$NL$(git -C "$root" -c core.quotepath=off ls-files --others --exclude-standard 2>/dev/null)"
+	fi
+	list=$(printf '%s\n--\n%s\n' "$cov" "$changed" | awk -F '\t' '
 	!sect && $0 == "--" { sect = 1; next }
 	!sect {
 		if ($1 == "") next
@@ -341,6 +353,7 @@ EOF
 		cp[$1] = cp[$1] " " $2
 		next
 	}
+	$0 == "" || ($0 in st) { next }
 	{ st[$0] = 1; sl[++m] = $0 }
 	END {
 		for (i = 1; i <= n; i++) {

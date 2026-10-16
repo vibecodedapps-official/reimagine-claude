@@ -419,6 +419,27 @@ describe('repo-docs drift hook', () => {
     }
   });
 
+  test('files the command itself stages name the spokes to recheck', () => {
+    const dir = repo('spokes-set', spokesFiles(''));
+    const steps = [
+      ['add then commit', [['src/api/x.js', 'x2\n']], 'git add src/api/x.js && git commit -m x', advise('docs/api.md')],
+      ['commit -a', [['src/api/x.js', 'x2\n']], 'git commit -am x', advise('docs/api.md')],
+      ['commit with a path', [['src/api/x.js', 'x2\n']], 'git commit src/api/x.js -m x', advise('docs/api.md')],
+      ['add -A with an untracked file', [['src/api/y.js', 'y\n']], 'git add -A && git commit -m x', advise('docs/api.md')],
+      ['commit with an untracked file and no add', [['src/api/y.js', 'y\n']], 'git commit -m x', ''],
+      ['commit -a with the spoke changed too', [['src/api/x.js', 'x2\n'], ['docs/api.md', '# API\n\nRules 2.\n']], 'git commit -am x', ''],
+    ];
+    try {
+      for (const [label, changes, command, expected] of steps) {
+        clean(dir);
+        for (const [path, content] of changes) write(dir, path, content);
+        assert.equal(run(command, dir), expected, label);
+      }
+    } finally {
+      clean(dir);
+    }
+  });
+
   test('a deny wins over advice', () => {
     const dir = repo('deny-wins', spokesFiles('- docs/gone.md: Gone. Read always.\n'));
     stage(dir, 'src/api/x.js', 'x2\n');
