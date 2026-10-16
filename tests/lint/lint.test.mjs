@@ -138,9 +138,9 @@ before(() => {
   git(clean, 'init', '-q', `--template=${template}`);
   git(clean, 'add', '-A');
   git(clean, 'commit', '-q', '-m', 'init');
-  for (const name of readdirSync(join(clean, 'plugins'))) {
-    const version = JSON.parse(read(clean, manifest(name))).version;
-    git(clean, 'tag', `${name}--v${version}`);
+  // One tag per changelog heading, as a release leaves them, so a bump still waiting for its heading stays untagged.
+  for (const m of read(clean, 'CHANGELOG.md').matchAll(/^## (\S+) (\S+) - \d{4}-\d{2}-\d{2}\r?$/gm)) {
+    git(clean, 'tag', `${m[1]}--v${m[2]}`);
   }
   git(clean, 'repack', '-q', '-a', '-d');
 });
