@@ -26,11 +26,12 @@ Keep the repository's instruction files in hub and spoke form, in one of three m
 - Never reword a dated or historical entry; append a correction as a new dated entry. Never delete a real constraint to get under a cap; split the file instead.
 - Obey every ask-first rule in the instruction files the session loaded. The one question of adopt and maintain lists every commit it will make, so one yes covers those commits; anything outside the plan asks again.
 - Commits follow the repository's own commit convention when its instruction files name one; otherwise `docs(repo): <subject>` in lowercase. The body says why, and its first line is `Instruction-file <mode> pass, <YYYY-MM-DD>.` A commit message never names a model, an agent or a tool. Stage only the paths the plan names, by path. Never push, amend, or pass `--no-verify`.
-- Find files with `git ls-files` and `git ls-files --others --exclude-standard` (tracked, and untracked but not ignored).
+- Find files with `git ls-files`, `git ls-files --others --exclude-standard` (untracked, not ignored) and `git ls-files --others --ignored --exclude-standard` (ignored). An instruction file git ignores is the user's own: it is listed, reported, and never edited, moved or written over.
 
 ## Choose the mode
 
-- When the request names `bootstrap`, `adopt` or `maintain`, use it, except that bootstrap never overwrites an existing `CLAUDE.md` or `AGENTS.md`: say so and stop.
+- The mode is chosen from the files on disk, ignored ones included. When the root `CLAUDE.md` or `AGENTS.md` is ignored by git, say so and stop with nothing written.
+- When the request names `bootstrap`, `adopt` or `maintain`, use it. Bootstrap never writes over an existing `CLAUDE.md` or `AGENTS.md`, whether named or chosen: say so and stop.
 - Otherwise: a hub exists (the root `CLAUDE.md` holds a line exactly `## Spokes`, or it is the adapter line `@AGENTS.md` and the root `AGENTS.md` holds that line): `maintain`. Else, any `CLAUDE.md` or `AGENTS.md` exists at any depth: `adopt`. Else: `bootstrap`.
 
 ## Bootstrap
@@ -90,10 +91,11 @@ A second run after adopt finds the hub and reads as maintain. Adopt's result mus
    - every command under `## Commands` still exists in its manifest, build file or CI workflow;
    - every path, prefix and directory a pointer or spoke names still exists;
    - each spoke still matches the code it governs: read the files its prefixes or directory cover and look for statements the code makes untrue;
-   - instruction and documentation files an agent needs that nothing points to, new `@path` imports, agent rules in `README.md`, duplicates.
+   - instruction and documentation files an agent needs that nothing points to, new `@path` imports, agent rules in `README.md`, duplicates;
+   - every `@path` line in the hub and in each spoke (an untracked import is reported), and every nested `AGENTS.md` when no root `AGENTS.md` sits beside the hub (reported as left in place).
 
    Items adopt reported and left as is (an untracked import, a nested `AGENTS.md` it points to) are reported again, never changed.
-3. With nothing to fix, print `repo-docs: no drift`, then any reported items, and write nothing.
+3. With nothing to fix, print `repo-docs: no drift`, then one line per reported item in the form `- <item>: <why>`, and write nothing.
 4. Otherwise print the plan in the adopt form, with a `Findings` section in place of `Inventory`, ask once, and apply it as adopt does.
 
 ## Supporting files
