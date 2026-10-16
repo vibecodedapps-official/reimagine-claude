@@ -675,6 +675,15 @@ test('R220: the first line of each file with a token is reported once, whichever
     'docs/b.md:3: holds a token from LINT_DENY_TOKENS',
   ]);
 });
+test('R220: a UTF-16 file with a byte order mark is scanned as text', () => {
+  const dir = caseDir();
+  writeFileSync(join(dir, 'docs/a.md'), Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from('one\n' + token + '\n', 'utf16le')]));
+  writeFileSync(join(dir, 'docs/b.md'), Buffer.concat([Buffer.from([0xfe, 0xff]), Buffer.from('one\ntwo\n' + token + '\n', 'utf16le').swap16()]));
+  fails(lint(dir, denied(token)), 2, [
+    'docs/a.md:2: holds a token from LINT_DENY_TOKENS',
+    'docs/b.md:3: holds a token from LINT_DENY_TOKENS',
+  ]);
+});
 test('R220: a token that no file holds passes', () => {
   passes(lint(caseDir(), denied(' ' + token + ' ,,')));
 });

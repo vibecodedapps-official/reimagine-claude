@@ -186,7 +186,14 @@ function loadContext() {
     if (!cache.has(rel)) cache.set(rel, readFileSync(join(root, rel)));
     return cache.get(rel);
   };
-  const text = (rel) => bytes(rel)?.toString('utf8').replace(/\r/g, '') ?? null;
+  // A UTF-16 file is read by its byte order mark, so the rules see its text and not its bytes.
+  const decode = (buf) => {
+    const utf16 = buf[0] === 0xff && buf[1] === 0xfe ? 'le' : buf[0] === 0xfe && buf[1] === 0xff ? 'be' : null;
+    if (!utf16) return buf.toString('utf8');
+    const body = Buffer.from(buf.subarray(2, 2 + ((buf.length - 2) & ~1)));
+    return (utf16 === 'be' ? body.swap16() : body).toString('utf16le');
+  };
+  const text = (rel) => { const buf = bytes(rel); return buf === null ? null : decode(buf).replace(/\r/g, ''); };
   const json = (rel) => {
     try {
       const value = JSON.parse(text(rel));
