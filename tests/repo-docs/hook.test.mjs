@@ -40,9 +40,9 @@ const repo = (name, files) => {
   return dir;
 };
 
-const hook = (input) => {
+const hook = (input, envOverride = {}) => {
   // A forward-slash path relative to cwd, which Git Bash on Windows reads as given.
-  const r = spawnSync('sh', ['plugins/repo-docs/hooks/drift.sh'], { cwd: root, env, input, encoding: 'utf8' });
+  const r = spawnSync('sh', ['plugins/repo-docs/hooks/drift.sh'], { cwd: root, env: { ...env, ...envOverride }, input, encoding: 'utf8' });
   assert.equal(r.status, 0, `hook exited ${r.status}\n${r.stderr}`);
   return r.stdout;
 };
@@ -56,6 +56,7 @@ const run = (command, cwd, extra = {}) =>
       tool_input: { command, description: extra.description ?? 'Run a command' },
       cwd,
     }),
+    extra.env,
   );
 
 const deny = (finding) =>
@@ -150,6 +151,31 @@ describe('repo-docs drift hook', () => {
     });
   }
 
+  const wrapped = [
+    'if git diff --cached --quiet; then echo none; else git commit -m x; fi',
+    'for f in a; do git commit -m x; done',
+    '! git commit -m x',
+    'time git commit -m x',
+    'command git commit -m x',
+    'bash -o pipefail -c "git commit -m x"',
+    'echo "$(git commit -m x)"',
+    '/usr/bin/env git commit -m x',
+    'git -C "$REPO" commit -m x',
+  ];
+  for (const command of wrapped) {
+    test(`detects a commit: ${JSON.stringify(command)}`, () => {
+      assert.equal(run(command, broken), deny(brokenFinding));
+    });
+  }
+
+  test('detects a commit after env -C from a non-repository cwd', () => {
+    assert.equal(run('env -C broken git commit -m x', base), deny(brokenFinding));
+  });
+
+  test('detects a commit after git -C ~/dir with HOME set', () => {
+    assert.equal(run('git -C ~/broken commit -m x', base, { env: { HOME: base } }), deny(brokenFinding));
+  });
+
   test('detects a commit from the PowerShell tool', () => {
     assert.equal(run('git commit -m x', broken, { tool: 'PowerShell' }), deny(brokenFinding));
   });
@@ -187,6 +213,9 @@ describe('repo-docs drift hook', () => {
     ['ls commit', {}],
     ['git status', { description: 'git commit the staged change' }],
     ['git status', { description: 'commit' }],
+    ['git commit --dry-run', {}],
+    ['git commit --help', {}],
+    ['git commit -h', {}],
   ];
   for (const [command, extra] of negative) {
     test(`stays quiet: ${JSON.stringify(command)} ${extra.description ?? ''}`.trim(), () => {

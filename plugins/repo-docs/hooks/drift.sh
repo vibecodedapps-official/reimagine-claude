@@ -55,19 +55,35 @@ function record(dir) {
 	if (!(dir in seen)) { seen[dir] = 1; print "D" dir }
 }
 
+# The lowercased part of a word after its last / or \.
+function basename(w,    k, ch) {
+	for (k = length(w); k >= 1; k--) {
+		ch = substr(w, k, 1)
+		if (ch == "/" || ch == "\\") break
+	}
+	return tolower(substr(w, k + 1))
+}
+
 # str holds nw words, each followed by SEP.
-function analyze(str, nw,    a, i, j, k, w, t, cmd, base, ch, dir, hasc) {
+function analyze(str, nw,    a, i, j, k, w, t, cmd, base, dir, edir, hasc) {
 	split(str, a, SEP)
 	i = 1
+	edir = ""
 	while (i <= nw) {
 		w = a[i]
 		if (w ~ /^[A-Za-z_][A-Za-z0-9_]*=/) { i++; continue }
-		if (w == "env" || w == "sudo") {
+		base = basename(w)
+		if (index(" if then else elif do while until ! time command exec nohup ", " " base " ")) { i++; continue }
+		if (base == "env" || base == "sudo") {
 			i++
 			while (i <= nw && substr(a[i], 1, 1) == "-") {
 				t = a[i]
 				i++
-				if (w == "env") { if (t == "-u") i++ }
+				if (base == "env") {
+					if (t == "-u" || t == "-S") i++
+					else if (t == "-C") { edir = joindir(edir, a[i]); i++ }
+					else if (substr(t, 1, 8) == "--chdir=") edir = joindir(edir, substr(t, 9))
+				}
 				else if (length(t) == 2 && index("ugUCDhprtT", substr(t, 2, 1))) i++
 			}
 			continue
@@ -76,20 +92,18 @@ function analyze(str, nw,    a, i, j, k, w, t, cmd, base, ch, dir, hasc) {
 	}
 	if (i > nw) return
 	cmd = a[i]
-	for (k = length(cmd); k >= 1; k--) {
-		ch = substr(cmd, k, 1)
-		if (ch == "/" || ch == "\\") break
-	}
-	base = tolower(substr(cmd, k + 1))
+	base = basename(cmd)
 	if (base == "sh" || base == "bash" || base == "dash" || base == "zsh" || base == "sh.exe" || base == "bash.exe") {
 		hasc = 0
-		for (j = i + 1; j <= nw && substr(a[j], 1, 1) == "-"; j++)
-			if (a[j] ~ /^-[A-Za-z]*c[A-Za-z]*$/) hasc = 1
+		for (j = i + 1; j <= nw && (substr(a[j], 1, 1) == "-" || substr(a[j], 1, 1) == "+"); j++) {
+			if (a[j] == "-o" || a[j] == "+o") j++
+			else if (a[j] ~ /^-[A-Za-z]*c[A-Za-z]*$/) hasc = 1
+		}
 		if (hasc && j <= nw) split_commands(a[j])
 		return
 	}
 	if (base == "git" || base == "git.exe") {
-		dir = ""
+		dir = edir
 		j = i + 1
 		while (j <= nw && substr(a[j], 1, 1) == "-") {
 			t = a[j]
@@ -98,13 +112,17 @@ function analyze(str, nw,    a, i, j, k, w, t, cmd, base, ch, dir, hasc) {
 			else if (t == "-c" || t == "--git-dir" || t == "--namespace" || t == "--config-env") j += 2
 			else j++
 		}
-		if (j <= nw && a[j] == "commit") record(dir)
+		if (j <= nw && a[j] == "commit") {
+			for (k = j + 1; k <= nw; k++)
+				if (a[k] == "--dry-run" || a[k] == "--help" || a[k] == "-h") return
+			record(dir)
+		}
 	}
 }
 
-function split_commands(s,    i, n, c, e, st, cur, inw, cmd, nw) {
+function split_commands(s,    i, n, c, e, st, cur, inw, cmd, nw, dq) {
 	n = length(s)
-	st = 0; cur = ""; inw = 0; cmd = ""; nw = 0
+	st = 0; cur = ""; inw = 0; cmd = ""; nw = 0; dq = ""
 	for (i = 1; i <= n; i++) {
 		c = substr(s, i, 1)
 		if (st == 1) {
@@ -114,13 +132,16 @@ function split_commands(s,    i, n, c, e, st, cur, inw, cmd, nw) {
 		}
 		if (st == 2) {
 			e = substr(s, i + 1, 1)
-			if (c == "\\" && (e == "\"" || e == "\\")) { cur = cur e; i++ }
-			else if (c == "\"") st = 0
-			else cur = cur c
+			if (c == "\\" && (e == "\"" || e == "\\")) { cur = cur e; dq = dq e; i++ }
+			else if (c == "\"") {
+				st = 0
+				if (index(dq, "$(") || index(dq, "`")) split_commands(dq)
+			}
+			else { cur = cur c; dq = dq c }
 			continue
 		}
 		if (c == "\047") { st = 1; inw = 1; continue }
-		if (c == "\"") { st = 2; inw = 1; continue }
+		if (c == "\"") { st = 2; inw = 1; dq = ""; continue }
 		if (c == " " || c == "\t" || c == "\n" || index(";&|(){}`", c)) {
 			if (inw) { cmd = cmd cur SEP; nw++; cur = ""; inw = 0 }
 			if (c != " " && c != "\t" && nw > 0) { analyze(cmd, nw); cmd = ""; nw = 0 }
@@ -315,7 +336,15 @@ while IFS= read -r line; do
 	D*) ;;
 	*) continue ;;
 	esac
-	root=$(git -C "$cwd" -C "${line#D}" rev-parse --show-toplevel 2>/dev/null) || continue
+	dir=${line#D}
+	case $dir in
+	"~") dir=$HOME ;;
+	"~/"*) dir=$HOME/${dir#"~/"} ;;
+	esac
+	root=$(git -C "$cwd" -C "$dir" rev-parse --show-toplevel 2>/dev/null) || root=
+	if [ -z "$root" ] && [ -n "$dir" ]; then
+		root=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null) || root=
+	fi
 	[ -n "$root" ] || continue
 	case $roots in
 	*"$NL$root$NL"*) continue ;;
