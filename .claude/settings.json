@@ -1,0 +1,13 @@
+{
+  "enabledPlugins": {
+    "repo-docs@reimagine-claude": true
+  },
+  "extraKnownMarketplaces": {
+    "reimagine-claude": {
+      "source": {
+        "source": "github",
+        "repo": "vibecodedapps-official/reimagine-claude"
+      }
+    }
+  }
+}
