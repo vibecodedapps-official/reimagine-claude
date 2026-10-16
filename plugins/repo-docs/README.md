@@ -18,7 +18,7 @@ Git. On Windows, Git for Windows: the drift hook runs under its `sh`. Nothing el
 Run `/repo-docs` in a repository (also reachable as `/repo-docs:repo-docs`). It says which mode it runs in before it writes anything:
 
 - `bootstrap`: the repository has no `CLAUDE.md` or `AGENTS.md`. It writes a hub from what it reads in the repository and leaves it uncommitted for you to review.
-- `adopt`: instruction or documentation files exist but there is no hub. It lists every such file, shows a plan, and asks once. On yes it splits files that are over their cap, hold rules for two scopes, or duplicate another, turns `@path` imports into pointers, moves agent rules out of `README.md` into a spoke, and commits moves and rewrites separately. It touches documentation files only.
+- `adopt`: a `CLAUDE.md` or `AGENTS.md` exists somewhere in the repository but there is no hub. It lists every instruction and documentation file, shows a plan, and asks once. On yes it splits files that are over their cap, hold rules for two scopes, or duplicate another, turns `@path` imports into pointers, moves agent rules out of `README.md` into a spoke, and commits moves and rewrites separately. It touches documentation files only.
 - `maintain`: a hub exists. It checks the hub and spokes against the code. With nothing to fix it says so and writes nothing; otherwise it shows a plan and asks once, as adopt does.
 
 Name a mode to force it:
