@@ -583,6 +583,12 @@ negative('R14: <p>: plugins/<p>/ changed since <t>; set a version above <tv> (tr
 negative('R14: <p>: plugins/<p>/ changed since <t>; set a version above <tv> (new file)', (dir) => put(dir, extra, 'x\n'), 1, [
   'rules: plugins/rules/ changed since rules--v0.1.0-alpha.1; set a version above 0.1.0-alpha.1',
 ]);
+negative('R14: <p>: git diff --quiet <t> -- plugins/<p>/ exited <n>', (dir) => {
+  const blob = git(dir, 'rev-parse', 'HEAD:README.md').trim();
+  git(dir, 'tag', '-d', 'rules--v0.1.0-alpha.1');
+  git(dir, 'tag', 'rules--v0.1.0-alpha.1', blob);
+  append(dir, 'plugins/rules/README.md', '\nMore.\n');
+}, 1, ['rules: git diff --quiet rules--v0.1.0-alpha.1 -- plugins/rules/ exited 128']);
 positive('R14: a changed plugin with a version above its tag passes without a changelog heading', (dir) => {
   append(dir, 'plugins/rules/README.md', '\nMore.\n');
   bump(dir, 'rules');

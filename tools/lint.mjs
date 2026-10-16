@@ -620,7 +620,9 @@ function tagFailures(ctx) {
     if (!last) continue;
     if (compareSemver(v, last.version) < 0) below.push(`${p.dir}: version ${v} is below the tag ${last.tag}`);
     const dir = `plugins/${p.dir}/`;
-    const differs = git(['diff', '--quiet', last.tag, '--', dir]).status === 1
+    const diff = git(['diff', '--quiet', last.tag, '--', dir]);
+    if (diff.status !== 0 && diff.status !== 1) { changed.push(`${p.dir}: git diff --quiet ${last.tag} -- ${dir} exited ${diff.status}`); continue; }
+    const differs = diff.status === 1
       || git(['ls-files', '--others', '--exclude-standard', '--', dir]).stdout.trim() !== '';
     if (differs && compareSemver(v, last.version) <= 0) changed.push(`${p.dir}: ${dir} changed since ${last.tag}; set a version above ${last.version}`);
   }
