@@ -10,7 +10,7 @@
       "name": "rules",
       "source": "./plugins/rules",
       "description": "House rules for Claude Code sessions: one block in your CLAUDE.md, kept current, plus the Concise Plain output style.",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     {
       "name": "loop",

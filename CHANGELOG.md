@@ -6,6 +6,10 @@ One changelog for the suite. Each plugin releases on its own line; a release get
 
 - Design documents for 0.1.0 under `docs/`: requirements, architecture, build plan, decisions, acceptance.
 
+## rules 0.1.1 - 2026-10-16
+
+- A `/rules` step whose data directory refuses to create the lock stops within a second and names the directory to check, instead of waiting ten seconds and reporting that another step holds the lock.
+
 ## repo-docs 0.1.0 - 2026-10-16
 
 - First release.

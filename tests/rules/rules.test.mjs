@@ -25,8 +25,8 @@ const CORE_LF = `${begin('core', 'blank', 'cb477dddc15de845', '9.9.9')}\nC1\nC2\
 // The digest of the shipped body for options core, as the script printed it.
 const SHIPPED_CORE_DIGEST = 'fb0beeaaf8e7f02f';
 
-test('R25: the block version is the version in the manifest of the plugin root, and the shipped manifest is 0.1.0', () => {
-  assert.equal(pluginVersion(), '0.1.0');
+test('R25: the block version is the version in the manifest of the plugin root, and the shipped manifest is 0.1.1', () => {
+  assert.equal(pluginVersion(), '0.1.1');
   const dir = mkdtempSync(join(tmpdir(), 'rules-test-'));
   try {
     mkdirSync(join(dir, '.claude-plugin'));
@@ -335,7 +335,7 @@ test('R18, R36: the windows option puts the shipped Windows paragraph before the
   s.run('plan', ['--options', 'core,windows'], { platform: 'win32' });
   s.run('apply');
   const lines = bytes(s.claude).split('\n');
-  assert.match(lines[0], /^<!-- reimagine:house-rules begin version=0\.1\.0 options=core,windows join=none digest=[0-9a-f]{16} -->$/);
+  assert.match(lines[0], /^<!-- reimagine:house-rules begin version=0\.1\.1 options=core,windows join=none digest=[0-9a-f]{16} -->$/);
   assert.equal(lines.slice(1).join('\n'), `${SHIPPED['windows.md']}\n${SHIPPED['core.md']}${END}\n`);
 }));
 
@@ -412,7 +412,7 @@ test('R29: an existing file is backed up with the time in its name, and no tempo
   assert.deepEqual(s.run('apply'), [`rules: wrote ${s.claude}; the backup is ${s.claude}.reimagine-backup-20261003120000`]);
   assert.deepEqual(readdirSync(s.claudeDir).sort(), ['CLAUDE.md', 'CLAUDE.md.reimagine-backup-20261003120000']);
   assert.equal(bytes(`${s.claude}.reimagine-backup-20261003120000`), 'mine\n');
-  assert.ok(bytes(s.claude).startsWith('mine\n\n<!-- reimagine:house-rules begin version=0.1.0 options=core join=blank digest='));
+  assert.ok(bytes(s.claude).startsWith('mine\n\n<!-- reimagine:house-rules begin version=0.1.1 options=core join=blank digest='));
   assert.equal(s.state().created, false);
   assert.deepEqual(readdirSync(s.data).sort(), ['rules-plan.json', 'rules-state.json']);
 }));
@@ -555,6 +555,22 @@ test('R30: a step waits while another holds the lock, and takes over a lock left
   utimesSync(lock, new Date('2020-01-01T00:00:00Z'), new Date('2020-01-01T00:00:00Z'));
   assert.deepEqual(s.run('apply'), [`rules: wrote ${s.claude}`]);
   assert.equal(existsSync(lock), false);
+}));
+
+test('R30: a data directory that refuses the lock is reported within seconds, not held', { skip: process.platform !== 'win32' }, sandbox((s) => {
+  mkdirSync(s.data, { recursive: true });
+  const who = process.env.USERNAME;
+  const deny = spawnSync('icacls', [s.data, '/deny', `${who}:(AD)`], { encoding: 'utf8' });
+  assert.equal(deny.status, 0, deny.stdout + deny.stderr);
+  try {
+    const started = Date.now();
+    const r = s.spawn('plan');
+    assert.equal(r.stdout, `rules: cannot create ${join(s.data, 'rules.lock')} (EPERM); nothing was written; check the permissions of ${s.data}\n`);
+    assert.equal(r.status, 1);
+    assert.ok(Date.now() - started < 5000);
+  } finally {
+    spawnSync('icacls', [s.data, '/remove:d', who]);
+  }
 }));
 
 test('R37: the script prints a refusal on stdout and exits 1, and a status exits 0', sandbox((s) => {
@@ -876,7 +892,7 @@ test('R34: the overlap note and the recommendation for a hand copy, and adopt th
   assert.deepEqual(s.run('apply', [], { now: AT }), [`rules: wrote ${s.claude}; the backup is ${s.claude}.reimagine-backup-20261003120000`]);
   assert.equal(bytes(`${s.claude}.reimagine-backup-20261003120000`), copy);
   const after = bytes(s.claude);
-  assert.equal(after.startsWith('# Mine\n\n<!-- reimagine:house-rules begin version=0.1.0 options=core join=none digest='), true);
+  assert.equal(after.startsWith('# Mine\n\n<!-- reimagine:house-rules begin version=0.1.1 options=core join=none digest='), true);
   assert.equal(after.split('Make the smallest correct change').length, 2);
   assert.equal(s.run('plan', ['--options', 'core']).includes('state: current'), true);
   s.run('remove');

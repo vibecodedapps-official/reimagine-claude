@@ -480,8 +480,10 @@ function locked(dataDir, fn) {
   mkdirSync(dataDir, { recursive: true });
   for (let tries = 0; ; tries++) {
     try { mkdirSync(lock); break; } catch (e) {
-      // Windows gives EPERM while another step is still removing the lock.
-      if (e.code !== 'EEXIST' && !(e.code === 'EPERM' && process.platform === 'win32')) throw e;
+      // Windows gives EPERM while another step is still removing the lock; one that lasts a second is a permission problem.
+      const removing = e.code === 'EPERM' && process.platform === 'win32';
+      if (removing && tries >= 20) refuse(`cannot create ${lock} (EPERM); nothing was written; check the permissions of ${dataDir}`);
+      if (e.code !== 'EEXIST' && !removing) throw e;
       try { if (Date.now() - statSync(lock).mtimeMs > 60_000) { rmSync(lock, { recursive: true, force: true }); continue; } } catch {}
       if (tries >= 200) refuse(`another /rules step holds ${lock}; nothing was written; run /rules again`);
       sleep(50);
