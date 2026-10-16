@@ -251,6 +251,8 @@ check_root() {
 				ok = 1
 				if (index(path, " ") || index(path, "`") || index(path, ":") || index(path, "\\") || index(path, "](")) ok = 0
 				if (f == "@" || f == "/" || f == "<" || f == "[" || l == "/" || l == ">") ok = 0
+				ns = split(path, seg, "/")
+				for (q = 1; q <= ns; q++) if (seg[q] == "." || seg[q] == "..") ok = 0
 				if (desc !~ /^[^ ].*\. [^ ].*\.$/) ok = 0
 			}
 			if (!ok) { print "M\t" $0; next }

@@ -340,6 +340,21 @@ describe('repo-docs drift hook', () => {
         assert.equal(run('git commit -m x', dir), deny('CLAUDE.md has a malformed index line: ' + line));
       });
     });
+    test('denies a path with a .. segment', () => {
+      const line = '- ../docs/api.md: API rules. Read always.';
+      const dir = repo('bad-dotdot', { 'CLAUDE.md': '# Bad\n\n## Spokes\n\n' + line + '\n', 'docs/api.md': 'a\n', 'src/api/CLAUDE.md': 'r\n' });
+      assert.equal(run('git commit -m x', dir), deny('CLAUDE.md has a malformed index line: - ../docs/api.md: API rules. Read always.'));
+    });
+    test('denies a path with a leading ./ segment', () => {
+      const line = '- ./src/api/CLAUDE.md: API rules. Read before editing the API.';
+      const dir = repo('bad-dot', { 'CLAUDE.md': '# Bad\n\n## Spokes\n\n' + line + '\n', 'docs/api.md': 'a\n', 'src/api/CLAUDE.md': 'r\n' });
+      assert.equal(run('git commit -m x', dir), deny('CLAUDE.md has a malformed index line: - ./src/api/CLAUDE.md: API rules. Read before editing the API.'));
+    });
+    test('denies a path with an inner .. segment', () => {
+      const line = '- docs/../docs/api.md: API rules. Read always.';
+      const dir = repo('bad-inner-dotdot', { 'CLAUDE.md': '# Bad\n\n## Spokes\n\n' + line + '\n', 'docs/api.md': 'a\n', 'src/api/CLAUDE.md': 'r\n' });
+      assert.equal(run('git commit -m x', dir), deny('CLAUDE.md has a malformed index line: - docs/../docs/api.md: API rules. Read always.'));
+    });
     test('escapes a double quote and a backslash in the finding', () => {
       const line = '- docs/a"b\\c.md: Q. Read always.';
       const dir = repo('bad-quote', { 'CLAUDE.md': '# Bad\n\n## Spokes\n\n' + line + '\n', 'docs/api.md': 'a\n' });
