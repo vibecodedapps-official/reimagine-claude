@@ -134,7 +134,7 @@ Work items:
 
 Check:
 
-- `npm run lint` (the script exists in `package.json`) prints `lint: ok` with exit 0 on the tree; with `LINT_DENY_TOKENS` set to the implementer's list it still passes. No tag exists yet, so the changelog rule has nothing to check.
+- `npm run lint` (the script exists in `package.json`) prints `lint: ok` with exit 0 on the tree; with `LINT_DENY_TOKENS` set to the implementer's list it still passes. The four `0.1.0-alpha.1` tags and their changelog headings exist, so the tag and changelog rules check them from the start.
 - Each negative case fails with its message.
 
 ## M8: CI

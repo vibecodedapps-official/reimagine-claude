@@ -5,6 +5,7 @@ One repository and one marketplace, `reimagine-claude`, holding four Claude Code
 ## Commands
 
 - `npm test`: runs the node:test suites under `tests/`, which also drive the audit and repo-docs sh scripts.
+- `npm run lint`: runs `tools/lint.mjs`, the repository rules of R219 and R220; set `LINT_DENY_TOKENS` to a comma-separated list in the command's environment to check for those tokens too.
 
 ## Constraints
 
