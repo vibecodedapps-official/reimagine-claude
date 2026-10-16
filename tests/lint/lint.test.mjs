@@ -115,6 +115,15 @@ const headings = [
 ];
 const changelog = (list) => '# Changelog\n\n' + list.map((h) => `${h}\n\n`).join('');
 
+// The suite checks the rules, not the release state: the copy holds every plugin at 0.1.0-alpha.1, one heading each.
+const pin = (dir) => {
+  for (const name of ['rules', 'loop', 'audit', 'repo-docs']) setVersion(dir, name, '0.1.0-alpha.1');
+  for (const path of ['plugins/audit/skills/audit/SKILL.md', 'plugins/audit/skills/audit/resume.md', 'plugins/audit/skills/audit/stages/1-orient.md']) {
+    put(dir, path, read(dir, path).split('\n').map((l) => (l.includes('plugin_version') ? l.replace(/\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]*[0-9A-Za-z])?/g, '0.1.0-alpha.1') : l)).join('\n'));
+  }
+  put(dir, 'CHANGELOG.md', changelog(headings));
+};
+
 before(() => {
   base = mkdtempSync(join(tmpdir(), 'lint-'));
   const emptyConfig = join(base, 'empty.gitconfig');
@@ -135,6 +144,7 @@ before(() => {
     mkdirSync(dirname(join(clean, path)), { recursive: true });
     copyFileSync(join(root, path), join(clean, path));
   }
+  pin(clean);
   git(clean, 'init', '-q', `--template=${template}`);
   git(clean, 'add', '-A');
   git(clean, 'commit', '-q', '-m', 'init');
