@@ -150,6 +150,23 @@ test('R221: audit 0.1.0 also sets the plugin_version literals', () => {
   assert.equal(read(dir, orient).split('\n')[277], '      `mv -f`, with `plugin_version` `0.1.0`, empty `approvals`, and a stage 1 entry');
 });
 
+test('R221: an ignored file under plugins/audit is not read for literals', () => {
+  const dir = caseDir();
+  put(dir, 'plugins/audit/notes.log', 'The "plugin_version" is "0.0.9".\n');
+  assert.deepEqual(changed(dir), []);
+  const r = release(dir, 'audit', '0.1.0');
+  assert.equal(r.status, 0, shown(r));
+  assert.ok(!r.stdout.includes('notes.log'), shown(r));
+  assert.equal(read(dir, 'plugins/audit/notes.log'), 'The "plugin_version" is "0.0.9".\n');
+  assert.deepEqual(changed(dir), [
+    ' M .claude-plugin/marketplace.json',
+    ' M plugins/audit/.claude-plugin/plugin.json',
+    ' M plugins/audit/skills/audit/SKILL.md',
+    ' M plugins/audit/skills/audit/resume.md',
+    ' M plugins/audit/skills/audit/stages/1-orient.md',
+  ]);
+});
+
 test('R221: a CRLF manifest stays CRLF', () => {
   const dir = caseDir();
   const path = manifest('loop');

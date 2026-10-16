@@ -3,7 +3,7 @@
 // changes nothing else, then runs tools/lint.mjs. It does not tag and does not edit the changelog.
 // Usage: node tools/release.mjs <plugin> <version>
 import { spawnSync } from 'node:child_process';
-import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -157,12 +157,19 @@ function onlySpansDiffer(original, edited, edits, replacement) {
   return edited.slice(to) === original.slice(from);
 }
 
+// The files git sees under dir, tracked or untracked but not ignored, as lint lists them; a walk where git cannot list.
 function auditFiles(dir) {
+  const listed = spawnSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard', '--', dir], { cwd: root, encoding: 'utf8', maxBuffer: 1 << 28 });
+  if (listed.error || listed.status !== 0) return walk(dir);
+  return listed.stdout.split('\0').filter(Boolean).filter((rel) => statSync(join(root, rel), { throwIfNoEntry: false })?.isFile() === true);
+}
+
+function walk(dir) {
   const out = [];
   for (const e of readdirSync(join(root, dir), { withFileTypes: true })) {
     if (e.name === '.git' || e.name === 'node_modules') continue;
     const rel = `${dir}/${e.name}`;
-    if (e.isDirectory()) out.push(...auditFiles(rel));
+    if (e.isDirectory()) out.push(...walk(rel));
     else if (e.isFile()) out.push(rel);
   }
   return out;
