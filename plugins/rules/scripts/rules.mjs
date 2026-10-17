@@ -483,6 +483,7 @@ function locked(dataDir, fn) {
       // Windows gives EPERM while another step is still removing the lock; one that lasts a second is a permission problem.
       const removing = e.code === 'EPERM' && process.platform === 'win32';
       if (removing && tries >= 20) refuse(`cannot create ${lock} (EPERM); nothing was written; check the permissions of ${dataDir}`);
+      if (e.code === 'EACCES' || (e.code === 'EPERM' && !removing)) refuse(`cannot create ${lock} (${e.code}); nothing was written; check the permissions of ${dataDir}`);
       if (e.code !== 'EEXIST' && !removing) throw e;
       try { if (Date.now() - statSync(lock).mtimeMs > 60_000) { rmSync(lock, { recursive: true, force: true }); continue; } } catch {}
       if (tries >= 200) refuse(`another /rules step holds ${lock}; nothing was written; run /rules again`);
@@ -496,7 +497,7 @@ function locked(dataDir, fn) {
 // file, is retried once after a short wait.
 function writeAtomic(path, text, backup, encoding = 'latin1') {
   const tmp = `${path}.reimagine-tmp-${process.pid}`;
-  writeFileSync(tmp, text, encoding);
+  try { writeFileSync(tmp, text, encoding); } catch (e) { refuse(`could not write ${tmp} (${e.code}); nothing was written`); }
   if (existsSync(path)) chmodSync(tmp, statSync(path).mode & 0o777);
   try { renameSync(tmp, path); } catch (e) {
     if (process.platform === 'win32') {
