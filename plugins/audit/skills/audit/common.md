@@ -172,6 +172,11 @@ the sha it is pinned at. How to read depends on the brief's mode for the tree.
   copies, read as `audit-evidence.md` says.
 - **Read by `git show`** (an export over 1 GB the user declined): read each file with
   `git -C <repo> show <sha>:<path>`. Only agents with Bash are assigned such a tree.
+- **A sha before `:<path>` is written literally or as `${sha}:<path>`**, never
+  `$sha:<path>`: some shells read `:t` or `:l` after a variable as a modifier and alter
+  the path without an error.
+- **The output of `wc` is compared as a number** (`-eq`, or arithmetic), never as a
+  string, since some `wc` builds pad the count with spaces.
 
 ### Reverted test runs
 

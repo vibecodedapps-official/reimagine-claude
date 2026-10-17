@@ -16,13 +16,13 @@
       "name": "loop",
       "source": "./plugins/loop",
       "description": "Plan, build, review and publish a bundle of tickets as one reviewed pull request per repository, resuming on the same branch when run again.",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     {
       "name": "audit",
       "source": "./plugins/audit",
       "description": "A read-only, adversarial audit of finished pull requests that stops at a report, with an act step that commits approved items.",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     {
       "name": "repo-docs",

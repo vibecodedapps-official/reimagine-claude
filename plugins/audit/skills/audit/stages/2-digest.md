@@ -32,7 +32,7 @@ document at its sha, never the digest. Agents: one `audit:digester` per chunk.
       0-based with `end` exclusive. From `start` 0: when 450,000 bytes or fewer remain,
       `end` is the file size; otherwise `end` is `start` plus the output of
       `tail -c +<start+1> <file> | head -c 450001 | sed '$d' | wc -c`, which cuts at the
-      last LF in the window so no line is split. When that prints 0, one line is longer
+      last LF in the window so no line is split. When that is 0 as a number, one line is longer
       than the window: cut at `start` plus 450,000 and mark the range `line split`. The
       next range starts at `end`.
    4. `<file>` is the file measured. An exported tree is measured in place at

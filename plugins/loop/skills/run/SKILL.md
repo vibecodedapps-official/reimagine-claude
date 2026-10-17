@@ -172,6 +172,7 @@ One mechanic serves every question the run asks: credentials, repository adoptio
 - A shell quoting failure is fixed by writing the text to a file in the record and passing its absolute path.
 - A check that failed at baseline is not the loop's to fix. Match it by test names, not counts, and report it with the evidence.
 - Every shell argument that names a record file is its absolute path under the session's original checkout.
+- A sha before `:<path>` is written literally or as `${sha}:<path>`, never `$sha:<path>`: some shells read `:t` or `:l` after a variable as a modifier and alter the path without an error.
 
 ## Configuration
 

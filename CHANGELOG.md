@@ -6,6 +6,14 @@ One changelog for the suite. Each plugin releases on its own line; a release get
 
 - Design documents for 0.1.0 under `docs/`: requirements, architecture, build plan, decisions, acceptance.
 
+## audit 0.1.1 - 2026-10-16
+
+- The skill's shell lines hold under zsh and BSD tools: a stale registry lock with no owner directory is removed without an unmatched glob stopping the command, a sha held in a shell variable before `:<path>` is written so no shell reads it as a modifier, and the output of `wc` is compared as a number since BSD `wc` pads it.
+
+## loop 0.1.1 - 2026-10-16
+
+- A sha held in a shell variable before `:<path>` is written so no shell reads it as a modifier and alters the path.
+
 ## repo-docs 0.1.1 - 2026-10-16
 
 - The drift hook checks the paths a pointer or a backticked prefix names by their exact spelling, so a pointer written in another case than the file is a missing path on every filesystem, as it already was on Linux, and a prefix in another case is dropped instead of silently losing the recheck advice.

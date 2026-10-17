@@ -290,7 +290,7 @@ The registry `${CLAUDE_PLUGIN_DATA}/runs.json` is a JSON array:
 
 1. `<owner>` is `<run-id>-<HHMMSS>`, the run id and this invocation's start time, so a resume gets its own token. `<lock>` is `${CLAUDE_PLUGIN_DATA}/runs.json.lock`, always written as a literal absolute path, never built from a shell variable.
 2. Acquire with `mkdir <lock> && mkdir <lock>/<owner>`, without `-p` and never as one `mkdir` with both operands. While the lock exists, wait 5 seconds and retry.
-3. The lock is stale when the lock directory is older than about a minute by mtime (`find <lock> -maxdepth 0 -mmin +1`). Never judge by how long you waited. Interactive: ask whether another audit run or resume is running, one waiting at a prompt included. On no, remove it with `rmdir <lock>/* <lock>` (`rmdir <lock>` when empty) and acquire. On yes, keep retrying for five more minutes, then ask once more; a second yes takes the failure rule. Headless, or when unsure a user can answer: remove the stale lock without asking.
+3. The lock is stale when the lock directory is older than about a minute by mtime (`find <lock> -maxdepth 0 -mmin +1`). Never judge by how long you waited. Interactive: ask whether another audit run or resume is running, one waiting at a prompt included. On no, remove it with `rmdir <lock>/* <lock> 2>/dev/null || rmdir <lock>` (an empty lock has no owner directory, and an unmatched glob stops the whole command in some shells) and acquire. On yes, keep retrying for five more minutes, then ask once more; a second yes takes the failure rule. Headless, or when unsure a user can answer: remove the stale lock without asking.
 4. A stale lock whose owner directory carries your own `<owner>` name is never removed, interactive or headless. Take the failure rule.
 5. Holding the lock, read `runs.json` afresh (or start an array), write `${CLAUDE_PLUGIN_DATA}/runs.json.<owner>.tmp`, then replace and release in one command: `[ -d <lock>/<owner> ] && mv -f <tmp> <runs.json> && rmdir <lock>/<owner> <lock>`. A failed test means the lock was taken over while you paused: acquire, read, write and run the command again.
 
@@ -304,7 +304,7 @@ Failure rule: on any refused or failed step, release any lock you hold with `rmd
 
 ```json
 {
-  "plugin_version": "0.1.0",
+  "plugin_version": "0.1.1",
   "approvals": [ { "kind": "fetch", "target": "<repo name>:<remote>",
                    "decision": "approved", "time": "2026-10-15T09:15:00Z",
                    "commands": ["git -C <repo> fetch --no-tags --refmap= ..."] } ],
