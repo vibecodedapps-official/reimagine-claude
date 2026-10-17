@@ -22,7 +22,7 @@ esac
 
 here=$(cd "$(dirname "$0")" && pwd)
 lib=$here/lib
-T=$(mktemp -d)
+T=$(mktemp -d "${TMPDIR:-/tmp}/fixture.XXXXXX")
 if command -v cygpath >/dev/null 2>&1; then
 	T=$(cygpath -m "$T")
 fi
