@@ -9,6 +9,7 @@ One changelog for the suite. Each plugin releases on its own line; a release get
 ## rules 0.1.2 - 2026-10-16
 
 - A `/rules` step whose data directory or config directory denies a write on macOS or Linux (EACCES, or EPERM from an immutable flag) stops with the one-line refusal that Windows already gets, naming the directory to check, instead of printing a stack trace.
+- An import chain that reaches the user's `CLAUDE.md` by another spelling of its name on a case-insensitive filesystem no longer counts the block as rules the import holds.
 
 ## rules 0.1.1 - 2026-10-16
 

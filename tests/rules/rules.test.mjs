@@ -1278,6 +1278,15 @@ test('R34: a current block reports the copies and the gate beside it, even when 
     'change: none']);
 }));
 
+test('R35: an import that reaches the target by another spelling of its name is the target, not an import that holds the rules', sandbox((s, t) => {
+  put(s.claude, 'mine\n@shared.md\n');
+  put(join(s.claudeDir, 'shared.md'), 'see @claude.md\n');
+  if (!existsSync(join(s.claudeDir, 'claude.md'))) { t.skip('the filesystem is case-sensitive'); return; }
+  s.run('plan');
+  s.run('apply');
+  assert.ok(s.run('plan').includes('note: line 2: @shared.md imports a file that holds none of the rules; it is left as it is'));
+}));
+
 test('R34: a current block with an import holding every rule names the import; a gated file names no imports', sandbox((s) => {
   put(join(s.claudeDir, 'shared.md'), SHIPPED['core.md']);
   put(s.claude, 'mine\n');

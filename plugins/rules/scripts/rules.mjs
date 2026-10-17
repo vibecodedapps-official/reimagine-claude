@@ -421,7 +421,8 @@ export function targets(env, home = homedir()) {
 // whether its own file could not be read. shallow checks only that each top-level import can be read.
 export function scanImports(text, file, found, home, logical = file, shallow = false) {
   const cache = new Map();
-  const real = (path) => { try { return realpathSync(path); } catch { return path; } };
+  // The native resolver gives the on-disk spelling, so a case-insensitive filesystem cannot read the target as an import.
+  const real = (path) => { try { return realpathSync.native(path); } catch { return path; } };
   const load = (path) => {
     const key = real(path);
     if (!cache.has(key)) {
