@@ -21,7 +21,7 @@ TAB=$(printf '\t')
 NL='
 '
 
-raw=$(printf '%s\n' "$json" | sed -n -E 's/^.*"command"[[:space:]]*:[[:space:]]*"(([^"\\]|\\.)*)".*$/\1/p')
+raw=$(printf '%s\n' "$json" | LC_ALL=C sed -n -E 's/^.*"command"[[:space:]]*:[[:space:]]*"(([^"\\]|\\.)*)".*$/\1/p')
 [ -n "$raw" ] || exit 0
 
 # PowerShell escapes with a backtick and never with a backslash.
@@ -180,7 +180,7 @@ case "$NL$dirs$NL" in
 *"${NL}A${NL}"*) hasadd=1 ;;
 esac
 
-cwd=$(printf '%s\n' "$json" | sed -n -E 's/^.*"cwd"[[:space:]]*:[[:space:]]*"(([^"\\]|\\.)*)".*$/\1/p' | sed -e 's/\\\\/\\/g' -e 's/\\"/"/g')
+cwd=$(printf '%s\n' "$json" | LC_ALL=C sed -n -E 's/^.*"cwd"[[:space:]]*:[[:space:]]*"(([^"\\]|\\.)*)".*$/\1/p' | LC_ALL=C sed -e 's/\\\\/\\/g' -e 's/\\"/"/g')
 if [ -z "$cwd" ] || [ ! -d "$cwd" ]; then
 	cwd=.
 fi

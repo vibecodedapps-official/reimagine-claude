@@ -339,6 +339,16 @@ describe('repo-docs drift hook', () => {
     });
   });
 
+  test('a byte that is not UTF-8 in the command does not disable the hook under a UTF-8 locale', () => {
+    const dir = repo('bad-byte', { 'CLAUDE.md': brokenHub });
+    const input = Buffer.concat([
+      Buffer.from('{"tool_name":"Bash","tool_input":{"command":"git commit -m \\"caf'),
+      Buffer.from([0xff]),
+      Buffer.from('\\""},"cwd":' + JSON.stringify(dir) + '}'),
+    ]);
+    for (const locale of ['en_US.UTF-8', 'C.UTF-8', 'C']) assert.equal(hook(input, { LC_ALL: locale }), deny(brokenFinding), locale);
+  });
+
   describe('malformed index lines', () => {
     const cases = [
       ['- `docs/api.md`: API rules. Read always.', deny('CLAUDE.md has a malformed index line: - `docs/api.md`: API rules. Read always.')],
