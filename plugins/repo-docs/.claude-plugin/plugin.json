@@ -1,6 +1,6 @@
 {
   "name": "repo-docs",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Instruction files in hub and spoke form: a short CLAUDE.md hub that points to spokes, kept in shape by a skill and a drift hook that checks every commit.",
   "author": { "name": "vibecodedapps.net" },
   "repository": "https://github.com/vibecodedapps-official/reimagine-claude",

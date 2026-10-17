@@ -6,6 +6,10 @@ One changelog for the suite. Each plugin releases on its own line; a release get
 
 - Design documents for 0.1.0 under `docs/`: requirements, architecture, build plan, decisions, acceptance.
 
+## repo-docs 0.1.1 - 2026-10-16
+
+- The drift hook checks the paths a pointer or a backticked prefix names by their exact spelling, so a pointer written in another case than the file is a missing path on every filesystem, as it already was on Linux, and a prefix in another case is dropped instead of silently losing the recheck advice.
+
 ## rules 0.1.2 - 2026-10-16
 
 - A `/rules` step whose data directory or config directory denies a write on macOS or Linux (EACCES, or EPERM from an immutable flag) stops with the one-line refusal that Windows already gets, naming the directory to check, instead of printing a stack trace.

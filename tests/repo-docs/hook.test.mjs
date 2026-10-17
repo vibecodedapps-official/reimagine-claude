@@ -326,6 +326,19 @@ describe('repo-docs drift hook', () => {
     assert.equal(run('git commit -m x', dir), deny('docs/a.md points to missing path docs/b.md'));
   });
 
+  describe('paths are matched by their exact spelling, as on a case-sensitive filesystem', () => {
+    test('a pointer spelled in another case than the file is a missing path', () => {
+      const dir = repo('case-pointer', { 'CLAUDE.md': hubTo('Docs/Case.md'), 'docs/case.md': 'a\n' });
+      assert.equal(run('git commit -m x', dir), deny('CLAUDE.md points to missing path Docs/Case.md'));
+    });
+    test('a prefix spelled in another case is dropped, so the spoke beside the code covers its directory', () => {
+      const hub = '# Case\n\n## Spokes\n\n- src/README.md: Source rules. Read before editing under `Src/`.\n';
+      const dir = repo('case-prefix', { 'CLAUDE.md': hub, 'src/README.md': 'r\n', 'src/f.txt': 'f\n' });
+      stage(dir, 'src/f.txt', 'changed\n');
+      assert.equal(run('git commit -m x', dir), advise('src/README.md'));
+    });
+  });
+
   describe('malformed index lines', () => {
     const cases = [
       ['- `docs/api.md`: API rules. Read always.', deny('CLAUDE.md has a malformed index line: - `docs/api.md`: API rules. Read always.')],

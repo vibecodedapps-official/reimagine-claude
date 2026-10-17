@@ -214,6 +214,31 @@ jesc() {
 	END { printf "%s", out }'
 }
 
+# exact <path>: true when every segment of <path> exists under $root with that spelling.
+# `test -e` alone accepts another case on a case-insensitive filesystem, where a pointer
+# written that way passes here and is a missing path on Linux.
+exact() {
+	ex_dir=$root
+	ex_rest=$1
+	while [ -n "$ex_rest" ]; do
+		case $ex_rest in
+		*/*) ex_seg=${ex_rest%%/*}; ex_rest=${ex_rest#*/} ;;
+		*) ex_seg=$ex_rest; ex_rest= ;;
+		esac
+		[ -n "$ex_seg" ] || continue
+		ex_hit=
+		for ex_f in "$ex_dir"/* "$ex_dir"/.*; do
+			if [ "${ex_f##*/}" = "$ex_seg" ] && [ -e "$ex_f" ]; then
+				ex_hit=1
+				break
+			fi
+		done
+		[ -n "$ex_hit" ] || return 1
+		ex_dir=$ex_dir/$ex_seg
+	done
+	return 0
+}
+
 check_root() {
 	root=$1
 	hub=CLAUDE.md
@@ -322,12 +347,12 @@ check_root() {
 					*" "*) pre=${pre#* } ;;
 					*) pre= ;;
 					esac
-					if [ -e "$root/${t%/}" ]; then
+					if exact "${t%/}"; then
 						kept="$kept${kept:+ }$t"
 					fi
 				done
 				pre=$kept
-				if [ ! -e "$root/$path" ]; then
+				if ! exact "$path"; then
 					addf "$cur points to missing path $path"
 				elif [ -f "$root/$path" ]; then
 					c=$pre
