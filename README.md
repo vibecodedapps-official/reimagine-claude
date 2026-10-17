@@ -14,7 +14,7 @@ Status: 0.1.0. All four plugins are released from `main`, each with its own vers
 - Claude Code 2.1.296 or later (the version the design was checked on).
 - Node 22 or later.
 - On Windows, Git for Windows (the repo-docs hook and the audit scripts run under its `sh`).
-- For the audit's live checks, work-item validation and collision check: `jq` (on Windows, `winget install jqlang.jq`). Without it the audit still runs and says what it skipped.
+- For the audit's live checks, work-item validation and collision check: `jq` (on Windows, `winget install jqlang.jq`; on macOS, `brew install jq`, or the `/usr/bin/jq` that macOS 15 and later ship). Without it the audit still runs and says what it skipped.
 
 ## Install
 

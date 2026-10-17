@@ -9,6 +9,7 @@ One changelog for the suite. Each plugin releases on its own line; a release get
 ## audit 0.1.1 - 2026-10-16
 
 - The skill's shell lines hold under zsh and BSD tools: a stale registry lock with no owner directory is removed without an unmatched glob stopping the command, a sha held in a shell variable before `:<path>` is written so no shell reads it as a modifier, and the output of `wc` is compared as a number since BSD `wc` pads it.
+- The README says where macOS users get `jq`.
 
 ## loop 0.1.1 - 2026-10-16
 
