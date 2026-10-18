@@ -33,8 +33,10 @@ Any instruction file can add an ask-first rule; none removes one.
 
 ## Code
 
-- Make the smallest correct change. Add an extra only when it stays in scope and its
-  lasting value clearly outweighs its cost, and say why.
+- Make the smallest change that is correct and stays correct as the code grows. Follow
+  the code's existing patterns and helpers, and change every place the behavior lives.
+  Where a next change is known, choose the shape it fits into without building it. A
+  need only imagined gets no option, abstraction, or fallback. Say why for any extra.
 - A code comment only where the code itself is unclear, and brief. Ticket numbers and
   change history go in the commit message, not the code.
 - Commits: `type(scope): subject`, lowercase. The body says why.

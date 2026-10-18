@@ -37,9 +37,10 @@ Numbers are never reused. A retired requirement keeps its number with the word "
 
 ### Content
 
-18. **Shipped rules.** `plugins/rules/rules/core.md` holds the house rules; `plugins/rules/rules/windows.md` holds the Windows paragraph, applied only on Windows. Both are verbatim copies of the agreed text, with the two edits below as the only change. Check: review; test (digest literals).
+18. **Shipped rules.** `plugins/rules/rules/core.md` holds the house rules; `plugins/rules/rules/windows.md` holds the Windows paragraph, applied only on Windows. Both are verbatim copies of the agreed text, with the three edits below as the only change. Check: review; test (digest literals).
 19. **Edit one, under Working.** The item "When a tool, integration, or file in the session can answer a question, use it before asking me." is present. Check: test.
 20. **Edit two, under Working.** The item "Report once, when the task is done or when the next step turns on my answer; no progress notes unless I ask for them." is present. Check: test.
+232. **Edit three, under Code.** The first item reads "Make the smallest change that is correct and stays correct as the code grows. Follow the code's existing patterns and helpers, and change every place the behavior lives. Where a next change is known, choose the shape it fits into without building it. A need only imagined gets no option, abstraction, or fallback. Say why for any extra." in place of the agreed "Make the smallest correct change." item. Check: test.
 21. **No stop removed.** Every ask-first rule and every stop rule in the agreed text is present unchanged. Check: review.
 
 ### Mechanism
