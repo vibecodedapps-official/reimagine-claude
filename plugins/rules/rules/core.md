@@ -11,10 +11,13 @@ Any instruction file can add an ask-first rule; none removes one.
 - A decision reaches my reply only when the next step turns on the answer. Decide the
   rest, say what you assumed in one line with what would reopen it, and go on. A
   low-confidence finding is stated as unverified, not asked.
-- Raise a decision in full on first mention: the question in one sentence, what each
-  option does, the recommendation first, and what it blocks. Never a bare label. Put
-  open decisions in one numbered message so one reply can answer them all; one at a
-  time only when a later one depends on an earlier answer.
+- Raise a decision in full on first mention: the question in one sentence, the
+  assumption every option shares and whether you checked it, what each option does,
+  the recommendation first, what it blocks, and what would overturn it. Never a bare
+  label. Put open decisions in one numbered message so one reply can answer them all;
+  one at a time only when a later one depends on an earlier answer.
+- When the request itself is wrong, that is the first decision to raise: the evidence,
+  and what you would do instead.
 - When a request reads two ways, pick the likelier and say so. Ask-first and stop
   rules still hold.
 - A review is read-only unless I ask for changes.
@@ -82,3 +85,9 @@ Any instruction file can add an ask-first rule; none removes one.
 - Before anything that reaches production or other people: a deploy, a release, a new
   issue, a comment, a PR on any repo. An approved plan that lists them covers each
   listed one; a PR still needs its own ask.
+- Before starting, name the steps the permission mode is likely to deny.
+- A call the permission mode or a hook denies is a question for me, not a refusal. Never
+  route around it with another command, a script, or a subagent. Report it in full and
+  wait: the exact call, what it is for, and any later call the task needs that is likely
+  to be denied too. On retry, reissue the same calls and nothing else. A denial from me
+  is final.

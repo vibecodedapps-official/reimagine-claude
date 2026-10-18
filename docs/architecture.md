@@ -94,7 +94,7 @@ Manifest:
 
 ### Content
 
-`core.md` is the agreed house rules text with two added items under Working: "When a tool, integration, or file in the session can answer a question, use it before asking me." and "Report once, when the task is done or when the next step turns on my answer; no progress notes unless I ask for them." The first item under Code is rewritten to ask for the smallest change that stays correct as the code grows (requirement 232). Nothing else changes; no stop is removed. `windows.md` is the four-line Git Bash paragraph, applied only when the script runs on Windows. The rendered body is `windows` (on Windows) then `core`, joined by one blank line.
+`core.md` is the agreed house rules text with seven edits, requirements 19, 20 and 232 to 236. Under Working, two items are added: "When a tool, integration, or file in the session can answer a question, use it before asking me." and "Report once, when the task is done or when the next step turns on my answer; no progress notes unless I ask for them."; the decision item also names the assumption every option shares and what would overturn the recommendation, and a new item after it raises a wrong request as the first decision. Under Code, the first item asks for the smallest change that stays correct as the code grows. Under Ask first, two items are added: name the steps the permission mode is likely to deny, and treat a denied call as a question, never routed around. Nothing else changes; no stop is removed. `windows.md` is the four-line Git Bash paragraph, applied only when the script runs on Windows. The rendered body is `windows` (on Windows) then `core`, joined by one blank line.
 
 ### Mechanism
 

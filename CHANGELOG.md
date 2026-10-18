@@ -9,6 +9,10 @@ One changelog for the suite. Each plugin releases on its own line; a release get
 ## rules 0.1.3 - 2026-10-18
 
 - The first Code rule asks for the smallest change that stays correct as the code grows, in place of "Make the smallest correct change." The old wording let "smallest" outweigh "correct": a fix patched one site in the fewest lines, skipped the sibling site and bypassed existing helpers. The new rule follows the code's patterns, changes every place the behavior lives, shapes for a known next change without building it, and still adds nothing for a need only imagined.
+- The decision rule also asks for the assumption every option shares, whether it was checked, and what would overturn the recommendation, so a reviewer can see past the frame the options set.
+- A new Working rule raises a request that is itself wrong as the first decision, with the evidence and what to do instead, rather than carrying it out in silence.
+- A new Ask first rule names, before work starts, the steps the permission mode is likely to deny, so they can be allowed up front.
+- A new Ask first rule treats a call the permission mode or a hook denies as a question: it is reported in full and the work waits, never routed around with another command, a script or a subagent, and a retry reissues only the same calls.
 
 ## audit 0.1.1 - 2026-10-16
 
