@@ -74,7 +74,7 @@ Numbers are never reused. A retired requirement keeps its number with the word "
 ### Output style and chat block
 
 43. **Output style file.** `plugins/rules/output-styles/concise-plain.md` is the agreed text, version 4.5, with frontmatter `name: Concise Plain`, a description ending in `v4.5.`, and `keep-coding-instructions: true`. It appears in the picker as `rules:Concise Plain`. Nothing in the suite edits `settings.json`. Check: lint (frontmatter); acceptance (picker name).
-44. **Chat block.** `plugins/rules/chat/instructions.md` holds exactly one fenced block of at most 5,000 characters for pasting into a chat product's custom instructions. Nothing installs it, and it names no vendor or product. Check: lint.
+44. **Chat block.** `plugins/rules/chat/instructions.md` holds exactly one fenced block for pasting into a chat product's custom instructions. Nothing installs it, and it names no vendor or product. Check: lint.
 
 ## The `loop` plugin
 

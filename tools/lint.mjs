@@ -498,14 +498,7 @@ function chatFailures(ctx) {
   const out = [];
   const lines = (ctx.text(CHAT) ?? '').split('\n');
   const fences = lines.filter((l) => FENCE.test(l)).length;
-  if (fences !== 2) {
-    out.push(`${CHAT}: holds ${Math.floor(fences / 2)} fenced blocks, not one`);
-    return out;
-  }
-  const first = lines.findIndex((l) => FENCE.test(l));
-  const last = lines.length - 1 - [...lines].reverse().findIndex((l) => FENCE.test(l));
-  const size = lines.slice(first + 1, last).join('\n').length;
-  if (size > 5000) out.push(`${CHAT}: the fenced block has ${size} characters, over 5000`);
+  if (fences !== 2) out.push(`${CHAT}: holds ${Math.floor(fences / 2)} fenced blocks, not one`);
   return out;
 }
 

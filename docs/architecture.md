@@ -127,7 +127,7 @@ The skill `/rules` runs the script, shows its output, asks before `apply`, and e
 
 ### Output style and chat block
 
-`output-styles/concise-plain.md` ships verbatim with `keep-coding-instructions: true` and its version in the description; the host lists it as `rules:Concise Plain`. Nothing in the suite edits `settings.json`. `chat/instructions.md` holds one fenced block of at most 5,000 characters for pasting into a chat product's custom instructions and names no vendor.
+`output-styles/concise-plain.md` ships verbatim with `keep-coding-instructions: true` and its version in the description; the host lists it as `rules:Concise Plain`. Nothing in the suite edits `settings.json`. `chat/instructions.md` holds one fenced block for pasting into a chat product's custom instructions and names no vendor.
 
 ## The `loop` plugin
 

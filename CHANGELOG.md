@@ -14,6 +14,7 @@ One changelog for the suite. Each plugin releases on its own line; a release get
 - A new Ask first rule names, before work starts, the steps the permission mode is likely to deny, so they can be allowed up front.
 - A new Ask first rule treats a call the permission mode or a hook denies as a question: it is reported in full and the work waits, never routed around with another command, a script or a subagent, and a retry reissues only the same calls.
 - The chat block takes the output style's Links rule, since a session in the chat app can run `git remote -v` and read tool results: base URLs come from the remote, a URL a tool returned, the task or the user, and the Azure DevOps bullet says which remote gives the base. Its recommendation rule also asks for what would overturn it, in step with the house rules.
+- The chat block's header no longer sets a 5,000-character cap. The chat app publishes no cap for its instructions field and took the whole block, so the header asks only that the block stay short.
 
 ## audit 0.1.1 - 2026-10-16
 

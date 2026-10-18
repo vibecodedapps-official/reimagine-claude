@@ -470,14 +470,6 @@ negative('R44: <file>: holds <n> fenced blocks, not one (two)', (dir) => {
   put(dir, chat, '```\na\n```\n\n```\nb\n```\n');
   bump(dir, 'rules');
 }, 1, [`${chat}: holds 2 fenced blocks, not one`]);
-negative('R44: <file>: the fenced block has <n> characters, over 5000', (dir) => {
-  put(dir, chat, '# Chat\n\n```\n' + 'x'.repeat(5001) + '\n```\n');
-  bump(dir, 'rules');
-}, 1, [`${chat}: the fenced block has 5001 characters, over 5000`]);
-positive('R44: a fenced block of 5000 characters passes', (dir) => {
-  put(dir, chat, '# Chat\n\n```\n' + 'x'.repeat(5000) + '\n```\n');
-  bump(dir, 'rules');
-});
 
 const loopSkill = 'plugins/loop/skills/run/SKILL.md';
 negative('R219: <file>: no ## Supporting files section', (dir) => {

@@ -3,7 +3,7 @@
 One block of reply instructions for chat products, matching the Concise Plain output
 style this plugin ships. Nothing installs it. To use it, paste the fenced block below
 into a chat product's custom instructions, and paste it again when it changes. The
-block stays under 5,000 characters.
+block stays short.
 
 Kept in step with `output-styles/concise-plain.md` (Concise Plain v4.5).
 Deliberate differences from the style:
