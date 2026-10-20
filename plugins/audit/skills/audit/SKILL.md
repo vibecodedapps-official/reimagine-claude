@@ -34,8 +34,14 @@ allowed-tools:
   - Bash(git -C * remote -v)
   - Bash(git ls-files *)
   - Bash(git -C * ls-files *)
+  - Bash(git ls-tree *)
   - Bash(git -C * ls-tree *)
+  - Bash(git cat-file -t *)
+  - Bash(git cat-file -s *)
+  - Bash(git cat-file -p *)
   - Bash(git -C * cat-file *)
+  - Bash(git branch --list *)
+  - Bash(git -C * branch --list *)
   - Bash(gh pr view *)
   - Bash(gh pr list *)
   - Bash(gh issue view *)
@@ -304,7 +310,7 @@ Failure rule: on any refused or failed step, release any lock you hold with `rmd
 
 ```json
 {
-  "plugin_version": "0.1.1",
+  "plugin_version": "0.1.2",
   "approvals": [ { "kind": "fetch", "target": "<repo name>:<remote>",
                    "decision": "approved", "time": "2026-10-15T09:15:00Z",
                    "commands": ["git -C <repo> fetch --no-tags --refmap= ..."] } ],

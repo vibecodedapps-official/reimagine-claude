@@ -176,8 +176,10 @@ adversary runs, `ledger/7.md`, `gate.md`, `converged.md`, and in split mode
    the paths of `audit-brief.md`, `common.md`, `ledger/5.md`, `ledger/6.md`,
    `ledger/7.md` and `gate.md`, with the instruction to take each item's gate from
    `gate.md`; `live/findings.md` and each carried file when they exist; a complete
-   `converged.md` already on disk for the same ledger files, when there is one; and the
-   output path `converged.md`. The merger reads the ledger files and never edits them.
+   `converged.md` already on disk for the same ledger files, when there is one; the
+   line count of each of these files, from `awk 'END { print NR }' <file>`, which also
+   counts a last line with no newline; and the output path `converged.md`. The merger
+   reads each of these files to its last line, in pages, and never edits them.
    It writes one item per distinct defect, in this shape, which `agents/merger.md`
    holds byte for byte because the merger never reads this file:
 
@@ -276,19 +278,21 @@ adversary runs, `ledger/7.md`, `gate.md`, `converged.md`, and in split mode
    3. Launch one merger per group or part, scope `<group>` (or `<group>-<k>`), scratch
       folder `<run dir>/tmp/agents/7-<group>/`. The prompt holds the paths of
       `audit-brief.md`, `common.md`, its slice, the three ledger files "for duplicate
-      checks only", and the output path `converged/<group>.md` (or
-      `converged/<group>-<k>.md`). It reads its slice and opens a full ledger file only
-      to settle a suspected duplicate inside the slice, recording each file it opened
-      and why under its own `opened:` heading, apart from `runs:`. Each item holds the
-      defect, its sources, each position's severity and label, the disposition, the
-      gate, the absorbed ids and a ledger section pointer, with no `C<n>` id yet, and
-      the `absorbs` and `gate` lines in the forms of step 6. Each file ends with
-      `status: complete`.
+      checks only", the line count of `audit-brief.md`, `common.md` and the slice as in
+      step 6, and the output path `converged/<group>.md` (or
+      `converged/<group>-<k>.md`). It reads its slice and opens a ledger section, found
+      with Grep, only to settle a suspected duplicate inside the slice, recording each
+      section it opened and why under its own `opened:` heading, apart from `runs:`.
+      Each item holds the defect, its sources, each position's severity and label, the
+      disposition, the gate, the absorbed ids and a ledger section pointer, with no
+      `C<n>` id yet, and the `absorbs` and `gate` lines in the forms of step 6. Each
+      file ends with `status: complete`.
 
    4. Launch the final merger, scope `converged`, scratch folder
       `<run dir>/tmp/agents/7-converged/`, with the paths of `audit-brief.md`,
-      `common.md`, every `converged/<group>.md` and part, the ledger files and
-      `gate.md`, and the output path `converged.md`. It assigns the `C<n>` ids, merges
+      `common.md`, every `converged/<group>.md` and part, `gate.md`, the ledger files
+      "for duplicate checks only", the line count of each file but the ledger files as
+      in step 6, and the output path `converged.md`. It assigns the `C<n>` ids, merges
       items that are one defect across groups or parts, and opens a ledger section
       only to settle such a duplicate, recorded under `opened:`. `converged.md` keeps
       the item shape of step 6.
@@ -319,12 +323,16 @@ adversary runs, `ledger/7.md`, `gate.md`, `converged.md`, and in split mode
    `"converged_check": "pass"` or `"fail"`.
 
 9. **Merger failure.** A merger fails when it returns an error, when its file's last
-   line is not `status: complete`, or when the check of step 8 fails. A `_test.fail`
+   line is not `status: complete` (such as `status: failed at <file>:<line>` for a file
+   it could not read to its end), or when the check of step 8 fails. A `_test.fail`
    entry with `role: merger` and scope `any`, `converged` or the group applies.
    Ladder: the orchestrator merges itself, by step 6 or 7 (in split mode from the same
    slices), writing the same files, recorded as a swap from `audit:merger` to the
-   orchestrator; a second failure, the orchestrator's merge failing the check, fails
-   stage 7, and stage 8 writes the report from the ledger.
+   orchestrator. It reads each input as step 2 of
+   `${CLAUDE_PLUGIN_ROOT}/agents/merger.md` says: a file it reads whole to its last line,
+   in pages, and a ledger file for duplicate checks only by the section Grep finds. A
+   second failure, the orchestrator's merge failing the check or an input it cannot read
+   to its end, fails stage 7, and stage 8 writes the report from the ledger.
 
 10. **Stage status.** Stage 7 is `complete` when `ledger/7.md`, `gate.md` and
     `converged.md` are written and pass the check of step 8, and the late adversary,

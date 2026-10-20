@@ -145,7 +145,7 @@ test('R221: audit 0.1.0 also sets the plugin_version literals', () => {
     ' M plugins/audit/skills/audit/resume.md',
     ' M plugins/audit/skills/audit/stages/1-orient.md',
   ]);
-  assert.equal(read(dir, skill).split('\n')[306], '  "plugin_version": "0.1.0",');
+  assert.equal(read(dir, skill).split('\n')[312], '  "plugin_version": "0.1.0",');
   assert.equal(read(dir, resume).split('\n')[155], '   - `plugin_version`, compared with the literal `"0.1.0"`; any other recorded value');
   assert.equal(read(dir, orient).split('\n')[277], '      `mv -f`, with `plugin_version` `0.1.0`, empty `approvals`, and a stage 1 entry');
 });

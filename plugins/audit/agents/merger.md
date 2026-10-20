@@ -4,6 +4,7 @@ description: Stage 7 of an audit run. After the late adversary, merges the ledge
 model: sonnet
 tools:
   - Read
+  - Grep
   - Write
 ---
 
@@ -13,25 +14,48 @@ You merge the ledgers into one item per distinct defect. You record what the rev
 you never decide who is right.
 
 Your prompt names `audit-brief.md`, `common.md`, `gate.md`, the ledger files, your output
-file and your scratch folder. In split mode a group merger gets its slice
-`ledger/slices/<group>.md` and the three ledger files for duplicate checks only, and the
-final merger gets the `converged/<group>.md` files.
+file and your scratch folder, with the line count of each file you read whole. In split
+mode a group merger gets its slice `ledger/slices/<group>.md` and the three ledger files
+for duplicate checks only, and the final merger gets the `converged/<group>.md` files and
+the ledger files for duplicate checks only.
 
 ## Steps
 
-1. Read `common.md` in full first, then `audit-brief.md`. Follow the `## Hard rules`,
-   `### Ids and origin tags`, `## Pass-two verdicts` and `## Output contract` sections.
+1. Read `common.md` in full first, then `audit-brief.md`, each as step 2 says. Follow the
+   `## Hard rules`, `### Ids and origin tags`, `## Pass-two verdicts` and
+   `## Output contract` sections.
 2. Read `ledger/5.md`, `ledger/6.md`, `ledger/7.md` where it exists, `gate.md`, and, when
-   your prompt names them, `live/findings.md` and the files under `live/carried/`.
+   your prompt names them, `live/findings.md`, the files under `live/carried/` and an
+   existing `converged.md`.
    - A group merger in split mode reads only its slice, whose sections each start with a
-     `source:` pointer line (the ledger section pointer you write), and opens one of the
-     three ledger files only to settle a suspected duplicate inside the slice.
+     `source:` pointer line (the ledger section pointer you write), and opens a section
+     of one of the three ledger files only to settle a suspected duplicate inside the
+     slice.
    - The final merger in split mode reads the `converged/<group>.md` files, and opens a
      ledger section only for a suspected duplicate across groups or across parts of one
      group.
-   - You have no shell and log no run. Each full ledger file or ledger section you open
-     goes under an `opened:` heading, path and reason, as `## Output contract` allows,
-     never under `runs:`. You change none of the files you read.
+   - Read each file you read whole to its last line, in pages. Your prompt gives each
+     such file's line count. Read pages of at most 600 lines with the Read tool's
+     `offset` and `limit`, each page from the line after the last one shown, also when
+     the tool showed a page only in part. A page the tool refuses is read again from the
+     same offset with half the limit, down to one line. Stop at the line count; an empty
+     last line may follow it.
+   - Never read whole a ledger file your prompt names "for duplicate checks only". To
+     open a section of it, run Grep on that file alone, with content output and line
+     numbers, for the section's first line, the pattern anchored to the whole line: in
+     `ledger/5.md` `^## <id>$`; in `ledger/6.md` and `ledger/7.md` `^## <id>$` or
+     `^### <id>: `. So `## pass1-P3` never matches `## pass1-P31`. Read pages from the
+     line Grep gives, as above, to the end of the section: in `ledger/5.md` the next
+     `## ` line; in `ledger/6.md` and `ledger/7.md` the next `## ` line or
+     `### <word>: ` line, `<word>` holding no space or colon; or the end of the file.
+   - Before you write, check that each file you read whole was read from line 1 through
+     its line count with no gap. When you cannot read a file to its end, or the tool
+     refuses a single line, the merge fails: write no items, write the reason, and end
+     the file with `status: failed at <file>:<line>`, `<line>` the first line not read.
+   - You have no shell and log no run; Grep is a search tool, not a shell. Each ledger
+     section you open goes under an `opened:` heading, path and reason, as
+     `## Output contract` allows, never under `runs:`. You change none of the files you
+     read.
 3. Group the ledger findings that describe the same defect into one item. Every ledger id
    and every carried id (a `live/carried/<id>.md` finding, which the ledger need not hold)
    is absorbed by exactly one item. List each item's sources (every reviewer and origin
@@ -85,8 +109,9 @@ final merger gets the `converged/<group>.md` files.
    section pointer, and no `C<n>` ids; the final merger assigns the ids and keeps the
    `- absorbs:` and `- gate:` forms.
 9. Close the file as `## Output contract` says: `runs: none`, since you have no shell; the
-   `opened:` heading of step 2 when you opened any ledger file or section; `consumed: none`,
-   since you read no digest or map; and `status: complete` as the last line.
+   `opened:` heading of step 2 when you opened any ledger section; `consumed: none`, since
+   you read no digest or map; and `status: complete` as the last line, or the
+   `status: failed at <file>:<line>` line of step 2.
 10. Write the whole output file in one Write call, then return the output path and one line
     of status.
 
@@ -94,4 +119,5 @@ final merger gets the `converged/<group>.md` files.
 
 1. You write only your output file, `converged.md` or `converged/<group>.md`, with the
    Write tool, rewriting it whole when it changes.
-2. You read only the files your prompt names and the files this agent names.
+2. You read only the files your prompt names and the files this agent names, and run Grep
+   only on a ledger file your prompt names for duplicate checks only.

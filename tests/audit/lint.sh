@@ -63,6 +63,22 @@
 #   skills/audit/stages/7-converge.md, and the two blocks are the same after leading
 #   blanks and CRs are removed. The merger reads only its own file and its prompt, so
 #   the shape the stage 7 check needs must be in merger.md.
+# - agents/merger.md has the tools Read, Grep and Write and no other, in any order, and
+#   names its paging rule ("Read pages of at most 600 lines", "A page the tool refuses
+#   is read again"), the anchored Grep pattern `^## <id>$`, the gap check ("with no
+#   gap") and `status: failed at <file>:<line>`, which skills/audit/common.md also
+#   names. skills/audit/stages/7-converge.md names
+#   awk 'END { print NR }', and steps 6, 7.3 and 7.4, the three merger prompts, each
+#   say "line count".
+# - The command list in hard rule 2 of skills/audit/common.md and in Boundaries item 2
+#   of agents/auditor.md, adversary.md, mapper.md and digester.md, read as one line,
+#   names `git rev-parse`, `git merge-base`, `git ls-tree`, `git cat-file` with `-t`,
+#   `-s` or `-p`, and `git branch --list`; all but the digester's also name `cut` and
+#   `uniq`, and bar `sort -o`, `--output` or `--compress-program` and `uniq` with an
+#   output file operand.
+# - skills/audit/SKILL.md allowed-tools pre-approves `git ls-tree`, `git cat-file` and
+#   `git branch --list`, each also in its `git -C *` form; the bare `git cat-file` only
+#   with `-t`, `-s` or `-p`, since `--textconv` and `--filters` run configured programs.
 #
 # Exit 0 when every check passes. Otherwise print one line per failure and exit 1.
 
@@ -182,6 +198,9 @@ for f in $(listed '^agents/[^/]+\.md$'); do
 		*) fail "$f: tool not allowed: $t (allowed: Read, Grep, Glob, Bash, Write)" ;;
 		esac
 	done < "$tmp/tools"
+	if [ "$f" = agents/merger.md ] && [ "$(LC_ALL=C sort "$tmp/tools" | tr '\n' ' ')" != "Grep Read Write " ]; then
+		fail "$f: tools are not exactly Read, Grep, Write"
+	fi
 	tr -d '\r' < "$f" | grep -nwE 'Edit|NotebookEdit' > "$tmp/grep"
 	hits "$f" "mentions Edit or NotebookEdit" < "$tmp/grep"
 done
@@ -198,6 +217,12 @@ if grep -qx "$skill" "$files"; then
 		grep -q "stages/$s\.md" "$tmp/skill" || fail "$skill: does not name stages/$s.md"
 	done
 	grep -q 'skills/audit/resume\.md' "$tmp/skill" || fail "$skill: does not name skills/audit/resume.md"
+	for t in 'git ls-tree' 'git -C * ls-tree' 'git cat-file -t' 'git cat-file -s' \
+		'git cat-file -p' 'git -C * cat-file' 'git branch --list' 'git -C * branch --list'; do
+		grep -qF "Bash($t *)" "$tmp/fm" || fail "$skill: allowed-tools lacks Bash($t *)"
+	done
+	! grep -qF 'Bash(git cat-file *)' "$tmp/fm" ||
+		fail "$skill: allowed-tools pre-approves every form of git cat-file"
 	for p in $(grep -oE 'stages/[A-Za-z0-9._-]+\.md' "$tmp/skill" | sort -u); do
 		[ -f "skills/audit/$p" ] || fail "missing: skills/audit/$p (named in $skill)"
 	done
@@ -424,6 +449,57 @@ if [ -s "$tmp/item-merger.md" ] && [ -s "$tmp/item-7-converge.md" ]; then
 	cmp -s "$tmp/item-merger.md" "$tmp/item-7-converge.md" ||
 		fail "agents/merger.md: the converged item block differs from skills/audit/stages/7-converge.md"
 fi
+
+# The merger reads every file it reads whole to its last line, and each merger prompt
+# gives the line counts.
+if [ -f agents/merger.md ]; then
+	tr -d '\r' < agents/merger.md > "$tmp/merger"
+	for s in 'Read pages of at most 600 lines' 'A page the tool refuses is read again' \
+		'`^## <id>$`' 'with no gap' 'status: failed at <file>:<line>'; do
+		grep -qF "$s" "$tmp/merger" || fail "agents/merger.md: does not name '$s'"
+	done
+fi
+if [ -f skills/audit/common.md ]; then
+	tr -d '\r' < skills/audit/common.md | grep -qF 'status: failed at <file>:<line>' ||
+		fail "skills/audit/common.md: the output contract does not name 'status: failed at <file>:<line>'"
+fi
+# step <file> <regex>: print the numbered step whose first line matches the regex, up
+# to the next numbered line.
+step() {
+	tr -d '\r' < "$1" | awk -v s="$2" 'p && /^[ \t]*[0-9]+\. / { exit } $0 ~ s { p = 1 } p'
+}
+converge=skills/audit/stages/7-converge.md
+if [ -f "$converge" ]; then
+	grep -qF "awk 'END { print NR }'" "$converge" ||
+		fail "$converge: does not count lines with awk 'END { print NR }'"
+	for s in '^6[.] [*][*]Normal mode' '^   3[.] Launch one merger per group' '^   4[.] Launch the final merger'; do
+		step "$converge" "$s" > "$tmp/step"
+		[ -s "$tmp/step" ] || fail "$converge: no step matching $s"
+		grep -q 'line count' "$tmp/step" || fail "$converge: the merger prompt of step $s gives no line count"
+	done
+fi
+
+# The command list of hard rule 2 and of each Bash agent's Boundaries item 2 holds the
+# read-only git commands agents use; all but the digester's also hold the pipe stages
+# cut and uniq and bar the sort and uniq forms that write a file.
+for f in skills/audit/common.md agents/auditor.md agents/adversary.md agents/mapper.md agents/digester.md; do
+	[ -f "$f" ] || continue
+	case $f in
+	skills/*) s='^2[.] [*][*]Prevention and detection' ;;
+	*) s='^2[.] Bash runs only' ;;
+	esac
+	step "$f" "$s" | tr '\n\t' '  ' | tr -s ' ' > "$tmp/list"
+	[ -s "$tmp/list" ] || fail "$f: no command list matching $s"
+	set -- '`git rev-parse`' '`git merge-base`' '`git ls-tree`' \
+		'`git cat-file` with `-t`, `-s` or `-p`' '`git branch --list`'
+	case $f in
+	agents/digester.md) ;;
+	*) set -- "$@" '`cut`' '`uniq`' '`sort -o`, `--output` or `--compress-program`' '`uniq` with an output file operand' ;;
+	esac
+	for c in "$@"; do
+		grep -qF "$c" "$tmp/list" || fail "$f: the command list lacks $c"
+	done
+done
 
 if [ "$fails" -gt 0 ]; then
 	exit 1

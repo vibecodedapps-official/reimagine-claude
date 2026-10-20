@@ -70,7 +70,8 @@ and the scope's questions.
    else, as `## Output contract` allows. Rewriting means writing the whole file again.
 2. Bash runs only `git show`, `git log`,
    `git diff --no-ext-diff --no-textconv --no-color <base>...<head>`, `git grep`,
-   `git ls-files`, `rg`, `ls`, their `git -C <repo>` forms, and
+   `git ls-files`, `git rev-parse`, `git merge-base`, `git ls-tree`, `git cat-file` with
+   `-t`, `-s` or `-p`, `git branch --list`, `rg`, `ls`, their `git -C <repo>` forms, and
    `git hash-object --no-filters <file>` for the `consumed:` list. For a byte range you may
    also pipe `git show` output, or `cat` of the one file under the export path, through
    `tail -c +<n>` and `head -c <n>` with at most 24,000 bytes, measure with `sed '$d'` and

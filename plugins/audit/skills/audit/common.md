@@ -43,21 +43,25 @@ Every rule holds in every stage, for the orchestrator and for every agent.
    allowed and reported, never passed over in silence.
 2. **Prevention and detection.** No agent has Edit or NotebookEdit. An agent with Bash
    runs only these commands:
-   - `git show`, `git log`, `git grep`, `git ls-files`, and
+   - `git show`, `git log`, `git grep`, `git ls-files`, `git rev-parse`,
+     `git merge-base`, `git ls-tree`, `git cat-file` with `-t`, `-s` or `-p`,
+     `git branch --list`, and
      `git diff --no-ext-diff --no-textconv --no-color <base>...<head>`, each also as
      `git -C <repo> <command>`;
    - `git hash-object --no-filters <file>`, never with `-w`, for the `consumed:` hashes;
    - `rg` and `ls`;
-   - the read-only forms of `sed -n`, `awk`, `diff`, `wc`, `sort`, `head`, `tail` and
-     `grep`, as commands or as pipe stages, over an exported file under the run directory
-     or over `git show` output; `cat` of an exported file; and, for a digester's byte
-     range, `git show` output piped through `tail -c`, `head -c`, `wc -c` or `sed '$d'`
-     and one `awk` stage that numbers lines, in slices of at most 24000 bytes;
+   - the read-only forms of `sed -n`, `awk`, `diff`, `wc`, `sort`, `head`, `tail`, `cut`,
+     `uniq` and `grep`, as commands or as pipe stages, over an exported file under the
+     run directory or over `git show` output; `cat` of an exported file; and, for a
+     digester's byte range, `git show` output piped through `tail -c`, `head -c`,
+     `wc -c` or `sed '$d'` and one `awk` stage that numbers lines, in slices of at most
+     24000 bytes;
    - when a question needs a run in a directly read tree, the repository's own test or
      lint commands, which may write ignored build output.
 
    No command edits a file in place: no `sed -i`, no `awk -i inplace`, no sed `w`, `W` or
-   `e` command, no `w` or `e` flag, and no awk program with `system()`, output
+   `e` command, no `w` or `e` flag, no `sort -o`, `--output` or `--compress-program`, no
+   `uniq` with an output file operand, and no awk program with `system()`, output
    redirection, `getline` from a command, or a pipe to a command. No output goes into an
    audited tree. An agent may redirect a command's output into its own scratch folder,
    `<run dir>/tmp/agents/<stage>-<scope>[-<n>]/`, which its prompt names, and keeps it
@@ -462,11 +466,12 @@ Every agent:
 3. Lists every digest and map file it read under a `consumed:` heading, one per line: the
    run-directory path and its hash from `git hash-object --no-filters <file>`; or
    `consumed: none`.
-4. Ends the file with the line `status: complete`, as its last line.
+4. Ends the file with the line `status: complete`, as its last line. A merger that cannot
+   read an input to its end ends it instead with `status: failed at <file>:<line>`.
 5. Returns only the output path and one line of status.
 
-Only the merger may add an `opened:` heading, before `consumed:`, listing each ledger file
-or section it opened, with the path and the reason, one per line. It is not a `runs:`
+Only the merger may add an `opened:` heading, before `consumed:`, listing each ledger
+section it opened, with the path and the reason, one per line. It is not a `runs:`
 entry: the merger has no shell, and `runs:` holds only commands, directories and exit
 statuses, or `none`.
 

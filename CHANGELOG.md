@@ -6,6 +6,12 @@ One changelog for the suite. Each plugin releases on its own line; a release get
 
 - Design documents for 0.1.0 under `docs/`: requirements, architecture, build plan, decisions, acceptance.
 
+## audit 0.1.2 - 2026-10-20
+
+- The merger reads every file it takes whole to its last line, in pages, and checks it reached the line count its prompt gives. A ledger over the host's single-read limit was read in part before, and a merger could miss positions without saying so. It finds a ledger section for a duplicate check with Grep and reads only that section.
+- The agents' command lists name `git rev-parse`, `git merge-base`, `git ls-tree`, `git cat-file -t|-s|-p`, `git branch --list`, `cut` and `uniq`, the read-only commands agents used outside the list; `sort -o`, `--output` and `--compress-program` and `uniq` with an output file are barred, since they write or run a program.
+- A run started on 0.1.1 resumes from stage 1, as after every audit release.
+
 ## rules 0.1.4 - 2026-10-20
 
 - The upgrade plan shows each changed run of the block as its own hunk, with three lines of context. The diff trimmed only the common head and tail, and the begin marker changes on every version, so an upgrade showed the whole block removed and added again and hid the few rules that changed.
