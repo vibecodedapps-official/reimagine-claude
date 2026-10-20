@@ -1,6 +1,6 @@
 # Build plan: 0.1.0
 
-Drafted 2026-10-14. requirements.md and architecture.md win over this plan. Requirements are cited as R1 to R231. Each milestone ends with its checks green on the implementer's machine; `npm test` runs from M1 on, `npm run lint` from M7 on, and the forbidden-name sweep (decision 10) runs before every commit from the first one. Pushes and pull requests follow the ask-first rules of the owner's instruction files; the handoff that starts the implementation says what is approved.
+Drafted 2026-10-14. requirements.md and architecture.md win over this plan. Requirements are cited as R1 to R268; the primer milestones M10 to M19 follow M9 and are dated where they were added. Each milestone ends with its checks green on the implementer's machine; `npm test` runs from M1 on, `npm run lint` from M7 on, and the forbidden-name sweep (decision 10) runs before every commit from the first one. Pushes and pull requests follow the ask-first rules of the owner's instruction files; the handoff that starts the implementation says what is approved.
 
 The implementation runs with an Opus orchestrator and Sonnet subagents. The orchestrator owns every design document, every commit, and every check; subagents write files from a brief that quotes the requirement and see nothing else.
 
@@ -161,10 +161,146 @@ Check:
 
 - Lint passes after tagging; a one-line change under a plugin without a version bump fails the tag rule, and a bump to 0.1.1 passes with no 0.1.1 heading (acceptance item 22).
 
+## Primer: M10 to M19
+
+Added 2026-10-20. Requirements are cited as R1 to R268; the primer section is R237 to R268 and decisions 73 to 89 settle what the spikes changed. Each milestone ends with its checks green on the implementer's machine and its acceptance items recorded; lint runs with `LINT_DENY_TOKENS` set before every commit. The same orchestrator and subagent split as above. `main` is a release channel, so each milestone's push follows the owner's yes and takes the next prerelease version of any plugin it changes (decision 60).
+
+| # | Milestone | Adds | Depends on |
+|---|---|---|---|
+| M10 | primer hook | `plugins/primer` manifest, `hooks/`, `tests/primer/hook.test.mjs`, catalog entry at `0.1.0-alpha.1`, lint names and shapes | - |
+| M11 | shapes and placement | `skills/primer/shapes.md`, `placement.md`, the skill's frontmatter and mode selection | M10 |
+| M12 | init | the `init` mode | M11 |
+| M13 | adopt | the `adopt` mode, the messy fixture extended; this repository converted | M12 |
+| M14 | maintain verify | the verify pass and `primer: no drift` | M13 |
+| M15 | promote | the promote pass, the memory fixture, the stamp | M14 |
+| M16 | propose | the propose pass and the session source | M15 |
+| M17 | notice | `hooks/notice.sh` and its test | M15 |
+| M18 | siblings | the audit source list, the loop brief line | M13 |
+| M19 | catalog, retirement and release | README, `.claude/settings.json`, `repo-docs` deleted, primer 0.1.0, tags | M10 to M18 |
+
+M18 may run beside M14 to M17. Nothing else runs in parallel: each milestone adds to `SKILL.md`, so two branches would conflict.
+
+### M10: primer hook
+
+Work items:
+
+1. `plugins/primer/.claude-plugin/plugin.json` at `0.1.0-alpha.1`, `LICENSE`, `README.md` (install, requirements, a use section that says what each mode does, the migration line of R268). Commit: `feat(primer): add the plugin manifest and readme`.
+2. `hooks/hooks.json` with the two hooks of R259 and `hooks/drift.sh` (R260 to R265): the commit-detection grammar, `cwd` and `-C` resolution, the hub lookup and the marker, the caps, the hub path check, the `paths` reader with its three forms, brace expansion and the `**/` prefix, `git ls-files` matching, the deny and advice forms. `hooks/notice.sh` is M17; until then `hooks.json` declares only the PreToolUse hook and lint's primer shape matches that. Commit: `feat(primer): add the drift hook`.
+3. `tests/primer/hook.test.mjs`: the R260 positives and negatives; each R262 finding on a fixture repository with a hub, a nested `CLAUDE.md`, three rules (unscoped, block list, comma string) and a skill; the brace, slashless and `[` glob cases of decision 80 with literal file lists; the R263 advice for a rule, a skill and a nested file; the adapter and the direct `AGENTS.md` hub; no marker quiet; expected strings as literals. Commit: `test(primer): cover the drift hook`.
+4. `tools/lint.mjs`: `primer` in the names, the two executables, the primer `hooks.json` shape beside the rules one, the primer description phrases (R219, R245); `tests/lint/lint.test.mjs` gains one negative case per new message. Commit: `feat(lint): know the primer plugin`.
+5. Catalog entry for primer at `0.1.0-alpha.1`, `metadata.version` raised, README install, update and uninstall lines, `CHANGELOG.md` heading `## primer 0.1.0-alpha.1 - <date>` (R1, R14, R15, decision 87). Commit: `feat(catalog): publish primer at 0.1.0-alpha.1`.
+
+Check:
+
+- `npm test` and `npm run lint` with the deny tokens pass on Windows and on one POSIX machine; the hook suite passes under mawk.
+- `claude plugin validate --strict` on the root and `plugins/primer`; `claude plugin tag --dry-run plugins/primer`.
+- Acceptance item 27 on Windows; item 1 for primer from the local catalog, then from GitHub after the push.
+
+### M11: shapes and placement
+
+Work items:
+
+1. `skills/primer/shapes.md`: one template per row of the architecture's shape table, the caps, the counting rule, the marker, the `AGENTS.md` rule and the `CLAUDE.local.md` case (R238 to R240, R243, R244). Commit: `feat(primer): add the shapes`.
+2. `skills/primer/placement.md`: the eleven items with the tasks test and one example each, the personal-content report (R241, R252). Commit: `feat(primer): add the placement rule`.
+3. `skills/primer/SKILL.md`: name, the description with the four phrases first, `allowed-tools` for the read-only git and file reads every mode needs, the mode selection and the first-line mode statement, the write boundary, the commit rules, the proposal format shared by skills and memory, and a stub per mode that says what the mode will do and stops (R245 to R247). Commit: `feat(primer): add the skill core`.
+4. `tests/primer/skill.test.mjs`: the frontmatter, the phrases, the cap of R240 on the skill's own files, every file `SKILL.md` names existing. Commit: `test(primer): cover the skill files`.
+
+Check:
+
+- `npm test`, lint; the skill answers to `/primer` and `/primer:primer` and prints its mode line on a throwaway repository with no instruction file (acceptance item 28, the mode line only).
+
+### M12: init
+
+Work items:
+
+1. The `init` mode in `SKILL.md` (R248): what it reads, the hub it writes uncommitted, the first rules and skills it proposes, the `/init` sentence. Commit: `feat(primer): add the init mode`.
+
+Check:
+
+- Acceptance item 28 on a throwaway repository with code, a `CONTRIBUTING.md` procedure and a release script: a hub under 60 lines with the marker and the three parts, a proposal for the procedure and the script, nothing written without a yes.
+
+### M13: adopt
+
+Work items:
+
+1. `tests/primer/fixture/messy/build.sh`: the repo-docs messy fixture's content plus a repo-docs hub with a `## Spokes` index whose pointers cover a file pattern, a task and a directory, a procedure in `CONTRIBUTING.md`, an `@notes/local.md` import of an untracked file, a `.claude/CLAUDE.md`, and a README with agent rules, deterministic as the audit fixtures are; `tests/primer/fixture.test.mjs` checks the build. Commit: `test(primer): add the messy docs fixture`.
+2. The `adopt` mode in `SKILL.md` (R249): inventory, the refactor conditions, what pins a file (decision 53), the destinations, the kept-statement check, moves before rewrites, the migration from a `## Spokes` hub, the `CLAUDE.local.md` adapter proposal. Commit: `feat(primer): add the adopt mode`.
+3. Adopt on this repository, as the milestone's acceptance: the run's own commits (the hub with the marker, no index, the five design documents in backticks in the opening sentence; whatever rules or skills the plan proposes and the owner accepts), then `chore(repo): enable primer for sessions here` switching `.claude/settings.json` and the README development paragraph to `primer@reimagine-claude` (R16, R268 in part). The repo-docs hook stays installed on the owner's machine and prints nothing once no index remains.
+
+Check:
+
+- Acceptance item 29 on the messy fixture, twice; item 30 on this repository, with the drift hook denying a commit after a path in the opening paragraph is broken.
+
+### M14: maintain verify
+
+Work items:
+
+1. The `maintain` mode's verify pass in `SKILL.md` (R250, R251): the hook's findings, commands against manifests and workflows, statements against the files they cover, skill steps' commands and files, lost procedures, duplicates, oversized skills, the `/doctor prompt-audit` sentence, `primer: no drift`. Commit: `feat(primer): add the verify pass`.
+
+Check:
+
+- Acceptance item 31: on the adopted messy fixture, remove a command from `package.json` and rename a file a rule describes; the plan lists both; after the fix a second run prints `primer: no drift`.
+
+### M15: promote
+
+Work items:
+
+1. `tests/primer/fixture/memory/build.sh`: a memory directory in the layout of decision 83 with one note per type, the index written with the em dash as an octal escape, and a stamp older than two of the notes; `tests/primer/fixture.test.mjs` checks it. Commit: `test(primer): add the memory fixture`.
+2. The promote pass in `SKILL.md` (R256, R257): the directory and key, the candidates by type, the proposal lines, the separate deletion question, the stamp. Commit: `feat(primer): add the promote pass`.
+
+Check:
+
+- Acceptance item 32 on a scratch profile whose `projects/<key>/memory/` is the fixture: the `feedback` note becomes a constraint, the undated `project` note a rule, the `reference` a sentence in the hub, the `user` note is not offered; the deletion is asked per note and a no leaves the file.
+
+### M16: propose
+
+Work items:
+
+1. The propose pass in `SKILL.md` (R253 to R255): the four sources, the candidate display, what a written skill holds, what leaves the instruction file, the never list, the session source raised once at the end of a task. Commit: `feat(primer): add the propose pass`.
+
+Check:
+
+- Acceptance item 33: on the adopted messy fixture the `CONTRIBUTING.md` procedure and the release script are candidates; a yes writes `.claude/skills/<name>/SKILL.md` under 150 lines with a description and the procedure leaves `CONTRIBUTING.md`; in a new session, "turn this into a skill" after a pasted checklist invokes the skill for that item alone.
+
+### M17: notice
+
+Work items:
+
+1. `hooks/notice.sh` (R258) and its entry in `hooks.json`; lint's primer hook shape becomes the two-hook form (R259). Commit: `feat(primer): add the memory notice`.
+2. `tests/primer/notice.test.mjs` on the memory fixture: the count with and without a stamp, `user` and `reference` notes ignored, no marker quiet, the worktree key of decision 83, nothing written. Commit: `test(primer): cover the memory notice`.
+
+Check:
+
+- Acceptance item 34, headless and then interactive: the line appears after a new note and disappears after a promote pass.
+
+### M18: siblings
+
+Work items:
+
+1. Audit: `.claude/rules/` and `.claude/skills/` in the default source list of stage 1, stage 9 and `common.md` (R267); audit `0.1.3`. Commit: `feat(audit): rank project rules and skills as sources of truth`.
+2. Loop: the brief line of R267 in `steps/4-build.md`; loop `0.1.3`. Commit: `feat(loop): bind a loaded rule in the implementer brief`.
+3. CHANGELOG headings for both, tags after the push.
+
+Check:
+
+- `npm test`, lint; acceptance item 35, a low-tier audit run whose stage 1 source list names the two directories.
+
+### M19: catalog, retirement and release
+
+Work items:
+
+1. Delete `plugins/repo-docs/` and `tests/repo-docs/`; remove the catalog entry and the README install, use, update and uninstall lines for repo-docs; lint's names drop `repo-docs` and the changelog rule keeps accepting its headings; the README line of R268. Commit: `refactor(catalog): retire repo-docs`.
+2. `node tools/release.mjs primer 0.1.0`, the README status line, `CHANGELOG.md` heading `## primer 0.1.0 - <date>`. Commit: `release(primer): 0.1.0`.
+3. Tags `primer--v0.1.0` after the owner's approval; the acceptance record.
+
+Check:
+
+- Lint passes after tagging; `claude plugin validate --strict` on the root and each remaining plugin; acceptance item 1 for primer from GitHub, item 21, item 22 at the new tag, item 36.
+
 ## Acceptance record
 
 Every milestone's acceptance items are run in a scratch profile (`CLAUDE_CONFIG_DIR` outside the repository) and recorded in acceptance.md with date, machine and versions. An item that cannot run is recorded as not run with the reason.
 
 ## Out of scope
 
-Everything in requirements 225 to 231.
+Everything in requirements 225 to 231 and 266.

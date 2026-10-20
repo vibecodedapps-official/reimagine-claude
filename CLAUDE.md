@@ -1,6 +1,6 @@
 # reimagine-claude
 
-One repository and one marketplace, `reimagine-claude`, holding four Claude Code plugins that install and work alone: `rules`, `loop`, `audit` and `repo-docs`, each under `plugins/<name>/`. The design documents under `docs/` specify the 0.1.0 release; where they disagree, requirements.md wins over architecture.md, and both win over build-plan.md. Read docs/requirements.md before changing behavior under `plugins/` or `tests/`, docs/architecture.md before adding or moving a file, and docs/acceptance.md before running or recording an acceptance item; the three are longer than the 200-line spoke cap, so they are named here and not indexed.
+One repository and one marketplace, `reimagine-claude`, holding four Claude Code plugins that install and work alone: `rules`, `loop`, `audit` and `repo-docs`, each under `plugins/<name>/`. The design documents under `docs/` specify the 0.1.0 release; where they disagree, requirements.md wins over architecture.md, and both win over build-plan.md. Read docs/requirements.md before changing behavior under `plugins/` or `tests/`, docs/architecture.md before adding or moving a file, docs/build-plan.md before starting or finishing a milestone, and docs/acceptance.md before running or recording an acceptance item; the four are longer than the 200-line spoke cap, so they are named here and not indexed.
 
 ## Commands
 
@@ -24,5 +24,4 @@ One repository and one marketplace, `reimagine-claude`, holding four Claude Code
 
 ## Spokes
 
-- docs/build-plan.md: The milestones, their work items, commit subjects and checks. Read before starting or finishing a milestone.
 - docs/decisions.md: The settled decisions with their evidence and what reopens them. Read before reversing a design choice.

@@ -5,6 +5,7 @@ One changelog for the suite. Each plugin releases on its own line; a release get
 ## Unreleased
 
 - Design documents for 0.1.0 under `docs/`: requirements, architecture, build plan, decisions, acceptance.
+- Design documents for the `primer` plugin under `docs/`, which replaces `repo-docs` from its release: requirements 237 to 268, decisions 73 to 89, milestones M10 to M19, acceptance items 27 to 36.
 
 ## loop 0.1.2 - 2026-10-20
 

@@ -1,6 +1,6 @@
 # Architecture: 0.1.0
 
-Drafted 2026-10-14. The requirements are in requirements.md and win where the two disagree. The order of work is in build-plan.md. A fact marked "verified" was read from the host's documentation or observed in a spike recorded in decisions.md. Nothing here is implemented.
+Drafted 2026-10-14; amended 2026-10-20 for the `primer` plugin, which replaces `repo-docs` (decisions 73 to 89). The requirements are in requirements.md and win where the two disagree. The order of work is in build-plan.md. A fact marked "verified" was read from the host's documentation or observed in a spike recorded in decisions.md. Nothing here is implemented.
 
 ## Shape
 
@@ -15,13 +15,13 @@ reimagine-claude/
   CHANGELOG.md                      one file, one heading per plugin release
   LICENSE                           Apache License 2.0, vibecodedapps.net
   README.md                         install, update, uninstall, development
-  CLAUDE.md                         the repository's own hub (repo-docs form)
+  CLAUDE.md                         the repository's own hub (primer form)
   package.json                      scripts test and lint; no dependencies
   docs/                             requirements, architecture, build plan, decisions, acceptance
   plugins/rules/                    house rules, output style, chat block
   plugins/loop/                     plan, build, review, publish a bundle of tickets
   plugins/audit/                    read-only adversarial audit of finished bundles
-  plugins/repo-docs/                hub and spoke instruction files plus the drift hook
+  plugins/primer/                   project instructions in the host's forms, memory promotion, two hooks
   tests/                            node:test suites and the audit sh suites
   tools/lint.mjs                    repository rules
   tools/release.mjs                 version bump per plugin
@@ -32,24 +32,24 @@ reimagine-claude/
 | rules | house rules block, output style | `/rules` | `scripts/rules.mjs` | SessionStart `startup` | own |
 | loop | the build loop | `/loop:run` (the skill itself), prose "reimagine loop" | none | none | own |
 | audit | the audit | `/audit:run`, `/audit:resume`, `/audit:act`, `/audit:handoff`, prose "reimagine audit" | nine sh scripts | none | own |
-| repo-docs | instruction-file maintenance | `/repo-docs` | `hooks/drift.sh` | PreToolUse `Bash\|PowerShell` | own |
+| primer | project instructions | `/primer`, prose "turn this into a skill", "we keep doing this", "add this to the project instructions", "check the instruction files" | `hooks/drift.sh`, `hooks/notice.sh` | PreToolUse `Bash|PowerShell`; SessionStart `startup` | own |\|PowerShell` | own |
 
 ## Layers on a machine
 
 1. Claude Code's own defaults.
 2. The house rules block in `$CLAUDE_CONFIG_DIR/CLAUDE.md` (else `~/.claude/CLAUDE.md`), between the digest markers, written only by `rules.mjs`.
 3. The user's own lines in that file, below the end marker, never touched.
-4. The repository's instruction files, kept in hub and spoke form by `repo-docs`.
+4. The repository's instruction files, kept in the forms the host loads by `primer`: a short hub, rules, nested files and skills.
 5. The output style `rules:Concise Plain`, selected by the user.
 6. The loop and the audit, which read layers 2 to 4 at their start and obey every ask-first rule they find.
 
 `loop` and `audit` do not require `rules`; without it they still read whatever instruction files exist.
 
-Only two hooks run outside a session request: the rules staleness notice at `startup`, and the repo-docs drift check before a `git commit`. Everything else happens because the user asked.
+Only three hooks run outside a session request: the rules staleness notice at `startup`, the primer memory notice at `startup`, and the primer drift check before a `git commit`. Everything else happens because the user asked.
 
 ## Prompt first
 
-Prose carries the process. Scripts exist only where a model cannot be trusted to do the job byte for byte: editing the user's `CLAUDE.md` (`rules.mjs`), snapshotting and checking a repository's state (`readonly.sh`), building ledgers and gates from many files (`ledger.sh`), and the other audit scripts, each with a suite behind it. The repo-docs drift hook is a script because a hook has no model. No new script ships without a test under `tests/`.
+Prose carries the process. Scripts exist only where a model cannot be trusted to do the job byte for byte: editing the user's `CLAUDE.md` (`rules.mjs`), snapshotting and checking a repository's state (`readonly.sh`), building ledgers and gates from many files (`ledger.sh`), and the other audit scripts, each with a suite behind it. The two primer hooks are scripts because a hook has no model. No new script ships without a test under `tests/`.
 
 Skills are user-invocable and carry their trigger phrases in `description` (verified: the phrase in the description invoked the skill in 2 of 2 runs, and the bare skill name also carried; decisions.md item 14). Rarely used paths live in their own files, read on demand, and each step file ends by naming the next read.
 
@@ -63,6 +63,12 @@ Skills are user-invocable and carry their trigger phrases in `description` (veri
 - A PreToolUse hook denies a tool call with the JSON deny form on stdout and exit 0, or with stderr and exit 2; the agent sees `PreToolUse:<tool> hook error: <reason>` (verified, spike 6). With `CLAUDE_CODE_USE_POWERSHELL_TOOL=1` the tool name is `PowerShell`, so the matcher is `Bash|PowerShell`.
 - The host adds an attribution trailer only when the attribution setting is on; with it off, three of three commit runs on 2.1.296 produced none (verified, spike 5). No hook guards this.
 - `gh pr edit --body-file` and `gh pr comment --body-file` exist in gh 2.91.0 (verified, spike 7).
+- An HTML comment on the first line of a root `CLAUDE.md` or `AGENTS.md` is stripped before the content reaches context (verified, decision 74, on 2.1.304). A root `AGENTS.md` is read directly when no `CLAUDE.md` or `CLAUDE.local.md` exists at or above the working directory (documented, 2.1.277 and later), and no `InstructionsLoaded` event fires for it (verified).
+- A `.claude/rules/` file with `paths` loads when a matching file is touched; a pattern without a slash matches at any depth, `git ls-files -- ':(glob)<pattern>'` matches the same files for every documented pattern once braces are expanded and a slashless pattern gets `**/`, and a `paths` value the host cannot parse never loads the rule (verified, decisions 80 and 81).
+- `@path` inside a `.claude/rules/` file is not expanded at launch or on load; the model sees the literal line (verified, decision 82).
+- Auto memory lives at `<config>/projects/<key>/memory/`, keyed by the main worktree's root path with every character outside `A-Za-z0-9` as `-`; a linked worktree shares it while its transcript sits under its own key (verified, decision 83).
+- A skill with `paths` is hidden until a matching file is touched, then invoked through the Skill tool; a description's phrases invoke a skill from prose 2 of 2 (verified, decision 84). The Skill tool refuses the bundled `doctor` skill and accepts `claude-api prompt-audit` and `init` (verified, decision 77).
+- Under `--permission-mode auto` a PreToolUse `additionalContext` reaches the model as `PreToolUse:<tool> hook additional context: ...` and a deny as `PreToolUse:<tool> hook error: ...` (verified, decision 85).
 
 ## The `rules` plugin
 
@@ -299,32 +305,79 @@ The nine scripts and their suites embed these strings: `reimagine-handoff: 1`; `
 
 `jq` is needed by `live.sh`, `work-items.sh` and `collisions.sh`; stage 1 warns when it is missing and names what will not run.
 
-## The `repo-docs` plugin
+## The `primer` plugin
 
 ```
-plugins/repo-docs/
+plugins/primer/
   .claude-plugin/plugin.json
   LICENSE  README.md
-  skills/repo-docs/SKILL.md        modes bootstrap, adopt, maintain
-  skills/repo-docs/placement.md    the placement rule
-  skills/repo-docs/spokes.md       pointer grammar, caps, adapter convention
+  skills/primer/SKILL.md           /primer; modes init, adopt, maintain; the proposal format
+  skills/primer/placement.md       the eleven placement items and the tasks test
+  skills/primer/shapes.md          hub, nested file, rule and skill templates with their caps
   hooks/hooks.json                 PreToolUse Bash|PowerShell -> sh "${CLAUDE_PLUGIN_ROOT}/hooks/drift.sh"
-  hooks/drift.sh
+                                   SessionStart startup -> sh "${CLAUDE_PLUGIN_ROOT}/hooks/notice.sh"
+  hooks/drift.sh                   the commit check
+  hooks/notice.sh                  one line when auto memory has unreviewed notes
 ```
 
-### Model
+Manifest:
 
-The hub is the root `CLAUDE.md`, at most 60 lines: what the repository is, the commands, the hard constraints, and the spoke index under `## Spokes`. A spoke lives under `docs/` or beside the code it governs, is declarative prose, and is at most 200 lines; over the cap it splits. `README.md` is for people and splits into `docs/` pages when long; agent content never goes there and user content never goes in the hub. A repository that keeps `AGENTS.md` keeps it canonical with `CLAUDE.md` as the exact `@AGENTS.md` adapter, all or nothing.
+```json
+{
+  "name": "primer",
+  "version": "0.1.0",
+  "description": "Project instructions in the forms Claude Code loads: a short CLAUDE.md, path-scoped rules, nested instructions and skills, with auto memory promoted into them and a hook that checks every commit.",
+  "author": { "name": "vibecodedapps.net" },
+  "repository": "https://github.com/vibecodedapps-official/reimagine-claude",
+  "license": "Apache-2.0"
+}
+```
 
-Pointer: `- <path>: <what it holds>. <when to read it>.` The condition clause may name path prefixes in backticks, for example "Read before editing under `src/api/`", which the hook uses to decide which spokes a staged change touches.
+The skill's description names "turn this into a skill", "we keep doing this", "add this to the project instructions" and "check the instruction files" (verified: a description's phrases invoked a skill in 2 of 2 runs, decision 84). There is no command file and no script beyond the two hooks.
 
-### Skill
+### Shapes and caps
 
-`/repo-docs` states the mode before any write. Bootstrap writes a hub from the repository. Adopt inventories every instruction and documentation file, refactors only a file over cap, holding two scopes, or duplicating another, never moves a file something depends on, plans first and asks once, keeps moves and rewrites in separate commits, touches documentation files only, and changes nothing on a second run. Maintain checks the hub and spokes against the code and fixes drift.
+| File | Parts | Cap | Loads |
+|---|---|---|---|
+| root `CLAUDE.md` or `AGENTS.md`, the hub | line 1 `<!-- primer -->`; `# <name>` and two or three sentences, with one sentence per long document to read before a kind of work; `## Commands`; `## Constraints` | 60 lines | every session |
+| `<subdir>/CLAUDE.md` | the hub's three parts, no marker | 60 lines | when a file under it is read or edited |
+| `.claude/rules/<topic>.md` | prose; optional `paths` frontmatter, a YAML list or a comma string | 200 lines | at launch without `paths`; on a matching touch with it |
+| `.claude/skills/<name>/SKILL.md` | `name`, `description` with the phrases first, optional `disable-model-invocation`, `paths`, `allowed-tools`; one sentence for done, numbered steps, checks, what to report | 150 lines | description always; body when invoked, judged relevant, or a `paths` match |
+| `docs/*.md` | long-form for people and for the hub's sentences | none | when named |
+
+The marker is an HTML comment because the host strips those before the content reaches context (verified, decision 74). A count is the lines the file has, frontmatter and blank lines included. A file over its cap is split by topic; no real constraint is deleted to fit. `shapes.md` holds a template for each row; `placement.md` holds the eleven items of requirement 241 with the tasks test and one example per item.
+
+Imports: the hub holds none but `@AGENTS.md`; a rule or skill names a `docs/` file in words, since the host does not expand `@path` inside `.claude/rules/` (verified, decision 82). A root `AGENTS.md` is the hub when the repository keeps one, with no `CLAUDE.md` written; a root `CLAUDE.local.md` stops the host reading it, so adopt then proposes the one-line `@AGENTS.md` file (decision 75).
+
+### Modes
+
+`/primer` reads the files on disk, prints the mode as the first line, and runs one of:
+
+- `init`, when no `CLAUDE.md` or `AGENTS.md` exists at any depth. It reads `README.md`, manifests and build files, CI workflows, the test layout, the top-level directories and `docs/`, writes the hub uncommitted, proposes the first rules and skills the repository shows, writes none of those without a yes, and names `/init` as the host's unopinionated alternative.
+- `adopt`, when instruction or documentation files exist but there is no hub of the shape above, or the hub holds a `## Spokes` index. It inventories every instruction and documentation file, other tools' rule files listed and left alone; plans; asks once; then commits moves first, each move commit changing no content and repairing documentation links, and rewrites after. A pointer whose condition is a file pattern becomes a path-scoped rule, one whose condition is a task becomes a skill, one whose condition is a directory becomes a nested `CLAUDE.md`; a procedure in any instruction file becomes a skill; a topic section every task needs becomes an unscoped rule; a long document stays under `docs/` with one sentence in the hub; agent content leaves `README.md`; a statement kept is checked against the code. A repo-docs repository converts in one run, which is the migration. The second run reads as maintain and changes nothing.
+- `maintain`, when the hub has the shape. Three passes feed one plan and one question. Verify: what the hook denies on, each command named in a manifest, script or workflow, each statement true of the files it covers, each skill's commands and files present, duplicates and lost procedures reported, an oversized skill split; the report names `/doctor prompt-audit` for contradictions and stale models and never calls it (decision 77). Promote: auto memory candidates by type. Propose: skill candidates with their evidence. With nothing to change it prints `primer: no drift` and the reported items.
+
+Every write is a documentation file; code, configuration, settings, CI, manifests, `CLAUDE.local.md`, ignored files and the memory directory are never edited, except that promote deletes a note the user approved for deletion. Commits follow the repository's convention, else `docs(primer): <subject>`, with the body opening `Instruction-file <mode> pass, <date>.`; the drift hook runs on each.
+
+### Proposals
+
+A skill candidate comes from an instruction file, the repository, auto memory or the session, in that order, and is shown with its source, the steps as observed, how often it was seen and the proposed name. On a yes the skill is written at `.claude/skills/<name>/SKILL.md` in the shape of the table, and a procedure taken from an instruction file leaves that file in the same change. A memory candidate is a `feedback` note about the repository, an undated `project` decision or a `reference` a teammate would need; a `user` note is never promoted. It is shown with the note's text, its `modified` date, the destination and the line to be written; on a yes the line is written, then a separate question offers the topic file and its index line for deletion (decision 79). After a promote pass the skill writes the stamp `${CLAUDE_PLUGIN_DATA}/reviewed/<key>`.
+
+Auto memory is read at `<config>/projects/<key>/memory/`, where `<config>` is `$CLAUDE_CONFIG_DIR` else `~/.claude` and `<key>` is the absolute path of the main worktree's root with every character outside `A-Za-z0-9` replaced by `-` (verified, decision 83). `MEMORY.md` lists `- [Title](file.md)`, an em dash and a hook per note; each topic file carries `name`, `description` and `metadata` with `type` and `modified`.
 
 ### Drift hook
 
-PreToolUse on `Bash|PowerShell`, POSIX sh. It reads stdin, extracts `tool_input.command` with sed, and returns at once unless the command runs `git commit`. With a hub present it checks that every path a pointer names exists, that the hub is within 60 lines and every spoke within 200, and lists spokes whose covered paths appear in `git diff --cached --name-only` while the spoke itself is not staged. A missing path or a cap overrun denies the commit with the JSON deny form (verified, spike 6) and the finding as the reason; spokes to recheck go in `additionalContext`; otherwise it prints nothing. It never reads git history and never writes a file.
+PreToolUse on `Bash|PowerShell`, POSIX sh with sed, awk, grep and `test`, no `jq`. It reads stdin, extracts `tool_input.command`, and returns at once unless the command runs `git commit` (the grammar of requirement 260). It resolves the repository the commit runs in (decision 50) and finds the hub: the root `CLAUDE.md`, the `AGENTS.md` a one-line `@AGENTS.md` names, or the root `AGENTS.md` when there is no `CLAUDE.md`. Without a hub whose first line is `<!-- primer -->` it prints nothing.
+
+With one it reads the hub, every tracked nested `CLAUDE.md`, every tracked `.claude/rules/**/*.md` and `.claude/skills/*/SKILL.md`, and the changed set of decision 56. It denies, in the JSON deny form with `primer: ` and the findings joined by `; `, on a cap overrun, a backticked token of the hub's opening paragraph that looks like a path (holds a `/` or ends in `.md`, with no space, `<`, `>`, `*`, `{` or `?`) and does not exist spelled exactly, a `paths` value that is neither a list nor a comma string, a `paths` glob that matches no tracked file, or a `SKILL.md` without `description`. A glob is matched with `git ls-files -- ':(glob)<pattern>'` after the hook expands brace groups and prefixes `**/` to a pattern without a slash (verified against the host's matching, decision 80). When nothing denies, a changed file that matches a rule's or skill's `paths` or sits under a nested `CLAUDE.md` whose file is not itself changed puts that file in `additionalContext` as one to recheck (reaches the model under auto mode, decision 85). It never reads git history and never writes.
+
+### Notice
+
+SessionStart at `startup`, the same construction. It finds `<config>` from the grandparent of the input's `transcript_path`, `<key>` from the parent of `git rev-parse --git-common-dir` (the working directory outside a repository), and the hub as the drift hook does. With the marker present it counts the topic files `MEMORY.md` lists whose `type` is `feedback` or `project` and whose `modified` is later than the stamp, every such file when no stamp exists, and prints `{"systemMessage":"primer: auto memory has <n> notes since the last review; run /primer"}` when the count is above zero; otherwise nothing. It writes nothing; the stamp is the skill's, written in interactive sessions since a headless one refuses writes under the configuration directory (decision 76).
+
+### Migration from repo-docs
+
+A repository kept by repo-docs has a `## Spokes` index, spokes under `docs/` or beside code, and perhaps the `@AGENTS.md` adapter. One adopt run: the marker goes on line 1; each pointer becomes a path-scoped rule, a skill, a nested `CLAUDE.md` or one sentence in the opening paragraph by its condition; the index goes; the adapter stays when present. In this repository the hub keeps its commands and constraints, names the five design documents in its opening paragraph, and loses the index; `.claude/settings.json` enables `primer@reimagine-claude` in place of `repo-docs@reimagine-claude`. The repo-docs plugin directory, its tests and its catalog entry go with the primer release; its tags and changelog headings stay, and lint accepts a heading for a retired name.
 
 ## Versions, tags and release
 
