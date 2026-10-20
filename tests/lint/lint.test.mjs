@@ -78,7 +78,7 @@ const shown = (r) => `status ${r.status}\nstdout:\n${r.stdout}\nstderr:\n${r.std
 
 const passes = (r) => {
   assert.equal(r.status, 0, shown(r));
-  assert.match(r.stdout, /^lint: ok \(\d+ files, 4 plugins\)\n$/, shown(r));
+  assert.match(r.stdout, /^lint: ok \(\d+ files, 5 plugins\)\n$/, shown(r));
 };
 
 const fails = (r, n, messages) => {
@@ -108,6 +108,7 @@ const repoUrl = 'https://github.com/vibecodedapps-official/reimagine-claude';
 
 const headings = [
   '## Unreleased',
+  '## primer 0.1.0-alpha.1 - 2026-10-15',
   '## repo-docs 0.1.0-alpha.1 - 2026-10-15',
   '## audit 0.1.0-alpha.1 - 2026-10-15',
   '## loop 0.1.0-alpha.1 - 2026-10-15',
@@ -117,7 +118,7 @@ const changelog = (list) => '# Changelog\n\n' + list.map((h) => `${h}\n\n`).join
 
 // The suite checks the rules, not the release state: the copy holds every plugin at 0.1.0-alpha.1, one heading each.
 const pin = (dir) => {
-  for (const name of ['rules', 'loop', 'audit', 'repo-docs']) setVersion(dir, name, '0.1.0-alpha.1');
+  for (const name of ['rules', 'loop', 'audit', 'repo-docs', 'primer']) setVersion(dir, name, '0.1.0-alpha.1');
   for (const path of ['plugins/audit/skills/audit/SKILL.md', 'plugins/audit/skills/audit/resume.md', 'plugins/audit/skills/audit/stages/1-orient.md']) {
     put(dir, path, read(dir, path).split('\n').map((l) => (l.includes('plugin_version') ? l.replace(/\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]*[0-9A-Za-z])?/g, '0.1.0-alpha.1') : l)).join('\n'));
   }
@@ -157,7 +158,7 @@ before(() => {
 
 after(() => rmSync(base, { recursive: true, force: true }));
 
-test('R218: a clean copy prints lint: ok (<f> files, 4 plugins) and exits 0', () => {
+test('R218: a clean copy prints lint: ok (<f> files, 5 plugins) and exits 0', () => {
   passes(lint(caseDir()));
 });
 
@@ -239,11 +240,11 @@ negative('Decision 32: .claude-plugin/marketplace.json: metadata.version is miss
   '.claude-plugin/marketplace.json: metadata.version is missing or not semver',
 ]);
 
-negative('R1: .claude-plugin/marketplace.json: entry <name> is not one of rules, loop, audit, repo-docs', (dir) => {
+negative('R1: .claude-plugin/marketplace.json: entry <name> is not one of rules, loop, audit, repo-docs, primer', (dir) => {
   editJson(dir, catalog, (c) => { c.plugins.push({ name: 'extra', source: './plugins/loop', description: 'x', version: '0.1.0-alpha.1' }); });
   append(dir, 'README.md', '/plugin install extra@reimagine-claude\n/plugin uninstall extra@reimagine-claude\n');
 }, 2, [
-  '.claude-plugin/marketplace.json: entry extra is not one of rules, loop, audit, repo-docs',
+  '.claude-plugin/marketplace.json: entry extra is not one of rules, loop, audit, repo-docs, primer',
   '.claude-plugin/marketplace.json: entry extra source ./plugins/loop is not a plugin directory ./plugins/extra',
 ]);
 negative('R219: .claude-plugin/marketplace.json: entry <name> source <source> is not a plugin directory ./plugins/<name>', (dir) => {
@@ -261,12 +262,12 @@ negative('R219: .claude-plugin/marketplace.json: entry <name> has <field> missin
 negative('R219: plugins/<dir>: no catalog entry', (dir) => {
   editJson(dir, catalog, (c) => { c.plugins = c.plugins.filter((p) => p.name !== 'loop'); });
 }, 1, ['plugins/loop: no catalog entry']);
-negative('R1: .claude-plugin/marketplace.json: lists <names>; a release catalog lists rules, loop, audit, repo-docs', (dir) => {
-  for (const name of ['rules', 'loop', 'repo-docs']) setVersion(dir, name, '0.1.0');
+negative('R1: .claude-plugin/marketplace.json: lists <names>; a release catalog lists rules, loop, audit, repo-docs, primer', (dir) => {
+  for (const name of ['rules', 'loop', 'repo-docs', 'primer']) setVersion(dir, name, '0.1.0');
   editJson(dir, catalog, (c) => { c.plugins = c.plugins.filter((p) => p.name !== 'audit'); });
 }, 2, [
   'plugins/audit: no catalog entry',
-  '.claude-plugin/marketplace.json: lists rules, loop, repo-docs; a release catalog lists rules, loop, audit, repo-docs',
+  '.claude-plugin/marketplace.json: lists rules, loop, repo-docs, primer; a release catalog lists rules, loop, audit, repo-docs, primer',
 ]);
 
 negative('R14: <manifest>: version <v> is not semver', (dir) => {
@@ -366,6 +367,19 @@ for (const name of ['run', 'resume', 'act', 'handoff']) {
   }, 1, [`plugins/audit/commands/${name}.md: missing`]);
 }
 
+const primerSkill = 'plugins/primer/skills/primer/SKILL.md';
+const primerPhrases = ['turn this into a skill', 'we keep doing this', 'add this to the project instructions', 'check the instruction files'];
+for (const phrase of primerPhrases) {
+  negative(`R245: <file>: description does not name "${phrase}"`, (dir) => {
+    edit(dir, primerSkill, `"${phrase}"`, `"${phrase.replace(' ', '-')}"`);
+    bump(dir, 'primer');
+  }, 1, [`${primerSkill}: description does not name "${phrase}"`]);
+}
+negative('R245: <file>: description does not name "<phrase>" (missing)', (dir) => {
+  rmSync(join(dir, primerSkill));
+  bump(dir, 'primer');
+}, 4, primerPhrases.map((phrase) => `${primerSkill}: description does not name "${phrase}"`));
+
 negative('R43: <file>: name is not Concise Plain', (dir) => {
   edit(dir, 'plugins/rules/output-styles/concise-plain.md', '\nname: Concise Plain\n', '\nname: Plain\n');
   bump(dir, 'rules');
@@ -391,14 +405,22 @@ negative('R207: plugins/repo-docs/hooks/hooks.json: not the PreToolUse Bash|Powe
   edit(dir, 'plugins/repo-docs/hooks/hooks.json', '"Bash|PowerShell"', '"Bash"');
   bump(dir, 'repo-docs');
 }, 1, ['plugins/repo-docs/hooks/hooks.json: not the PreToolUse Bash|PowerShell shape']);
-negative('R8: <file>: hooks outside plugins/rules/hooks/hooks.json and plugins/repo-docs/hooks/hooks.json (hooks.json)', (dir) => {
+negative('R259: plugins/primer/hooks/hooks.json: not the PreToolUse Bash|PowerShell shape', (dir) => {
+  edit(dir, 'plugins/primer/hooks/hooks.json', '"Bash|PowerShell"', '"Bash"');
+  bump(dir, 'primer');
+}, 1, ['plugins/primer/hooks/hooks.json: not the PreToolUse Bash|PowerShell shape']);
+negative('R259: plugins/primer/hooks/hooks.json: not the PreToolUse Bash|PowerShell shape (missing)', (dir) => {
+  rmSync(join(dir, 'plugins/primer/hooks/hooks.json'));
+  bump(dir, 'primer');
+}, 1, ['plugins/primer/hooks/hooks.json: not the PreToolUse Bash|PowerShell shape']);
+negative('R8: <file>: hooks outside plugins/rules/hooks/hooks.json, plugins/repo-docs/hooks/hooks.json and plugins/primer/hooks/hooks.json (hooks.json)', (dir) => {
   put(dir, 'plugins/loop/hooks/hooks.json', '{}\n');
   bump(dir, 'loop');
-}, 1, ['plugins/loop/hooks/hooks.json: hooks outside plugins/rules/hooks/hooks.json and plugins/repo-docs/hooks/hooks.json']);
-negative('R8: <file>: hooks outside plugins/rules/hooks/hooks.json and plugins/repo-docs/hooks/hooks.json (manifest)', (dir) => {
+}, 1, ['plugins/loop/hooks/hooks.json: hooks outside plugins/rules/hooks/hooks.json, plugins/repo-docs/hooks/hooks.json and plugins/primer/hooks/hooks.json']);
+negative('R8: <file>: hooks outside plugins/rules/hooks/hooks.json, plugins/repo-docs/hooks/hooks.json and plugins/primer/hooks/hooks.json (manifest)', (dir) => {
   editJson(dir, manifest('loop'), (m) => { m.hooks = {}; });
   bump(dir, 'loop');
-}, 1, ['plugins/loop/.claude-plugin/plugin.json: hooks outside plugins/rules/hooks/hooks.json and plugins/repo-docs/hooks/hooks.json']);
+}, 1, ['plugins/loop/.claude-plugin/plugin.json: hooks outside plugins/rules/hooks/hooks.json, plugins/repo-docs/hooks/hooks.json and plugins/primer/hooks/hooks.json']);
 
 negative('R3: <file>:<line>: not ASCII', (dir) => {
   put(dir, extra, 'ok\ncaf\u00e9\nna\u00efve\n');
@@ -406,10 +428,10 @@ negative('R3: <file>:<line>: not ASCII', (dir) => {
 }, 1, [`${extra}:2: not ASCII`]);
 
 negative('R4: <file>: not the Apache License 2.0 text with Copyright 2026 vibecodedapps.net (root)', (dir) => {
-  for (const path of ['LICENSE', 'plugins/rules/LICENSE', 'plugins/loop/LICENSE', 'plugins/audit/LICENSE', 'plugins/repo-docs/LICENSE']) {
+  for (const path of ['LICENSE', 'plugins/rules/LICENSE', 'plugins/loop/LICENSE', 'plugins/audit/LICENSE', 'plugins/repo-docs/LICENSE', 'plugins/primer/LICENSE']) {
     edit(dir, path, 'Copyright 2026 vibecodedapps.net', 'Copyright 2026 someone');
   }
-  for (const name of ['rules', 'loop', 'audit', 'repo-docs']) settle(dir, name);
+  for (const name of ['rules', 'loop', 'audit', 'repo-docs', 'primer']) settle(dir, name);
 }, 1, ['LICENSE: not the Apache License 2.0 text with Copyright 2026 vibecodedapps.net']);
 negative('R4: <file>: not the Apache License 2.0 text with Copyright 2026 vibecodedapps.net (plugin differs)', (dir) => {
   append(dir, 'plugins/loop/LICENSE', 'x\n');
@@ -455,7 +477,10 @@ negative('R6: <path>: no test under tests/ names it', (dir) => {
   for (const path of files(dir, 'tests/')) {
     if (basename(path) === 'drift.sh' || read(dir, path).includes('drift.sh')) rmSync(join(dir, path));
   }
-}, 1, ['plugins/repo-docs/hooks/drift.sh: no test under tests/ names it']);
+}, 2, [
+  'plugins/repo-docs/hooks/drift.sh: no test under tests/ names it',
+  'plugins/primer/hooks/drift.sh: no test under tests/ names it',
+]);
 
 negative('R223: .gitattributes: lacks the line <line>', (dir) => {
   put(dir, '.gitattributes', '* text=auto eol=lf\n*.mjs text eol=lf\n*.md text eol=lf\n');
@@ -588,16 +613,16 @@ positive('R14: a changed plugin with a version above its tag passes without a ch
 
 negative('R15: CHANGELOG.md:<line>: heading <heading> is not ## <plugin> <version> - <YYYY-MM-DD>', (dir) => {
   put(dir, 'CHANGELOG.md', changelog([...headings, '## Release notes']));
-}, 1, ['CHANGELOG.md:13: heading Release notes is not ## <plugin> <version> - <YYYY-MM-DD>']);
+}, 1, ['CHANGELOG.md:15: heading Release notes is not ## <plugin> <version> - <YYYY-MM-DD>']);
 negative('R15: CHANGELOG.md:<line>: <plugin> <version> is dated after the heading above it', (dir) => {
-  put(dir, 'CHANGELOG.md', changelog([...headings.slice(0, 4), '## rules 0.1.0-alpha.1 - 2026-10-16']));
-}, 1, ['CHANGELOG.md:11: rules 0.1.0-alpha.1 is dated after the heading above it']);
+  put(dir, 'CHANGELOG.md', changelog([...headings.slice(0, 5), '## rules 0.1.0-alpha.1 - 2026-10-16']));
+}, 1, ['CHANGELOG.md:13: rules 0.1.0-alpha.1 is dated after the heading above it']);
 negative('R15: CHANGELOG.md: no heading ## <p> <tv> for the tag <p>--v<tv>', (dir) => {
-  put(dir, 'CHANGELOG.md', changelog(headings.slice(0, 4)));
+  put(dir, 'CHANGELOG.md', changelog(headings.slice(0, 5)));
 }, 1, ['CHANGELOG.md: no heading ## rules 0.1.0-alpha.1 for the tag rules--v0.1.0-alpha.1']);
 negative('R15: CHANGELOG.md:<line>: <p> <hv> has no tag <p>--v<hv>; fetch the tags (git fetch --tags)', (dir) => {
   put(dir, 'CHANGELOG.md', changelog([...headings, '## rules 0.1.0-alpha.0 - 2026-10-01']));
-}, 1, ['CHANGELOG.md:13: rules 0.1.0-alpha.0 has no tag rules--v0.1.0-alpha.0; fetch the tags (git fetch --tags)']);
+}, 1, ['CHANGELOG.md:15: rules 0.1.0-alpha.0 has no tag rules--v0.1.0-alpha.0; fetch the tags (git fetch --tags)']);
 positive('R15: a heading for the current version waits for its tag', (dir) => {
   put(dir, 'CHANGELOG.md', changelog([headings[0], '## rules 0.1.0-alpha.2 - 2026-10-16', ...headings.slice(1)]));
   append(dir, 'plugins/rules/README.md', '\nMore.\n');
