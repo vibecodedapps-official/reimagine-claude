@@ -32,7 +32,7 @@ reimagine-claude/
 | rules | house rules block, output style | `/rules` | `scripts/rules.mjs` | SessionStart `startup` | own |
 | loop | the build loop | `/loop:run` (the skill itself), prose "reimagine loop" | none | none | own |
 | audit | the audit | `/audit:run`, `/audit:resume`, `/audit:act`, `/audit:handoff`, prose "reimagine audit" | nine sh scripts | none | own |
-| primer | project instructions | `/primer`, prose "turn this into a skill", "we keep doing this", "add this to the project instructions", "check the instruction files" | `hooks/drift.sh`, `hooks/notice.sh` | PreToolUse `Bash|PowerShell`; SessionStart `startup` | own |\|PowerShell` | own |
+| primer | project instructions | `/primer`, prose "turn this into a skill", "we keep doing this", "add this to the project instructions", "check the instruction files" | `hooks/drift.sh`, `hooks/notice.sh` | PreToolUse `Bash\|PowerShell`; SessionStart `startup` | own |
 
 ## Layers on a machine
 
