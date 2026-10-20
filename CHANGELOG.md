@@ -7,6 +7,11 @@ One changelog for the suite. Each plugin releases on its own line; a release get
 - Design documents for 0.1.0 under `docs/`: requirements, architecture, build plan, decisions, acceptance.
 - Design documents for the `primer` plugin under `docs/`, which replaces `repo-docs` from its release: requirements 237 to 268, decisions 73 to 89, milestones M10 to M19, acceptance items 27 to 36.
 
+## primer 0.1.0-alpha.1 - 2026-10-20
+
+- First prerelease of `primer`, which replaces `repo-docs` from its 0.1.0 release. It ships the drift hook: before each `git commit` Claude Code runs in a repository whose `CLAUDE.md` or `AGENTS.md` starts with `<!-- primer -->`, the hook denies the commit when an instruction file is over its cap, a path the hub's opening paragraph names is missing, a rule's `paths` cannot be read or matches no tracked file, or a skill has no description, and otherwise names the rules, skills and nested `CLAUDE.md` files that cover the staged change. The `/primer` skill answers that its modes are not in this prerelease.
+- The catalog lists five plugins until the primer release removes `repo-docs`.
+
 ## loop 0.1.2 - 2026-10-20
 
 - A run on a host other than GitHub writes the pull request body its `prepared` report names, at the end of Step 6. Before, that run never read the body template, so the report pointed to a file that was not there and the body was written by hand. The body covers every input of every run of the record, one per repository.

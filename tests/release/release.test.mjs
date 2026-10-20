@@ -35,14 +35,14 @@ const orient = 'plugins/audit/skills/audit/stages/1-orient.md';
 
 // The suite checks the script, not the release state: the copy holds every plugin at 0.1.0-alpha.1, one heading each.
 const pin = (dir) => {
-  for (const path of [catalog, ...['rules', 'loop', 'audit', 'repo-docs'].map(manifest)]) {
+  for (const path of [catalog, ...['rules', 'loop', 'audit', 'repo-docs', 'primer'].map(manifest)]) {
     put(dir, path, read(dir, path).replace(/("version": ")[^"]*"/g, (_, head) => `${head}0.1.0-alpha.1"`));
   }
   for (const path of [skill, resume, orient]) {
     const lines = read(dir, path).split('\n');
     put(dir, path, lines.map((l) => (l.includes('plugin_version') ? l.replace(/\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]*[0-9A-Za-z])?/g, '0.1.0-alpha.1') : l)).join('\n'));
   }
-  put(dir, 'CHANGELOG.md', '# Changelog\n\n## repo-docs 0.1.0-alpha.1 - 2026-10-15\n\n## audit 0.1.0-alpha.1 - 2026-10-15\n\n## loop 0.1.0-alpha.1 - 2026-10-15\n\n## rules 0.1.0-alpha.1 - 2026-10-15\n');
+  put(dir, 'CHANGELOG.md', '# Changelog\n\n## primer 0.1.0-alpha.1 - 2026-10-15\n\n## repo-docs 0.1.0-alpha.1 - 2026-10-15\n\n## audit 0.1.0-alpha.1 - 2026-10-15\n\n## loop 0.1.0-alpha.1 - 2026-10-15\n\n## rules 0.1.0-alpha.1 - 2026-10-15\n');
 };
 
 const caseDir = () => {
@@ -119,7 +119,7 @@ test('R221: rules 0.1.0 changes only the version in the manifest and its catalog
   assert.ok(before.includes('"version": "0.1.0-alpha.1"'));
   assert.equal(read(dir, manifest('rules')), before.replace('"version": "0.1.0-alpha.1"', '"version": "0.1.0"'));
   const versions = Object.fromEntries(JSON.parse(read(dir, catalog)).plugins.map((p) => [p.name, p.version]));
-  assert.deepEqual(versions, { 'repo-docs': '0.1.0-alpha.1', audit: '0.1.0-alpha.1', loop: '0.1.0-alpha.1', rules: '0.1.0' });
+  assert.deepEqual(versions, { primer: '0.1.0-alpha.1', 'repo-docs': '0.1.0-alpha.1', audit: '0.1.0-alpha.1', loop: '0.1.0-alpha.1', rules: '0.1.0' });
   assert.deepEqual(changed(dir), [' M .claude-plugin/marketplace.json', ' M plugins/rules/.claude-plugin/plugin.json']);
 });
 
