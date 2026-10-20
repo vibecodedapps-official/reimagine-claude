@@ -393,7 +393,9 @@ export function imports(text, found) {
   return out;
 }
 
-// A small line diff: the changed run between the common head and tail, with three lines of context on each side.
+// A line diff: a longest common subsequence of the lines between the common head and tail, shown as one hunk per changed
+// run with three lines of context on each side; runs six or fewer unchanged lines apart share a hunk. With no change it
+// shows the last three lines.
 export function diff(before, after, from, to) {
   const a = before === '' ? [] : before.replace(/\r\n/g, '\n').replace(/\n$/, '').split('\n');
   const b = after === '' ? [] : after.replace(/\r\n/g, '\n').replace(/\n$/, '').split('\n');
@@ -401,11 +403,47 @@ export function diff(before, after, from, to) {
   while (head < a.length && head < b.length && a[head] === b[head]) head++;
   let tail = 0;
   while (tail < a.length - head && tail < b.length - head && a[a.length - 1 - tail] === b[b.length - 1 - tail]) tail++;
-  const ctx = (lines) => lines.map((l) => ` ${l}`);
-  return [`--- ${from}`, `+++ ${to}`, `@@ line ${Math.max(head - 2, 1)} @@`,
-    ...ctx(a.slice(Math.max(head - 3, 0), head)),
-    ...a.slice(head, a.length - tail).map((l) => `-${l}`), ...b.slice(head, b.length - tail).map((l) => `+${l}`),
-    ...ctx(a.slice(a.length - tail, a.length - tail + 3))].join('\n');
+  const n = a.length - head - tail, m = b.length - head - tail, w = m + 1;
+  // A run's + lines wait for the next unchanged line, so each run prints its - lines first. Loops, not spreads: a run
+  // can be longer than a call's argument limit. Only three lines of the common head and tail can show.
+  const ops = [], adds = [];
+  const flush = () => { for (const o of adds.splice(0)) ops.push(o); };
+  const keep = (l) => { flush(); ops.push([' ', l]); };
+  const skipped = Math.max(head - 3, 0);
+  a.slice(skipped, head).forEach(keep);
+  // The table takes time in proportion to its cells, so over the cap the middle is shown as one changed run.
+  if ((n + 1) * w > 4e6) {
+    for (let i = 0; i < n; i++) ops.push(['-', a[head + i]]);
+    for (let j = 0; j < m; j++) ops.push(['+', b[head + j]]);
+  } else {
+    // lcs[i * w + j]: the common subsequence length of the middle's lines from i on in a and from j on in b.
+    const lcs = new Uint32Array((n + 1) * w);
+    for (let i = n - 1; i >= 0; i--) {
+      for (let j = m - 1; j >= 0; j--) {
+        lcs[i * w + j] = a[head + i] === b[head + j] ? lcs[(i + 1) * w + j + 1] + 1 : Math.max(lcs[(i + 1) * w + j], lcs[i * w + j + 1]);
+      }
+    }
+    for (let i = 0, j = 0; i < n || j < m;) {
+      if (i < n && j < m && a[head + i] === b[head + j]) { keep(a[head + i]); i++; j++; }
+      else if (j === m || (i < n && lcs[(i + 1) * w + j] >= lcs[i * w + j + 1])) ops.push(['-', a[head + i++]]);
+      else adds.push(['+', b[head + j++]]);
+    }
+  }
+  a.slice(a.length - tail, a.length - tail + 3).forEach(keep);
+  flush();
+  const out = [`--- ${from}`, `+++ ${to}`];
+  const changed = ops.flatMap((o, k) => (o[0] === ' ' ? [] : [k]));
+  if (!changed.length) return [...out, `@@ line ${Math.max(a.length - 2, 1)} @@`, ...a.slice(-3).map((l) => ` ${l}`)].join('\n');
+  const hunks = [];
+  changed.forEach((k, x) => (x && k - changed[x - 1] <= 7 ? (hunks.at(-1)[1] = k) : hunks.push([k, k])));
+  let p = 0, line = skipped + 1;
+  for (const [first, last] of hunks) {
+    const s = Math.max(first - 3, 0);
+    for (; p < s; p++) if (ops[p][0] !== '+') line++;
+    out.push(`@@ line ${line} @@`);
+    for (const o of ops.slice(s, last + 4)) out.push(o.join(''));
+  }
+  return out.join('\n');
 }
 
 // The one target: CLAUDE.md in $CLAUDE_CONFIG_DIR, else in ~/.claude. A symlink is followed to the file it points to;

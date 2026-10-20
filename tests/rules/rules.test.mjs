@@ -25,8 +25,8 @@ const CORE_LF = `${begin('core', 'blank', 'cb477dddc15de845', '9.9.9')}\nC1\nC2\
 // The digest of the shipped body for options core, as the script printed it.
 const SHIPPED_CORE_DIGEST = '60b949fabbd69ff5';
 
-test('R25: the block version is the version in the manifest of the plugin root, and the shipped manifest is 0.1.3', () => {
-  assert.equal(pluginVersion(), '0.1.3');
+test('R25: the block version is the version in the manifest of the plugin root, and the shipped manifest is 0.1.4', () => {
+  assert.equal(pluginVersion(), '0.1.4');
   const dir = mkdtempSync(join(tmpdir(), 'rules-test-'));
   try {
     mkdirSync(join(dir, '.claude-plugin'));
@@ -267,6 +267,48 @@ test('diff shows the changed lines with three lines of context', () => {
   assert.equal(diff('', 'X\n', 'f', 'g'), '--- f\n+++ g\n@@ line 1 @@\n+X');
 });
 
+test('R27: with no change, the diff shows the last three lines, or the header alone', () => {
+  assert.equal(diff('a\n', 'a\n', 'f', 'g'), '--- f\n+++ g\n@@ line 1 @@\n a');
+  assert.equal(diff('a\nb\nc\nd\ne\n', 'a\nb\nc\nd\ne\n', 'f', 'g'), '--- f\n+++ g\n@@ line 3 @@\n c\n d\n e');
+  assert.equal(diff('', '', 'f', 'g'), '--- f\n+++ g\n@@ line 1 @@');
+});
+
+test('R27: changed runs seven unchanged lines apart are two hunks', () => {
+  assert.equal(diff('a\nb\nc\nOLD1\n1\n2\n3\n4\n5\n6\n7\nOLD2\nx\ny\nz\n', 'a\nb\nc\nNEW1\n1\n2\n3\n4\n5\n6\n7\nNEW2\nx\ny\nz\n', 'f', 'g'),
+    '--- f\n+++ g\n@@ line 1 @@\n a\n b\n c\n-OLD1\n+NEW1\n 1\n 2\n 3\n@@ line 9 @@\n 5\n 6\n 7\n-OLD2\n+NEW2\n x\n y\n z');
+});
+
+test('R27: changed runs six unchanged lines apart share one hunk, each run printing its - lines then its + lines', () => {
+  assert.equal(diff('a\nb\nc\nOLD1\n1\n2\n3\n4\n5\n6\nOLD2\nx\ny\nz\n', 'a\nb\nc\nNEW1\n1\n2\n3\n4\n5\n6\nNEW2\nx\ny\nz\n', 'f', 'g'),
+    '--- f\n+++ g\n@@ line 1 @@\n a\n b\n c\n-OLD1\n+NEW1\n 1\n 2\n 3\n 4\n 5\n 6\n-OLD2\n+NEW2\n x\n y\n z');
+});
+
+test('R27: an insertion at line 1, a deletion-only run and an insertion-only run', () => {
+  assert.equal(diff('a\nb\nc\nd\ne\n', 'X\na\nb\nc\nd\ne\n', 'f', 'g'), '--- f\n+++ g\n@@ line 1 @@\n+X\n a\n b\n c');
+  assert.equal(diff('a\nDEL\nb\nc\nd\ne\nf\ng\nh\ni\n', 'a\nb\nc\nd\ne\nf\ng\nh\nINS\ni\n', 'f', 'g'),
+    '--- f\n+++ g\n@@ line 1 @@\n a\n-DEL\n b\n c\n d\n@@ line 7 @@\n f\n g\n h\n+INS\n i');
+  // On a tie the - line comes first.
+  assert.equal(diff('p\nq\n', 'q\np\n', 'f', 'g'), '--- f\n+++ g\n@@ line 1 @@\n-p\n q\n+p');
+});
+
+test('R27: a middle over 4,000,000 table cells is shown as one changed run', () => {
+  const mid = (k) => Array.from({ length: k }, (_, i) => `s${i + 1}\n`).join('');
+  // 1,999 lines each side: 2,000 x 2,000 cells, at the cap.
+  assert.equal(diff(`A\n${mid(1997)}Z\n`, `B\n${mid(1997)}Y\n`, 'f', 'g'),
+    '--- f\n+++ g\n@@ line 1 @@\n-A\n+B\n s1\n s2\n s3\n@@ line 1996 @@\n s1995\n s1996\n s1997\n-Z\n+Y');
+  // 2,001 lines each side: 2,002 x 2,002 cells, over it.
+  const over = diff(`A\n${mid(1999)}Z\n`, `B\n${mid(1999)}Y\n`, 'f', 'g').split('\n');
+  assert.equal(over.length, 4005);
+  assert.equal(over.filter((l) => l.startsWith('@@')).length, 1);
+  assert.deepEqual(over.slice(0, 5), ['--- f', '+++ g', '@@ line 1 @@', '-A', '-s1']);
+  assert.deepEqual(over.slice(2002, 2006), ['-s1999', '-Z', '+B', '+s1']);
+  assert.deepEqual(over.slice(-2), ['+s1999', '+Y']);
+  // A run longer than a call's argument limit.
+  const long = diff('', mid(200000), 'f', 'g').split('\n');
+  assert.equal(long.length, 200003);
+  assert.deepEqual([...long.slice(0, 4), long.at(-1)], ['--- f', '+++ g', '@@ line 1 @@', '+s1', '+s200000']);
+});
+
 // main() on temporary directories. AT and LATER are the injected clocks for backup names.
 const AT = new Date('2026-10-03T12:00:00Z');
 const LATER = new Date('2026-10-03T12:00:01Z');
@@ -362,7 +404,7 @@ test('R18, R36: the windows option puts the shipped Windows paragraph before the
   s.run('plan', ['--options', 'core,windows'], { platform: 'win32' });
   s.run('apply');
   const lines = bytes(s.claude).split('\n');
-  assert.match(lines[0], /^<!-- reimagine:house-rules begin version=0.1.3 options=core,windows join=none digest=[0-9a-f]{16} -->$/);
+  assert.match(lines[0], /^<!-- reimagine:house-rules begin version=0.1.4 options=core,windows join=none digest=[0-9a-f]{16} -->$/);
   assert.equal(lines.slice(1).join('\n'), `${SHIPPED['windows.md']}\n${SHIPPED['core.md']}${END}\n`);
 }));
 
@@ -439,7 +481,7 @@ test('R29: an existing file is backed up with the time in its name, and no tempo
   assert.deepEqual(s.run('apply'), [`rules: wrote ${s.claude}; the backup is ${s.claude}.reimagine-backup-20261003120000`]);
   assert.deepEqual(readdirSync(s.claudeDir).sort(), ['CLAUDE.md', 'CLAUDE.md.reimagine-backup-20261003120000']);
   assert.equal(bytes(`${s.claude}.reimagine-backup-20261003120000`), 'mine\n');
-  assert.ok(bytes(s.claude).startsWith('mine\n\n<!-- reimagine:house-rules begin version=0.1.3 options=core join=blank digest='));
+  assert.ok(bytes(s.claude).startsWith('mine\n\n<!-- reimagine:house-rules begin version=0.1.4 options=core join=blank digest='));
   assert.equal(s.state().created, false);
   assert.deepEqual(readdirSync(s.data).sort(), ['rules-plan.json', 'rules-state.json']);
 }));
@@ -932,11 +974,15 @@ test('R34: the overlap note and the recommendation for a hand copy, and adopt th
     'note: /rules --adopt moves those lines into the block']);
   const adopted = s.run('plan', ['--adopt', '--options', 'core']);
   assert.deepEqual(adopted.slice(0, 5), [`target: ${s.claude}`, 'state: absent', 'options: core', 'change: ready', 'recommend: apply']);
-  assert.equal(adopted[5].includes('-Any instruction file can add an ask-first rule; none removes one.'), true);
+  // The copy stays where it was, so the diff shows only the markers added around it.
+  assert.equal(adopted[5].includes('\n@@ line 1 @@\n # Mine\n \n+<!-- reimagine:house-rules begin version='), true);
+  assert.equal(adopted[5].includes('-->\n Any instruction file can add an ask-first rule; none removes one.\n'), true);
+  assert.equal(adopted[5].endsWith('\n+<!-- reimagine:house-rules end -->'), true);
+  assert.equal(adopted[5].includes('\n-'), false);
   assert.deepEqual(s.run('apply', [], { now: AT }), [`rules: wrote ${s.claude}; the backup is ${s.claude}.reimagine-backup-20261003120000`]);
   assert.equal(bytes(`${s.claude}.reimagine-backup-20261003120000`), copy);
   const after = bytes(s.claude);
-  assert.equal(after.startsWith('# Mine\n\n<!-- reimagine:house-rules begin version=0.1.3 options=core join=none digest='), true);
+  assert.equal(after.startsWith('# Mine\n\n<!-- reimagine:house-rules begin version=0.1.4 options=core join=none digest='), true);
   assert.equal(after.split('Make the smallest change that is correct').length, 2);
   assert.equal(s.run('plan', ['--options', 'core']).includes('state: current'), true);
   s.run('remove');
