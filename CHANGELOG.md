@@ -6,6 +6,11 @@ One changelog for the suite. Each plugin releases on its own line; a release get
 
 - Design documents for 0.1.0 under `docs/`: requirements, architecture, build plan, decisions, acceptance.
 
+## loop 0.1.2 - 2026-10-20
+
+- A run on a host other than GitHub writes the pull request body its `prepared` report names, at the end of Step 6. Before, that run never read the body template, so the report pointed to a file that was not there and the body was written by hand. The body covers every input of every run of the record, one per repository.
+- On an Azure DevOps remote a ticket is a link to its work item, named by its type, in place of `Refs AB#<n>`, which Azure Repos does not link; and, under the 4,000-character description cap, the body holds only the related pull requests, the closing lines and a pointer to the full body in a comment file to post first. The report asks the user to link the work items with the host's tooling, since a `Refs` line does not attach them.
+
 ## audit 0.1.2 - 2026-10-20
 
 - The merger reads every file it takes whole to its last line, in pages, and checks it reached the line count its prompt gives. A ledger over the host's single-read limit was read in part before, and a merger could miss positions without saying so. It finds a ledger section for a duplicate check with Grep and reads only that section.

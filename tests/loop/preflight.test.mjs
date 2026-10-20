@@ -51,3 +51,34 @@ test('R86: Step 0.5 compares a description with the text files after the credent
 test('R92: the no-new-work path runs 3.7.2 and 3.7.4 before Step 6', () => {
   assert.ok(PREFLIGHT.includes('run 3.7.2 and 3.7.4 there, and go to Step 6'));
 });
+
+test('R74: SKILL.md says which remote is Azure DevOps by its four host forms', () => {
+  const text = section(SKILL, 'Reading the request');
+  assert.notEqual(text, null);
+  for (const host of ['`dev.azure.com`', '`ssh.dev.azure.com`', '`vs-ssh.visualstudio.com`', 'ends in `.visualstudio.com`']) {
+    assert.ok(text.includes(host), `Reading the request does not name ${host}`);
+  }
+  assert.ok(text.includes('On `ssh.dev.azure.com` and `vs-ssh.visualstudio.com` the organization is the segment after `v3/`, spelled `<host>:v3/` or `ssh://<host>/v3/`, and the project the segment after it.'), 'Reading the request does not say where the organization is in an ssh remote');
+});
+
+test('R74: host detection records whether an other remote is Azure DevOps, and its organization', () => {
+  const text = section(PREFLIGHT, 'Host detection');
+  assert.notEqual(text, null);
+  assert.ok(text.includes('whether the remote is Azure DevOps'));
+  assert.ok(text.includes('its organization and project'));
+});
+
+test('R215: on other, preflight sends the run to write its body file at the end of Step 6', () => {
+  const text = section(PREFLIGHT, 'Host detection');
+  assert.notEqual(text, null);
+  assert.ok(text.includes('At the end of Step 6 it reads `pr-body.md` and writes the run\'s body file'));
+});
+
+test('R74: SKILL.md finds the organization and project of the visualstudio.com form and of the _git short form', () => {
+  const text = section(SKILL, 'Reading the request');
+  assert.notEqual(text, null);
+  assert.ok(text.includes('On any other host ending in `.visualstudio.com`, the organization is the subdomain and the project the first path segment that is not `DefaultCollection`.'));
+  assert.ok(text.includes('On `dev.azure.com` the organization is the first path segment and the project the second.'));
+  assert.ok(text.includes('When the project segment is `_git`, as in `dev.azure.com/<org>/_git/<repo>`, the project has the repository\'s name.'));
+  assert.ok(!text.includes('On any other host, which has the form'));
+});

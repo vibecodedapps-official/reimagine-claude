@@ -204,7 +204,7 @@ Per-call budgets in minutes: subagent 20, review 30, check 15, CI 45. One defaul
 3. Plan review by the fresh reviewer, up to three rounds; plan-only stop; optional confirmation; then branch, baseline, dependencies.
 4. Build: implementers per slice, slice checks, orchestrator slice review, re-evaluation.
 5. Final review: integrate, one role over the whole diff from the merge-base, three rounds.
-6. Checks: discovery, baseline matching, reuse of 5.1.
+6. Checks: discovery, baseline matching, reuse of 5.1; on a non-GitHub host, the body file and the `prepared` end.
 7. Publish: commit, push, pull request create or update, ticket comments, CI watch and repair, deferred list, handoff and manifest.
 
 ### Record and idempotency
@@ -260,7 +260,7 @@ Terminal states: `done`, `plan-only`, `prepared`, `blocked`, `stopped`.
 
 ### Publication texts
 
-The pull request is created with `gh pr create --title "<title>" --body-file <absolute path>`, the title being the single ticket's title or the plan's one-line summary. `pr-body.md` sections: What changed, Drift corrections, Decisions for the reviewer, Checks not run, Related pull requests, Closes. Ticket comments carry state, pull request link, criteria, not done, deferred. Neither names a model, an agent, a tool, or a run-internal path; a report posted as a comment under `commit: true` is cut to its external sections for the same reason. The handoff (`reimagine-handoff: 1`) and `audit-manifest.json` (`{"bundles":[{"repo","pr","tickets"}|{"repo","branch","base","tickets"}],"claims":["<absolute handoff.md>"]}`) are written when the run has its own commit, and the report suggests `/audit:run "<manifest>"` for bundles with more than one repository, more than one ticket, or 500 or more changed lines.
+The pull request is created with `gh pr create --title "<title>" --body-file <absolute path>`, the title being the single ticket's title or the plan's one-line summary. `pr-body.md` sections: What changed, Drift corrections, Decisions for the reviewer, Checks not run, Related pull requests, Closes. On a non-GitHub host the run ends `prepared` after step 6 with a body file covering every input of every run of the record, one per repository; on an Azure DevOps remote that body is the short form under the 4,000-character description cap, the full body goes to a comment file to post first, and an Azure DevOps ticket is a `_workitems/edit/<n>` link in place of `AB#<n>`, which links only from GitHub through the Azure Boards app. Ticket comments carry state, pull request link, criteria, not done, deferred. Neither names a model, an agent, a tool, or a run-internal path; a report posted as a comment under `commit: true` is cut to its external sections for the same reason. The handoff (`reimagine-handoff: 1`) and `audit-manifest.json` (`{"bundles":[{"repo","pr","tickets"}|{"repo","branch","base","tickets"}],"claims":["<absolute handoff.md>"]}`) are written when the run has its own commit, and the report suggests `/audit:run "<manifest>"` for bundles with more than one repository, more than one ticket, or 500 or more changed lines.
 
 ## The `audit` plugin
 

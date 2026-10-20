@@ -1,12 +1,12 @@
 # Publication texts
 
-Read this file from `steps/7-publish.md` when you write a pull request body, a continued pull request comment or a ticket comment.
+Read this file from `steps/7-publish.md` when you write a pull request body, a continued pull request comment or a ticket comment, and from `steps/4-build.md` at the end of Step 6 on a host other than `github`, to write the run's body file.
 
 These texts are published. Name the activity and the date, never a model, an agent type or a tool, and never a run-internal path such as one under `.reimagine/`. Type no attribution trailer. Write a bare `@token` in backticks. Write each section from the record's facts, not from a subagent's claim; check a claim before you repeat it. A section with nothing to say holds the word "none".
 
 ## Pull request body
 
-Write the body to the run's body file in the record: `pr-body.md`, or `pr-body-<slug>.md` for an additional repository, each with the suffix `-run<n>` from run 2 on (`record.md`, Files). On a continued branch whose pull request this loop opened, the body covers every input of every run of the record. It has these sections, in this order:
+Write the body to the run's body file in the record: `pr-body.md`, or `pr-body-<slug>.md` for an additional repository, each with the suffix `-run<n>` from run 2 on (`record.md`, Files). On a continued branch whose pull request this loop opened, the body covers every input of every run of the record. On a host other than `github`, the body always covers every input of every run of the record, since the loop never edits a description there and the user pastes the whole of it. It has these sections, in this order:
 
 ```
 ## What changed
@@ -30,13 +30,19 @@ Write the body to the run's body file in the record: `pr-body.md`, or `pr-body-<
 <one line per ticket>
 ```
 
+In a multi-repository run on a host other than `github`, Related pull requests says the links between the pull requests are added by hand.
+
+On an Azure DevOps remote the description is capped at 4,000 characters, so the body always takes the short form, with nothing measured: `## Related pull requests`, `## Closes`, and last the line "Details are in the first comment." Only `## Closes` grows with the inputs, one line per ticket. Write the full body, with every section, to `<record>/comment-<n>.md`, numbered as `record.md` says, for the user to post as the pull request's first comment.
+
 Closing rules:
 
 - Write `Closes <ref>` only when every acceptance criterion of the ticket is confirmed met. Otherwise write `Refs <ref>`.
 - One line per ticket.
 - A file input and a text input get no closing line.
 - Across repositories only the pull request in the ticket's own repository closes it. Every other pull request cites it as `Refs <owner>/<repo>#<n>`.
-- Write an Azure DevOps ticket as `Refs AB#<n>` and a Salesforce ticket as `Refs` and the case number. Neither closes anything.
+- On `github` write an Azure DevOps ticket as `Refs AB#<n>`. On an Azure DevOps remote write it as `Refs [<type> <n>](https://dev.azure.com/<org>/<project>/_workitems/edit/<n>)`. `<type>` is the work item's `System.WorkItemType` from the read the reading step made, else `Work item`. `<project>` is its `System.TeamProject` from that read, else the remote's project, with each space written `%20`. `<org>` is the remote's organization (SKILL.md, Reading the request). On any other host write `Refs AB#<n>`.
+- Write a Salesforce ticket as `Refs` and the case number. No Azure DevOps or Salesforce line closes anything.
+- A `Refs` line does not attach the work item to the pull request. The `prepared` report asks the user to link the work items with the host's own tooling.
 
 ## Continued pull request comment
 
@@ -75,4 +81,4 @@ Deferred:
 - Mark a criterion "not confirmed" when you did not see it met yourself.
 - Name no run-internal path, no model, no agent and no tool.
 
-Return to the item of `steps/7-publish.md` that sent you here.
+Return to the step that sent you here.

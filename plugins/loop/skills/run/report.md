@@ -118,7 +118,7 @@ For `prepared`, also give the branch, the commit state, and the exact commands i
 1. `git add <paths>`
 2. `git commit`
 3. `git push -u <remote> <branch>`
-4. `gh pr create --title "<title>" --body-file <absolute path of the body file>`; for a continued branch with one open pull request, `gh pr comment <pr> --body-file <absolute path>` instead, preceded by `gh pr edit <pr> --body-file <absolute path of the body file>` when this loop opened that pull request; on a non-GitHub host, the note that the pull request opens with that host's own tooling.
+4. `gh pr create --title "<title>" --body-file <absolute path of the body file>`; for a continued branch with one open pull request, `gh pr comment <pr> --body-file <absolute path>` instead, preceded by `gh pr edit <pr> --body-file <absolute path of the body file>` when this loop opened that pull request; on a non-GitHub host, in place of a `gh` command, the title, the absolute path of the body file to paste as the pull request's description, the absolute path of the `comment-<n>.md` file to post as its first comment when there is one (with several repositories, each file with the repository it goes with), and the note that the pull request opens, and its work items are linked, with that host's own tooling.
 
 ### Log
 

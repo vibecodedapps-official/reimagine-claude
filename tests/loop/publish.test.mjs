@@ -58,3 +58,90 @@ test('R92: Steps 3.6 and 3.7 run when Step 3 is reused', () => {
   assert.ok(build.includes('When Step 3 is reused, they still run'));
   assert.ok(build.includes('run only 3.7.2 and 3.7.4'));
 });
+
+const SKILL = read('SKILL.md');
+const BUILD = read('steps/4-build.md');
+const REPORT = read('report.md');
+const RECORD = read('record.md');
+const MULTI = read('multi-repo.md');
+
+// The closing rules of pr-body.md, which sit after the body template's fence.
+const closingRules = () => {
+  const start = PR_BODY.indexOf('Closing rules:');
+  const end = PR_BODY.indexOf('\n## Continued pull request comment');
+  assert.ok(start !== -1 && end > start, 'pr-body.md has no closing rules before the continued comment');
+  return PR_BODY.slice(start, end);
+};
+
+test('R117: an Azure DevOps ticket keeps the AB# form on github and takes a work item link on an Azure DevOps remote', () => {
+  const text = closingRules();
+  assert.ok(text.includes('On `github` write an Azure DevOps ticket as `Refs AB#<n>`.'));
+  assert.ok(text.includes('`Refs [<type> <n>](https://dev.azure.com/<org>/<project>/_workitems/edit/<n>)`'));
+  assert.ok(text.includes('`System.WorkItemType`'), 'the link text does not take the work item type');
+  assert.ok(text.includes('`System.TeamProject`'), 'the link does not take the work item project');
+  assert.ok(text.includes('`%20`'), 'the link does not encode spaces in the project');
+});
+
+test('R117: pr-body.md says a Refs line does not attach the work item', () => {
+  assert.ok(closingRules().includes('A `Refs` line does not attach the work item to the pull request.'));
+});
+
+test('R215: on an Azure DevOps remote the body is always the short form, with the full body in the first comment', () => {
+  assert.ok(PR_BODY.includes('the description is capped at 4,000 characters'));
+  assert.ok(PR_BODY.includes('"Details are in the first comment."'));
+  assert.ok(PR_BODY.includes('`<record>/comment-<n>.md`'));
+});
+
+test('R215: on other the body covers every input of every run of the record', () => {
+  assert.ok(PR_BODY.includes('On a host other than `github`, the body always covers every input of every run of the record'));
+});
+
+test('R215: pr-body.md names both callers and hands back to the step that sent the run', () => {
+  assert.ok(PR_BODY.split('\n')[2].includes('`steps/4-build.md`'), 'pr-body.md does not name Step 6 as a caller');
+  assert.equal(PR_BODY.trimEnd().split('\n').at(-1), 'Return to the step that sent you here.');
+});
+
+test('R215: on other, Step 6 reads pr-body.md and writes the body before it ends prepared', () => {
+  const text = section(BUILD, 'Step 6 Checks');
+  assert.notEqual(text, null);
+  const other = text.slice(text.indexOf('On any other host'));
+  const reads = other.indexOf('read `pr-body.md`');
+  assert.ok(reads !== -1, 'Step 6 does not read pr-body.md on other');
+  assert.ok(reads < other.indexOf('`prepared`'), 'Step 6 ends prepared before it writes the body');
+});
+
+test('R215: a prepared run on a non-GitHub host names the comment file to post first', () => {
+  assert.ok(section(SKILL, 'Terminal states').includes('`comment-<n>.md`'));
+  assert.ok(section(REPORT, 'Sections').includes('`comment-<n>.md`'));
+});
+
+test('R215: a prepared run on a non-GitHub host still gives the pull request title', () => {
+  assert.ok(section(SKILL, 'Terminal states').includes('in place of the `gh` command, give the title and name the body file'));
+  assert.ok(section(REPORT, 'Sections').includes('in place of a `gh` command, the title, the absolute path of the body file'));
+});
+
+test('R215: SKILL.md reads pr-body.md at the end of Step 6 on other', () => {
+  assert.ok(section(SKILL, 'Supporting files').includes('or, on `other`, at the end of Step 6'));
+});
+
+test('R215: the record writes the body and comment files at the end of Step 6 off github', () => {
+  const files = section(RECORD, 'Files');
+  assert.ok(files.includes('| `pr-body.md`, `pr-body-<slug>.md` | Step 7.2, or the end of Step 6 on `other` |'));
+  assert.ok(files.includes('| `comment-<n>.md` | Step 7, or the end of Step 6 on an Azure DevOps remote |'));
+});
+
+test('R215: with several repositories on other, each body says its sibling links are added by hand', () => {
+  assert.ok(MULTI.includes('the links between the pull requests are added by hand'));
+});
+
+test('R215: the Azure DevOps short form leaves What changed to the comment file, so only Closes grows with the inputs', () => {
+  assert.ok(PR_BODY.includes('the body always takes the short form, with nothing measured: `## Related pull requests`, `## Closes`, and last the line "Details are in the first comment."'));
+  assert.ok(!PR_BODY.includes('`## What changed` with one line per input'));
+  assert.ok(PR_BODY.includes('Only `## Closes` grows with the inputs, one line per ticket.'));
+});
+
+test('R215: with several repositories on other, the body names take the run suffix and each comment file is named with its repository', () => {
+  assert.ok(MULTI.includes('each with the run suffix from run 2 on, as `record.md`, Files, says'));
+  assert.ok(MULTI.includes('one `comment-<n>.md` for each repository, numbered in turn, and the report names the repository each one goes with'));
+  assert.ok(section(REPORT, 'Sections').includes('with several repositories, each file with the repository it goes with'));
+});

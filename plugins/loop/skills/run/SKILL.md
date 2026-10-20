@@ -62,7 +62,7 @@ Effort words and the effort they set: "quick" or "low" gives `low`; "medium" giv
 Ticket forms, resolved per id in this order:
 
 1. `#123`, or a GitHub issue or pull request URL: `gh`.
-2. `AB#12345`, or a bare number when the primary remote is Azure DevOps: an Azure DevOps MCP tool when one is listed, else `az boards work-item show --id <n>`.
+2. `AB#12345`, or a bare number when the primary remote is Azure DevOps: an Azure DevOps MCP tool when one is listed, else `az boards work-item show --id <n>`. A remote is Azure DevOps when its URL's host is `dev.azure.com`, `ssh.dev.azure.com` or `vs-ssh.visualstudio.com`, or ends in `.visualstudio.com`. On `dev.azure.com` the organization is the first path segment and the project the second. On `ssh.dev.azure.com` and `vs-ssh.visualstudio.com` the organization is the segment after `v3/`, spelled `<host>:v3/` or `ssh://<host>/v3/`, and the project the segment after it. On any other host ending in `.visualstudio.com`, the organization is the subdomain and the project the first path segment that is not `DefaultCollection`. When the project segment is `_git`, as in `dev.azure.com/<org>/_git/<repo>`, the project has the repository's name.
 3. A Salesforce case number or record id: a Salesforce MCP tool when one is listed.
 4. A readable path: read as a file.
 5. Anything else, a bare number on a GitHub remote included: text.
@@ -150,7 +150,7 @@ Every run ends in exactly one state.
 
 - `done`: the pull request is open, CI is green or not applicable, and the report is written. A run on an existing record with no new work whose work is already published ends `done` after Step 6, having published nothing (`record.md`, An existing record, item 8).
 - `plan-only`: the plan was reviewed and nothing in the tree changed, or a plan confirmation was not answered with a clear yes.
-- `prepared`: every step through 6 is complete and publication is withheld before any push. Print the exact commands: `git add <paths>`, `git commit`, `git push -u <remote> <branch>` and `gh pr create --title "<title>" --body-file <absolute path>`. For a continued branch with one open pull request, print `gh pr comment <pr> --body-file <absolute path>` in place of the last, preceded by `gh pr edit <pr> --body-file <absolute path>` when this loop opened that pull request. On a non-GitHub host, add a note that the pull request is opened with the host's own tooling. With several repositories, give the set per repository with `git -C <path>`.
+- `prepared`: every step through 6 is complete and publication is withheld before any push. Print the exact commands: `git add <paths>`, `git commit`, `git push -u <remote> <branch>` and `gh pr create --title "<title>" --body-file <absolute path>`. For a continued branch with one open pull request, print `gh pr comment <pr> --body-file <absolute path>` in place of the last, preceded by `gh pr edit <pr> --body-file <absolute path>` when this loop opened that pull request. On a non-GitHub host, in place of the `gh` command, give the title and name the body file to paste as the pull request's description, the `comment-<n>.md` file to post as its first comment when there is one, and a note that the pull request is opened, and its work items linked, with the host's own tooling. With several repositories, give the set per repository with `git -C <path>`.
 - `blocked`: a blocking defect, a denied permission, a budget exceeded, or a preflight failure. After `blocked` nothing more is published; pushed work stays and is linked.
 - `stopped`: a question the run cannot decide, before any branch is created.
 
@@ -224,6 +224,6 @@ Read each file at its point and not before. A sentence that only says where a la
 - `ci-watch.md`: at Step 7.3.
 - `multi-repo.md`: at the start of Step 0 when the request says "also edit", or when Step 1.2 adopts a repository.
 - `worktree.md`: when the exception of Step 0.3 applies, before the worktree is created.
-- `pr-body.md`: when Step 7 writes a pull request body, a continued pull request comment or a ticket comment.
+- `pr-body.md`: when Step 7 writes a pull request body, a continued pull request comment or a ticket comment, or, on `other`, at the end of Step 6.
 - `report.md`: at every terminal state.
 - `handoff.md`: in Final report handling, when the run has its own commit.

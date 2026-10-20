@@ -22,6 +22,8 @@ The primary is the session's repository, or its worktree when Step 0.3 made one.
 
 **Step 5.** Review only the repositories with a diff: mark new files with `git -C <path> add -N` and test with `git -C <path> diff <merge-base> --stat`. For each additional repository write `<record>/diff-<slug>.patch` from `git -C <path> diff <merge-base>`. The `fable` reviewer reads every patch. For a higher-risk run, `code-review` covers the primary in the session's checkout, and an `opus` stand-in reviews each additional repository (and a primary in a worktree), continued with SendMessage across rounds.
 
+**Step 6 on `other`.** At the end of Step 6, write one body per repository with a diff: the primary's to `pr-body.md` and each other to `pr-body-<slug>.md`, each with the run suffix from run 2 on, as `record.md`, Files, says. On an Azure DevOps remote, also write one `comment-<n>.md` for each repository, numbered in turn, and the report names the repository each one goes with. Each body's "Related pull requests" says the links between the pull requests are added by hand.
+
 **Step 7.** Publish one pull request per repository with a diff, each on its own branch and base:
 
 - Write each body with "Related pull requests" set to "pending". Write the primary's to `pr-body.md` and each other to `pr-body-<slug>.md`.

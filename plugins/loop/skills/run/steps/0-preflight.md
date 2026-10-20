@@ -17,8 +17,8 @@ Read this file at the start of Step 0, after `multi-repo.md` when the request sa
 3. Classify the remote. Run `gh repo view <host>/<owner>/<repo> --json nameWithOwner,url,defaultBranchRef` for it.
    - It succeeds: the class is `github`. A GitHub Enterprise host is `github` only when `gh` is authenticated for that host.
    - It fails and the URL host is github.com: the run ends `blocked` with "gh not authenticated" for that remote.
-   - Any other host, Azure DevOps included: the class is `other`. Record its hostname.
-4. On `other`, Steps 0 to 6 run and Step 7 does not. The run ends `prepared` with `git push -u <remote> <branch>` as the publish command. The default branch comes from `git ls-remote --symref <remote> HEAD` (0.2). No pull request is read. Run no `gh` ticket read; a `#n` stays text.
+   - Any other host, Azure DevOps included: the class is `other`. Record its hostname and, by the rule of SKILL.md, Reading the request, whether the remote is Azure DevOps, with its organization and project.
+4. On `other`, Steps 0 to 6 run and Step 7 does not. At the end of Step 6 it reads `pr-body.md` and writes the run's body file (`steps/4-build.md`, Step 6). The run ends `prepared` with `git push -u <remote> <branch>` as the publish command. The default branch comes from `git ls-remote --symref <remote> HEAD` (0.2). No pull request is read. Run no `gh` ticket read; a `#n` stays text.
 
 ## Input guard
 

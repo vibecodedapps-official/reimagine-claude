@@ -16,7 +16,7 @@
       "name": "loop",
       "source": "./plugins/loop",
       "description": "Plan, build, review and publish a bundle of tickets as one reviewed pull request per repository, resuming on the same branch when run again.",
-      "version": "0.1.1"
+      "version": "0.1.2"
     },
     {
       "name": "audit",
