@@ -7,6 +7,10 @@ One changelog for the suite. Each plugin releases on its own line; a release get
 - Design documents for 0.1.0 under `docs/`: requirements, architecture, build plan, decisions, acceptance.
 - Design documents for the `primer` plugin under `docs/`, which replaces `repo-docs` from its release: requirements 237 to 268, decisions 73 to 89, milestones M10 to M19, acceptance items 27 to 36.
 
+## primer 0.1.0-alpha.3 - 2026-10-21
+
+- `/primer` runs `init` in a repository with no `CLAUDE.md` or `AGENTS.md`. It reads the readme, manifests, build files, CI workflows, test layout and contributing guide, writes a root `CLAUDE.md` of at most 60 lines with the marker, the commands and the constraints the repository holds, and leaves it uncommitted for the user to read. In the same reply it proposes the skills, path-scoped rules and nested `CLAUDE.md` files the repository shows, asks once, and writes none without a yes. `adopt` and `maintain` still stop with nothing written.
+
 ## primer 0.1.0-alpha.2 - 2026-10-20
 
 - `/primer` chooses its mode from the files on disk and states it as the first line of the reply: `init` with no `CLAUDE.md` or `AGENTS.md`, `adopt` with instruction files but no hub starting with `<!-- primer -->`, and `maintain` with one. Each mode then says it is not in this prerelease and writes nothing, so the mode selection can be tried before the modes land.
