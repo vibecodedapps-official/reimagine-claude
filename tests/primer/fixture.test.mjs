@@ -1,6 +1,7 @@
-// Builds the primer messy fixture (tests/primer/fixture/messy/build.sh) in a throwaway directory and checks its
-// shape: history, tracked files, the hub and its index, the long architecture spoke, and the quiet drift hooks.
-// Needs sh and git.
+// Builds the primer fixtures in throwaway directories and checks their shape. The messy fixture
+// (tests/primer/fixture/messy/build.sh): history, tracked files, the hub and its index, the long architecture
+// spoke, and the quiet drift hooks. The memory fixture (tests/primer/fixture/memory/build.sh): one note per type,
+// the index in the host form, and the review stamp. Needs sh and git.
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -137,6 +138,106 @@ describe('primer messy fixture', () => {
 
       const release = spawnSync('sh', ['scripts/release.sh'], { cwd: repo, encoding: 'utf8' });
       assert.equal(release.status, 2);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('primer memory fixture', () => {
+  test('builds the memory fixture with one note per type, the index in the host form, and the stamp', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'primer-memory-'));
+    try {
+      const script = 'tests/primer/fixture/memory/build.sh';
+      const build = spawnSync('sh', [script], {
+        cwd: root,
+        env: { ...process.env, TMPDIR: dir.replaceAll('\\', '/') },
+        encoding: 'utf8',
+      });
+      assert.equal(build.status, 0, build.stderr);
+      const lines = build.stdout.split('\n');
+      assert.equal(lines.length, 2, `stdout holds one line: ${JSON.stringify(build.stdout)}`);
+      assert.equal(lines[1], '');
+      const built = lines[0];
+      assert.ok(existsSync(built), `${built} exists`);
+      assert.ok(real(built).startsWith(real(dir) + sep), `${built} lies inside ${dir}`);
+
+      assert.deepEqual(readdirSync(built).sort(), ['memory', 'stamp']);
+      const memory = join(built, 'memory');
+      assert.deepEqual(readdirSync(memory).sort(), [
+        'MEMORY.md',
+        'issue-tracker.md',
+        'item-ids-are-numbers.md',
+        'no-direct-push.md',
+        'reply-style.md',
+      ]);
+
+      assert.equal(
+        readFileSync(join(memory, 'MEMORY.md'), 'utf8'),
+        [
+          '- [No direct push](no-direct-push.md) \u2014 changes reach main through a pull request',
+          '- [Item ids are numbers](item-ids-are-numbers.md) \u2014 API ids are integers; handlers convert with Number()',
+          '- [Issue tracker](issue-tracker.md) \u2014 bugs and requests at https://example.invalid/messy/issues',
+          '- [Reply style](reply-style.md) \u2014 user prefers short replies, no tables',
+        ].join('\n') + '\n',
+      );
+      const bytes = [...readFileSync(join(memory, 'MEMORY.md'))];
+      let dashes = 0;
+      for (let i = 0; i + 2 < bytes.length; i += 1) {
+        if (bytes[i] === 0xe2 && bytes[i + 1] === 0x80 && bytes[i + 2] === 0x94) dashes += 1;
+      }
+      assert.equal(dashes, 4);
+
+      const stamp = readFileSync(join(built, 'stamp'), 'utf8');
+      assert.equal(stamp, '2026-09-15T12:00:00.000Z\n');
+
+      const notes = {};
+      for (const file of readdirSync(memory).filter((f) => f !== 'MEMORY.md')) {
+        const bytesOfNote = readFileSync(join(memory, file));
+        assert.ok([...bytesOfNote].every((b) => b <= 0x7f), `${file} is ASCII`);
+        const text = bytesOfNote.toString('utf8');
+        const type = /^ {2}type: (\S+)$/m.exec(text);
+        const modified = /^ {2}modified: (\S+)$/m.exec(text);
+        assert.ok(type && modified, `${file} has type and modified`);
+        notes[file] = { type: type[1], modified: modified[1] };
+      }
+      assert.deepEqual(notes, {
+        'no-direct-push.md': { type: 'feedback', modified: '2026-09-10T09:00:00.000Z' },
+        'item-ids-are-numbers.md': { type: 'project', modified: '2026-10-05T14:30:00.000Z' },
+        'issue-tracker.md': { type: 'reference', modified: '2026-10-06T08:15:00.000Z' },
+        'reply-style.md': { type: 'user', modified: '2026-09-01T17:45:00.000Z' },
+      });
+
+      assert.equal(
+        readFileSync(join(memory, 'item-ids-are-numbers.md'), 'utf8'),
+        [
+          '---',
+          'name: item-ids-are-numbers',
+          'description: API item ids are integers assigned from 1; handlers convert a path id with Number()',
+          'metadata:',
+          '  node_type: memory',
+          '  type: project',
+          '  originSessionId: 00000000-0000-4000-8000-000000000002',
+          '  modified: 2026-10-05T14:30:00.000Z',
+          '---',
+          '',
+          'Item ids in the API are integers assigned in order from 1, and a handler converts a path id with `Number()` before it looks the item up.',
+          '',
+          '**Why:** Clients send ids as strings in the URL path, and the store keys items by number.',
+          '',
+          '**How to apply:** Convert with `Number()` in every handler that takes an id; never compare a raw path id with a stored id.',
+          '',
+        ].join('\n'),
+      );
+
+      assert.ok([...readFileSync(join(root, script))].every((b) => b <= 0x7f), 'build.sh is ASCII');
+
+      const counted = Object.keys(notes).filter((f) => ['feedback', 'project'].includes(notes[f].type));
+      assert.deepEqual(counted.sort(), ['item-ids-are-numbers.md', 'no-direct-push.md']);
+      assert.deepEqual(
+        counted.filter((f) => notes[f].modified > stamp.trim()),
+        ['item-ids-are-numbers.md'],
+      );
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
