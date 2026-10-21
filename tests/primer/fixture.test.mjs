@@ -4,7 +4,7 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -45,7 +45,7 @@ describe('primer messy fixture', () => {
 
       assert.equal(
         out('log', '--format=%H %s'),
-        'e959034e11692a197915e65d5d2bb8c79b35ed76 feat(worker): add the queue worker\n1466e0d79c3b58e7d3493cd1a486586c0e64338d chore: start the project\n',
+        '17bd2d849415a083e4db48940118c4d02cfcddee feat(worker): add the queue worker\n699701ae36daed9388958f628e0f119c34dcf597 chore: start the project\n',
       );
       assert.equal(out('status', '--porcelain'), '');
       assert.equal(
@@ -125,8 +125,11 @@ describe('primer messy fixture', () => {
       const tests = spawnSync('node', ['--test'], { cwd: repo, encoding: 'utf8' });
       assert.equal(tests.status, 0, tests.stdout + tests.stderr);
 
+      // A nested CLAUDE.md that adopt writes under src/web/ is not copied into the served files.
+      writeFileSync(join(repo, 'src', 'web', 'CLAUDE.md'), '# src/web\n');
       const buildRun = spawnSync('node', ['scripts/build.mjs'], { cwd: repo, encoding: 'utf8' });
       assert.equal(buildRun.status, 0, buildRun.stderr);
+      assert.deepEqual(readdirSync(join(repo, 'src', 'web', 'dist')), ['app.js']);
       assert.equal(
         readFileSync(join(repo, 'src', 'web', 'dist', 'app.js'), 'utf8'),
         readFileSync(join(repo, 'src', 'web', 'app.js'), 'utf8'),

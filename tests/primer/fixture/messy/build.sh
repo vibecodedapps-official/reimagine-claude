@@ -182,7 +182,7 @@ put scripts/build.mjs <<'EOF'
 import { cpSync, readdirSync } from 'node:fs';
 
 for (const name of readdirSync('src/web')) {
-  if (name !== 'dist') cpSync(`src/web/${name}`, `src/web/dist/${name}`, { recursive: true });
+  if (name.endsWith('.js')) cpSync(`src/web/${name}`, `src/web/dist/${name}`);
 }
 EOF
 
@@ -327,7 +327,7 @@ The web front end is plain files under `src/web/`, served as they are built.
 
 ## Commands
 
-- `npm run build`: copies `src/web/` into `src/web/dist/`, which git ignores.
+- `npm run build`: copies the `.js` files of `src/web/` into `src/web/dist/`, which git ignores.
 
 ## Constraints
 
