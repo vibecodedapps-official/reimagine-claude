@@ -66,11 +66,16 @@ A proposal is shown before anything it describes is written, in one shared form 
 
 A skill candidate taken from an instruction file says that the procedure leaves that file in the same commit. Nothing in a proposal is written without a yes. After a memory note's line is written, a separate question for that note offers its topic file and its `MEMORY.md` line for deletion; a no leaves both. A `user` note is never proposed.
 
+A rule or a nested `CLAUDE.md` takes the skill form with its own first line, `<n>. Rule .claude/rules/<topic>.md` or `<n>. Nested <dir>/CLAUDE.md`; its `Seen:` line holds the convention or the commands as found, and its `Writes:` line names the file.
+
 ## Init
 
-Reads `README.md`, manifests and build files, CI workflows, the test layout, the top-level directories and `docs/`, writes the hub uncommitted, proposes the first rules and skills the repository shows, and names `/init` as the host's unopinionated alternative. This prerelease does not run it yet. After the mode line, reply with exactly this one line and stop, reading and writing nothing more:
-
-`primer: init is not in this prerelease; nothing was written.`
+1. State the mode.
+2. Read `README.md`, package manifests and build files (their scripts and targets), CI workflows, the test layout, the top-level directories, `CONTRIBUTING.md`, and the files under `docs/` with their line counts.
+3. Write the root `CLAUDE.md` in the hub shape of `shapes.md`, at most 60 lines: the marker; the repository name and two or three sentences drawn from `README.md` and the manifests; a reading sentence only for a long `docs/` file that a kind of work needs; under `## Commands`, only commands a manifest, build file, script or workflow holds, each with what it checks; under `## Constraints`, only constraints the repository states or enforces, such as a CI check or a rule in `CONTRIBUTING.md`. Leave it uncommitted and unstaged.
+4. Check the hub before replying: line 1 is exactly `<!-- primer -->`, it has at most 60 lines and the three parts and nothing else, and every backticked path in its opening paragraph exists spelled exactly. Fix any miss.
+5. Propose what the repository shows, each placed by `placement.md` and shown in the form of Proposals: a skill for a numbered procedure in `CONTRIBUTING.md` or a runbook under `docs/`, and for a script or build target whose use takes more than one command or a setup step; a nested `CLAUDE.md` for a directory with its own build; a path-scoped rule for a convention of one area. Ask once which to write, by number. Write none without a yes; on a yes, write the ones named, uncommitted. When the repository shows none, say so in one line.
+6. End the reply with the hub's path, its line count, that it is uncommitted, and this sentence: `/init` is the host's unopinionated alternative: it writes a `CLAUDE.md` from its own reading of the repository, without the marker or these shapes.
 
 ## Adopt
 

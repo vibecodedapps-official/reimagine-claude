@@ -66,6 +66,14 @@ test('R246 and R247: the write boundary and the commit rules', () => {
   assert.ok(SKILL.includes('- Stage only the paths the plan names, by path. Never push, amend, or pass `--no-verify`.'));
 });
 
+test('R248 and R247: init reads the repository, writes the hub uncommitted, proposes, and names /init', () => {
+  assert.ok(SKILL.includes('2. Read `README.md`, package manifests and build files (their scripts and targets), CI workflows, the test layout, the top-level directories, `CONTRIBUTING.md`, and the files under `docs/` with their line counts.'));
+  assert.ok(SKILL.includes('Leave it uncommitted and unstaged.'));
+  assert.ok(SKILL.includes('Ask once which to write, by number. Write none without a yes; on a yes, write the ones named, uncommitted.'));
+  assert.ok(SKILL.includes('`/init` is the host\'s unopinionated alternative: it writes a `CLAUDE.md` from its own reading of the repository, without the marker or these shapes.'));
+  assert.ok(!SKILL.includes('primer: init is not in this prerelease'));
+});
+
 test('R240: SKILL.md is within its cap of 150 lines, counted as the file has them', () => {
   assert.equal(lineCount('a\nb\nc'), 3);
   assert.equal(lineCount('a\nb\nc\n'), 3);
@@ -75,7 +83,7 @@ test('R240: SKILL.md is within its cap of 150 lines, counted as the file has the
 });
 
 test('R237: every skill file SKILL.md names exists', () => {
-  const host = new Set(['CLAUDE.md', 'AGENTS.md', 'README.md', 'CLAUDE.local.md', 'MEMORY.md', 'SKILL.md']);
+  const host = new Set(['CLAUDE.md', 'AGENTS.md', 'README.md', 'CLAUDE.local.md', 'MEMORY.md', 'SKILL.md', 'CONTRIBUTING.md']);
   const named = new Set();
   for (const m of SKILL.matchAll(/`([^`\n]+)`/g)) {
     if (/^[A-Za-z0-9_.-]+\.md$/.test(m[1]) && !host.has(m[1])) named.add(m[1]);
