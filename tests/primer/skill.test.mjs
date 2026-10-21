@@ -85,6 +85,16 @@ test('R249: adopt inventories, keeps pinned files, converts an index, moves befo
   assert.ok(!SKILL.includes('primer: adopt is not in this prerelease'));
 });
 
+test('R250 and R251: maintain verifies against the code, prints no drift, and names /doctor prompt-audit', () => {
+  assert.ok(SKILL.includes('- a statement in `README.md`, `CONTRIBUTING.md` or a `docs/` page that the code makes untrue is reported, never rewritten by this pass.'));
+  assert.ok(SKILL.includes('- each command the hub or a nested `CLAUDE.md` names exists in a manifest, script or workflow and does what its line says;'));
+  assert.ok(SKILL.includes('- each statement of the hub, a rule, a nested file or a skill is true of the files it covers: the names, paths and behavior it states exist;'));
+  assert.ok(SKILL.includes('- a skill whose procedure the repository no longer has is reported, never deleted;'));
+  assert.ok(SKILL.includes('5. With nothing to change, print `primer: no drift`, then one line per reported item as `- <item>: <why>`, and write nothing.'));
+  assert.ok(SKILL.includes('`/doctor prompt-audit` checks the instruction files for contradictions and stale model names; run it yourself when you want that check.'));
+  assert.ok(!SKILL.includes('primer: maintain is not in this prerelease'));
+});
+
 test('R240: SKILL.md is within its cap of 150 lines, counted as the file has them', () => {
   assert.equal(lineCount('a\nb\nc'), 3);
   assert.equal(lineCount('a\nb\nc\n'), 3);

@@ -108,6 +108,16 @@ Reported:
 
 ## Maintain
 
-Runs three passes, verify, promote and propose, that feed one plan and one question. With nothing to change it prints `primer: no drift`. This prerelease does not run it yet. After the mode line, reply with exactly this one line and stop, reading and writing nothing more:
-
-`primer: maintain is not in this prerelease; nothing was written.`
+1. State the mode.
+2. Verify the instruction files, which are the hub, nested `CLAUDE.md` files, rules and skills, noting each finding with its file and line:
+   - what the drift hook denies: a file over its cap, a missing path in the hub's opening paragraph, a `paths` value the host cannot read or a glob that matches no tracked file, a `SKILL.md` without `description`;
+   - each command the hub or a nested `CLAUDE.md` names exists in a manifest, script or workflow and does what its line says;
+   - each statement of the hub, a rule, a nested file or a skill is true of the files it covers: the names, paths and behavior it states exist;
+   - each command and file a skill step names exists;
+   - a skill whose procedure the repository no longer has is reported, never deleted; two skills with one procedure are reported as duplicates with the one to keep; a skill over its cap is split into a body and a supporting file beside it;
+   - an import of a file git does not track, other tools' rule files and personal content are reported, as adopt reports them;
+   - a statement in `README.md`, `CONTRIBUTING.md` or a `docs/` page that the code makes untrue is reported, never rewritten by this pass.
+3. The promote and propose passes are not in this prerelease; skip them.
+4. With a change to make, print the plan in the form of Adopt step 7 with `primer: maintain plan` as its first line, ask once, and on the yes make its commits; a fix is a rewrite, and a split adds a move only when a file moves.
+5. With nothing to change, print `primer: no drift`, then one line per reported item as `- <item>: <why>`, and write nothing.
+6. End the reply with this sentence: `/doctor prompt-audit` checks the instruction files for contradictions and stale model names; run it yourself when you want that check.
