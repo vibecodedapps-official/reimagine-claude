@@ -64,6 +64,7 @@ test('R246 and R247: the write boundary and the commit rules', () => {
   assert.ok(SKILL.includes('- Never install a git hook and never write a linter rule, a test or a hook.'));
   assert.ok(SKILL.includes('else `docs(primer): <subject>` in lowercase. The body\'s first line is `Instruction-file <mode> pass, <YYYY-MM-DD>.`, followed by why.'));
   assert.ok(SKILL.includes('- Stage only the paths the plan names, by path. Never push, amend, or pass `--no-verify`.'));
+  assert.ok(SKILL.includes('A commit message never names a model, an agent or a tool, and carries no `Co-Authored-By` or other trailer that does.'));
 });
 
 test('R248 and R247: init reads the repository, writes the hub uncommitted, proposes, and names /init', () => {
