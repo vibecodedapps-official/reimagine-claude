@@ -117,6 +117,7 @@ Reported:
    - a skill whose procedure the repository no longer has is reported, never deleted; two skills with one procedure are reported as duplicates with the one to keep; a skill over its cap is split into a body and a supporting file beside it;
    - an import of a file git does not track, other tools' rule files and personal content are reported, as adopt reports them;
    - a statement in `README.md`, `CONTRIBUTING.md` or a `docs/` page that the code makes untrue is reported, never rewritten by this pass.
+   - two instruction files that contradict each other are reported, never resolved by this pass, since `/doctor prompt-audit` checks contradictions.
 3. The promote and propose passes are not in this prerelease; skip them.
 4. With a change to make, print the plan in the form of Adopt step 7 with `primer: maintain plan` as its first line, ask once, and on the yes make its commits; a fix is a rewrite, and a split adds a move only when a file moves.
 5. With nothing to change, print `primer: no drift`, then one line per reported item as `- <item>: <why>`, and write nothing.
