@@ -7,6 +7,11 @@ One changelog for the suite. Each plugin releases on its own line; a release get
 - Design documents for 0.1.0 under `docs/`: requirements, architecture, build plan, decisions, acceptance.
 - Design documents for the `primer` plugin under `docs/`, which replaces `repo-docs` from its release: requirements 237 to 268, decisions 73 to 89, milestones M10 to M19, acceptance items 27 to 36.
 
+## primer 0.1.0-alpha.4 - 2026-10-21
+
+- `/primer` runs `adopt` in a repository with instruction files but no hub starting with `<!-- primer -->`, or with a hub and spoke index. It inventories every instruction and documentation file, plans the moves, rewrites and proposals in one message, and asks once. On a yes it commits the moves first, with the documentation links they break repaired, then the rewrites, and writes the hub's marker last so the drift hook checks the finished set. An index pointer whose condition is a file pattern becomes a path-scoped rule, a task a skill, and a directory a nested `CLAUDE.md`. Pinned files, untracked imports and `CONTRIBUTING.md` stay as they are. `maintain` still stops with nothing written.
+- The mode line is the first line of the reply with nothing before it, and an instruction-file commit carries no trailer that names a model, an agent or a tool.
+
 ## primer 0.1.0-alpha.3 - 2026-10-21
 
 - `/primer` runs `init` in a repository with no `CLAUDE.md` or `AGENTS.md`. It reads the readme, manifests, build files, CI workflows, test layout and contributing guide, writes a root `CLAUDE.md` of at most 60 lines with the marker, the commands and the constraints the repository holds, and leaves it uncommitted for the user to read. In the same reply it proposes the skills, path-scoped rules and nested `CLAUDE.md` files the repository shows, asks once, and writes none without a yes. `adopt` and `maintain` still stop with nothing written.
