@@ -1,6 +1,6 @@
 {
   "enabledPlugins": {
-    "repo-docs@reimagine-claude": true
+    "primer@reimagine-claude": true
   },
   "extraKnownMarketplaces": {
     "reimagine-claude": {
