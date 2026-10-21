@@ -7,6 +7,10 @@ One changelog for the suite. Each plugin releases on its own line; a release get
 - Design documents for 0.1.0 under `docs/`: requirements, architecture, build plan, decisions, acceptance.
 - Design documents for the `primer` plugin under `docs/`, which replaces `repo-docs` from its release: requirements 237 to 268, decisions 73 to 89, milestones M10 to M19, acceptance items 27 to 36.
 
+## primer 0.1.0-alpha.6 - 2026-10-21
+
+- `maintain` runs the promote pass: it reads the repository's auto memory and proposes, per note, the line to write, with the note's text and its `modified` date. A `feedback` note about the code's conventions becomes a fact placed where the tasks that need it load it, an undated `project` note a rule or a `docs/` page, and a `reference` note a sentence in the hub; a `user` note is never offered, nor a note an instruction file already holds. On a yes the line is committed, then one question per note offers to delete its topic file and index line, and a no keeps both. After the pass the skill writes a review stamp for the session notice of a later prerelease.
+
 ## primer 0.1.0-alpha.5 - 2026-10-21
 
 - `/primer` runs the verify pass of `maintain` in a repository whose hub starts with `<!-- primer -->`. It checks the hub, nested `CLAUDE.md` files, rules and skills against the repository: what the drift hook denies, that each command they name exists and does what its line says, and that each statement is true of the files it covers. With drift it prints one plan with file and line, asks once and commits the fixes; with none it prints `primer: no drift` and the items it reports, and writes nothing. Drift in `README.md`, `CONTRIBUTING.md` and `docs/` pages, and contradictions between instruction files, are reported and never rewritten. The promote and propose passes are not in this prerelease.
