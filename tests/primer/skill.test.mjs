@@ -90,7 +90,7 @@ test('R250 and R251: maintain verifies against the code, prints no drift, and na
   assert.ok(SKILL.includes('- two instruction files that contradict each other are reported, never resolved by this pass, since `/doctor prompt-audit` checks contradictions.'));
   assert.ok(SKILL.includes('- each command the hub or a nested `CLAUDE.md` names exists in a manifest, script or workflow and does what its line says;'));
   assert.ok(SKILL.includes('- each statement of the hub, a rule, a nested file or a skill is true of the files it covers: the names, paths and behavior it states exist;'));
-  assert.ok(SKILL.includes('- a skill whose procedure the repository no longer has is reported, never deleted;'));
+  assert.ok(SKILL.includes('- a skill whose procedure the repository lacks is reported, never deleted;'));
   assert.ok(SKILL.includes('5. With nothing to change, print `primer: no drift`, then one line per reported item as `- <item>: <why>`, and write nothing.'));
   assert.ok(SKILL.includes('`/doctor prompt-audit` checks the instruction files for contradictions and stale model names; run it yourself when you want that check.'));
   assert.ok(!SKILL.includes('primer: maintain is not in this prerelease'));

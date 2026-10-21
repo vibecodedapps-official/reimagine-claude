@@ -114,7 +114,7 @@ Reported:
    - each command the hub or a nested `CLAUDE.md` names exists in a manifest, script or workflow and does what its line says;
    - each statement of the hub, a rule, a nested file or a skill is true of the files it covers: the names, paths and behavior it states exist;
    - each command and file a skill step names exists;
-   - a skill whose procedure the repository no longer has is reported, never deleted; two skills with one procedure are reported as duplicates with the one to keep; a skill over its cap is split into a body and a supporting file beside it;
+   - a skill whose procedure the repository lacks is reported, never deleted; two skills with one procedure are reported as duplicates with the one to keep; a skill over its cap is split into a body and a supporting file beside it;
    - an import of a file git does not track, other tools' rule files and personal content are reported, as adopt reports them;
    - a statement in `README.md`, `CONTRIBUTING.md` or a `docs/` page that the code makes untrue is reported, never rewritten by this pass.
    - two instruction files that contradict each other are reported, never resolved by this pass, since `/doctor prompt-audit` checks contradictions.
