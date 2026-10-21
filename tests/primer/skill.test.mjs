@@ -104,8 +104,19 @@ test('R256 and R257: promote reads auto memory by type, proposes per note, and w
   assert.ok(SKILL.includes('   - never a note an instruction file already holds, and never a `user` note.'));
   assert.ok(SKILL.includes('Once these proposals are answered, or when there are none, write the stamp `${CLAUDE_PLUGIN_DATA}/reviewed/<key>`, creating its directory: one line, the UTC time as `date -u +%Y-%m-%dT%H:%M:%S.000Z` prints it.'));
   assert.ok(SKILL.includes('`${CLAUDE_PLUGIN_DATA}` is not a shell variable; write its resolved path in the command.'));
-  assert.ok(SKILL.includes('4. The propose pass is not in this prerelease; skip it.'));
   assert.ok(!SKILL.includes('The promote and propose passes are not in this prerelease'));
+});
+
+test('R253 to R255: propose reads four sources in order, never proposes the never list, and says what a written skill changes', () => {
+  assert.ok(SKILL.includes('4. Propose skills from these sources, in this order, each in the skill form of Proposals with its source, the steps as observed, how often it was seen and its name:'));
+  assert.ok(SKILL.includes('   - the instruction files: a numbered list or a "to do X" section in the hub, a rule, a nested file or `README.md`;'));
+  assert.ok(SKILL.includes('   - the repository: a script or build target whose use takes more than one command or a setup step, a runbook under `docs/`, a procedure in `CONTRIBUTING.md`;'));
+  assert.ok(SKILL.includes('   - auto memory: a `feedback` or `project` note that says how to do something.'));
+  assert.ok(SKILL.includes('Never propose a skill for one command, for a fact, or for a procedure a skill already holds, and never run a skill or change one this run did not raise.'));
+  assert.ok(SKILL.includes('A written skill takes the skill shape of `shapes.md` at `.claude/skills/<name>/SKILL.md`.'));
+  assert.ok(SKILL.includes('A procedure from an instruction file leaves that file in the same commit, a memory note is then offered for deletion as Proposals says, and a procedure from the repository changes nothing else.'));
+  assert.ok(SKILL.includes('On its yes, write it; `adopt` and `maintain` commit it, and `init` leaves it uncommitted.'));
+  assert.ok(!SKILL.includes('not in this prerelease'));
 });
 
 test('R240: SKILL.md is within its cap of 150 lines, counted as the file has them', () => {

@@ -27,7 +27,7 @@ Keep the repository's project instructions in the forms Claude Code loads, in on
 - When the root `CLAUDE.md` or root `AGENTS.md` is ignored by git, say so after the mode line and stop with nothing written.
 - A mode named after the command (`/primer adopt`) forces it. A forced `init` never writes over an existing `CLAUDE.md` or `AGENTS.md`: say so and stop.
 - Otherwise find the hub: the root `CLAUDE.md`; the root `AGENTS.md` when the root `CLAUDE.md` is exactly `@AGENTS.md` plus at most one newline; the root `AGENTS.md` when there is no root `CLAUDE.md`. Read these files from disk, never from the copy loaded at session start, which drops HTML comments, the marker included. Then, in order: the hub's line 1 is exactly `<!-- primer -->` and no line of it is exactly `## Spokes`: `maintain`. Else any `CLAUDE.md` or `AGENTS.md` exists at any depth, `.claude/CLAUDE.md` included: `adopt`. Else: `init`.
-- When one of the four phrases invoked the skill for one item (a checklist just run, a fact to record, a memory note), the mode line still comes first, its reason names the item, and the reply runs the proposal of that item alone (see Proposals), with no other pass. This prerelease replies with exactly `primer: proposals are not in this prerelease; nothing was written.` and stops.
+- When one of the four phrases invoked the skill for one item (a checklist just run, a fact to record, a memory note), the mode line still comes first, its reason names the item, and the reply runs the proposal of that item alone (see Proposals), with no other pass. On its yes, write it; `adopt` and `maintain` commit it, and `init` leaves it uncommitted.
 
 ## Every mode
 
@@ -124,7 +124,11 @@ Reported:
    - a `reference` note a teammate would need, as a sentence in the hub's opening paragraph;
    - never a note an instruction file already holds, and never a `user` note.
    Once these proposals are answered, or when there are none, write the stamp `${CLAUDE_PLUGIN_DATA}/reviewed/<key>`, creating its directory: one line, the UTC time as `date -u +%Y-%m-%dT%H:%M:%S.000Z` prints it. `${CLAUDE_PLUGIN_DATA}` is not a shell variable; write its resolved path in the command. When a deletion or the stamp write is refused, say so in one line and go on.
-4. The propose pass is not in this prerelease; skip it.
+4. Propose skills from these sources, in this order, each in the skill form of Proposals with its source, the steps as observed, how often it was seen and its name:
+   - the instruction files: a numbered list or a "to do X" section in the hub, a rule, a nested file or `README.md`;
+   - the repository: a script or build target whose use takes more than one command or a setup step, a runbook under `docs/`, a procedure in `CONTRIBUTING.md`;
+   - auto memory: a `feedback` or `project` note that says how to do something.
+   Never propose a skill for one command, for a fact, or for a procedure a skill already holds, and never run a skill or change one this run did not raise. A written skill takes the skill shape of `shapes.md` at `.claude/skills/<name>/SKILL.md`. A procedure from an instruction file leaves that file in the same commit, a memory note is then offered for deletion as Proposals says, and a procedure from the repository changes nothing else.
 5. With a change to make, print the plan in the form of Adopt step 7 with `primer: maintain plan` as its first line, ask once, and on the yes make its commits; a fix is a rewrite, a promoted note's line is a rewrite made only on its own yes, and a split adds a move only when a file moves.
 6. With nothing to change, print `primer: no drift`, then one line per reported item as `- <item>: <why>`, and write nothing in the repository.
 7. End the reply with this sentence: `/doctor prompt-audit` checks the instruction files for contradictions and stale model names; run it yourself when you want that check.
