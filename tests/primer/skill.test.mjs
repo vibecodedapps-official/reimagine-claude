@@ -60,7 +60,7 @@ test('R245: the mode is the first line, chosen from the files on disk', () => {
 
 test('R246 and R247: the write boundary and the commit rules', () => {
   assert.ok(SKILL.includes('- Writes are documentation files only: `CLAUDE.md` and `AGENTS.md` at any depth, `.claude/rules/**`, `.claude/skills/**`, `README.md`, and Markdown under `docs/`.'));
-  assert.ok(SKILL.includes('- Never edit code, configuration, settings, CI files, package manifests, `CLAUDE.local.md`, anything git ignores, or the auto memory directory. The one exception is a memory note the user approves for deletion in its own question.'));
+  assert.ok(SKILL.includes('- Never edit code, configuration, settings, CI files, package manifests, `CLAUDE.local.md`, anything git ignores, or the auto memory directory. The exceptions are a memory note the user approves for deletion in its own question, and the review stamp of Maintain step 3.'));
   assert.ok(SKILL.includes('- Never install a git hook and never write a linter rule, a test or a hook.'));
   assert.ok(SKILL.includes('else `docs(primer): <subject>` in lowercase. The body\'s first line is `Instruction-file <mode> pass, <YYYY-MM-DD>.`, followed by why.'));
   assert.ok(SKILL.includes('- Stage only the paths the plan names, by path. Never push, amend, or pass `--no-verify`.'));
@@ -86,14 +86,26 @@ test('R249: adopt inventories, keeps pinned files, converts an index, moves befo
 });
 
 test('R250 and R251: maintain verifies against the code, prints no drift, and names /doctor prompt-audit', () => {
-  assert.ok(SKILL.includes('- a statement in `README.md`, `CONTRIBUTING.md` or a `docs/` page that the code makes untrue is reported, never rewritten by this pass.'));
+  assert.ok(SKILL.includes('- a statement in `README.md`, `CONTRIBUTING.md` or a `docs/` page that the code makes untrue is reported, never rewritten by this pass;'));
   assert.ok(SKILL.includes('- two instruction files that contradict each other are reported, never resolved by this pass, since `/doctor prompt-audit` checks contradictions.'));
   assert.ok(SKILL.includes('- each command the hub or a nested `CLAUDE.md` names exists in a manifest, script or workflow and does what its line says;'));
   assert.ok(SKILL.includes('- each statement of the hub, a rule, a nested file or a skill is true of the files it covers: the names, paths and behavior it states exist;'));
   assert.ok(SKILL.includes('- a skill whose procedure the repository lacks is reported, never deleted;'));
-  assert.ok(SKILL.includes('5. With nothing to change, print `primer: no drift`, then one line per reported item as `- <item>: <why>`, and write nothing.'));
+  assert.ok(SKILL.includes('6. With nothing to change, print `primer: no drift`, then one line per reported item as `- <item>: <why>`, and write nothing in the repository.'));
   assert.ok(SKILL.includes('`/doctor prompt-audit` checks the instruction files for contradictions and stale model names; run it yourself when you want that check.'));
   assert.ok(!SKILL.includes('primer: maintain is not in this prerelease'));
+});
+
+test('R256 and R257: promote reads auto memory by type, proposes per note, and writes the stamp', () => {
+  assert.ok(SKILL.includes('3. Promote auto memory. Its directory is the one the session\'s instructions name for auto memory, else `<config>/projects/<key>/memory/`: `<config>` is `$CLAUDE_CONFIG_DIR`, else `~/.claude`; `<key>` is the main worktree\'s root, the parent of `git rev-parse --path-format=absolute --git-common-dir`, with every character outside `A-Za-z0-9` replaced by `-`. Without that directory, skip this step. Read `MEMORY.md` and each topic file it lists, taking `type` and `modified` from the frontmatter\'s `metadata`, and propose in the memory note form of Proposals:'));
+  assert.ok(SKILL.includes('   - a `feedback` note about this repository\'s code or conventions, placed by `placement.md`; one about how the user works stays;'));
+  assert.ok(SKILL.includes('   - a `project` note with no date, as a rule or a `docs/` page; a dated or ongoing item stays;'));
+  assert.ok(SKILL.includes('   - a `reference` note a teammate would need, as a sentence in the hub\'s opening paragraph;'));
+  assert.ok(SKILL.includes('   - never a note an instruction file already holds, and never a `user` note.'));
+  assert.ok(SKILL.includes('Once these proposals are answered, or when there are none, write the stamp `${CLAUDE_PLUGIN_DATA}/reviewed/<key>`, creating its directory: one line, the UTC time as `date -u +%Y-%m-%dT%H:%M:%S.000Z` prints it.'));
+  assert.ok(SKILL.includes('`${CLAUDE_PLUGIN_DATA}` is not a shell variable; write its resolved path in the command.'));
+  assert.ok(SKILL.includes('4. The propose pass is not in this prerelease; skip it.'));
+  assert.ok(!SKILL.includes('The promote and propose passes are not in this prerelease'));
 });
 
 test('R240: SKILL.md is within its cap of 150 lines, counted as the file has them', () => {
