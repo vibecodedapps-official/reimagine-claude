@@ -79,9 +79,32 @@ A rule or a nested `CLAUDE.md` takes the skill form with its own first line, `<n
 
 ## Adopt
 
-Inventories every instruction and documentation file, plans the moves and rewrites, asks once, and commits moves before rewrites. This prerelease does not run it yet. After the mode line, reply with exactly this one line and stop, reading and writing nothing more:
+1. State the mode.
+2. Inventory every instruction and documentation file, tracked, untracked and ignored: `CLAUDE.md`, `AGENTS.md` and `CLAUDE.local.md` at any depth, `.claude/CLAUDE.md`, `.claude/rules/**`, `.claude/skills/**`, `README.md`, `CONTRIBUTING.md` and Markdown under `docs/`, with each file's line count and every `@path` import and what it names. List other tools' rule files, such as `.cursor/rules/` or `.github/copilot-instructions.md`, and leave them alone.
+3. Refactor a file only when it is over its cap, holds content for two scopes, or duplicates another. Every other file stays as it is.
+4. Never move a pinned file: one an `@` import names, one a file that is not documentation references (code, configuration, CI, a package manifest), or one with a name other tools read (`README.md`, `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, `LICENSE`, anything under `.github/`). A link from a documentation file does not pin.
+5. Place each piece by `placement.md` into the shapes of `shapes.md`:
+   - In a `## Spokes` index, a pointer whose condition is a file pattern becomes a path-scoped rule with that pattern in `paths`; one whose condition is a task becomes a skill; one whose condition is a directory becomes a nested `CLAUDE.md` in it. The index goes, which converts the repository in one run.
+   - A procedure in an instruction file becomes a skill and leaves that file. A procedure in `CONTRIBUTING.md` is proposed as a skill, and `CONTRIBUTING.md` stays as it is.
+   - A topic section every task needs becomes an unscoped rule; a long document stays under `docs/` with one sentence in the hub's opening paragraph; agent content in `README.md` moves out; `.claude/CLAUDE.md` merges into the hub.
+   - An import of a file git does not track, or outside the repository, is reported and left in place. When a root `CLAUDE.local.md` sits beside a root `AGENTS.md` hub, propose the one-line `CLAUDE.md` of `shapes.md`.
+6. Check every statement kept or written against the code it describes: each command exists and does what its line says, each path exists, each rule names files and behavior that exist. Correct an untrue statement in the rewrite that holds it.
+7. Print the plan in this form, then ask once:
 
-`primer: adopt is not in this prerelease; nothing was written.`
+```
+primer: adopt plan
+Moves (commit 1: <message>):
+- git mv <from> <to>; links repaired in <files>
+Rewrites (commit <n>: <message>):
+- <file>: <what changes, and why>
+Proposals:
+<n>. <the proposal forms above>
+Reported:
+- <item>: <why>
+```
+
+8. On the yes, make the move commit first: the `git mv` of each move and the path edits of documentation links to the moved files, index lines included, and nothing else, so no commit leaves a broken link. Then make each rewrite commit; the last one writes the hub with its marker, so the drift hook checks the finished set. Write a proposal only on its own yes.
+9. End with the commits made and the reported items. A second run reads as `maintain`.
 
 ## Maintain
 

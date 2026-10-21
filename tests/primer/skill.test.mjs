@@ -74,6 +74,16 @@ test('R248 and R247: init reads the repository, writes the hub uncommitted, prop
   assert.ok(!SKILL.includes('primer: init is not in this prerelease'));
 });
 
+test('R249: adopt inventories, keeps pinned files, converts an index, moves before rewrites, and asks once', () => {
+  assert.ok(SKILL.includes('3. Refactor a file only when it is over its cap, holds content for two scopes, or duplicates another. Every other file stays as it is.'));
+  assert.ok(SKILL.includes('A link from a documentation file does not pin.'));
+  assert.ok(SKILL.includes('a pointer whose condition is a file pattern becomes a path-scoped rule with that pattern in `paths`; one whose condition is a task becomes a skill; one whose condition is a directory becomes a nested `CLAUDE.md` in it.'));
+  assert.ok(SKILL.includes('A procedure in `CONTRIBUTING.md` is proposed as a skill, and `CONTRIBUTING.md` stays as it is.'));
+  assert.ok(SKILL.includes('Correct an untrue statement in the rewrite that holds it.'));
+  assert.ok(SKILL.includes('8. On the yes, make the move commit first: the `git mv` of each move and the path edits of documentation links to the moved files, index lines included, and nothing else, so no commit leaves a broken link.'));
+  assert.ok(!SKILL.includes('primer: adopt is not in this prerelease'));
+});
+
 test('R240: SKILL.md is within its cap of 150 lines, counted as the file has them', () => {
   assert.equal(lineCount('a\nb\nc'), 3);
   assert.equal(lineCount('a\nb\nc\n'), 3);
@@ -83,7 +93,7 @@ test('R240: SKILL.md is within its cap of 150 lines, counted as the file has the
 });
 
 test('R237: every skill file SKILL.md names exists', () => {
-  const host = new Set(['CLAUDE.md', 'AGENTS.md', 'README.md', 'CLAUDE.local.md', 'MEMORY.md', 'SKILL.md', 'CONTRIBUTING.md']);
+  const host = new Set(['CLAUDE.md', 'AGENTS.md', 'README.md', 'CLAUDE.local.md', 'MEMORY.md', 'SKILL.md', 'CONTRIBUTING.md', 'CHANGELOG.md']);
   const named = new Set();
   for (const m of SKILL.matchAll(/`([^`\n]+)`/g)) {
     if (/^[A-Za-z0-9_.-]+\.md$/.test(m[1]) && !host.has(m[1])) named.add(m[1]);
