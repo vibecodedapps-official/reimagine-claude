@@ -7,6 +7,15 @@ One changelog for the suite. Each plugin releases on its own line; a release get
 - Design documents for 0.1.0 under `docs/`: requirements, architecture, build plan, decisions, acceptance.
 - Design documents for the `primer` plugin under `docs/`, which replaces `repo-docs` from its release: requirements 237 to 268, decisions 73 to 89, milestones M10 to M19, acceptance items 27 to 36.
 
+## loop 0.1.4 - 2026-10-22
+
+- The final review request names the base commit's `REVIEW.md`, at the root and in each parent directory of a changed file, as review instructions when one exists, so the reviewer holds the change to the repository's own review calibration; a copy the branch adds or changes is not used.
+
+## audit 0.1.5 - 2026-10-22
+
+- `REVIEW.md` joins the default sources of truth, read at the bundle's base commit at the root and in each parent directory of a changed file, never from the bundle's own changes. Its severity rules set the report's labels, its skip rules remove findings from the body with one line per rule counting them, its always-check rules become pass-one checks, and its require-evidence rules hold an item that lacks a quote or a run. The report names the copies read and their shas, or says none applied at the base.
+- A run started on 0.1.4 resumes from stage 1, as after every audit release.
+
 ## rules 0.1.5 - 2026-10-22
 
 - A new Working rule makes finding issues and proposing changes a judgment, not a count: recommend the few that affect correctness or risk, or cost more to leave than to fix, each with its evidence and the two costs, and keep the rest as notes, apart and counted. A review that lists everything it can find buries the few items that matter. The chat block carries the same rule in one line.
