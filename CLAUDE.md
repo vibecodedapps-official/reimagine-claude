@@ -6,7 +6,9 @@ One repository and one marketplace, `reimagine-claude`, holding four Claude Code
 ## Commands
 
 - `npm test`: runs the node:test suites under `tests/`, which also drive the audit and primer sh scripts.
+- `npm run test:<area>`: runs one directory's suites, for `rules`, `loop`, `audit`, `primer`, `lint` and `release`.
 - `npm run lint`: runs `tools/lint.mjs`, the repository rules of R219 and R220; set `LINT_DENY_TOKENS` to a comma-separated list in the command's environment to check for those tokens too.
+- A commit runs the area scripts that cover what it touched; `npm test` and `npm run lint` with `LINT_DENY_TOKENS` set run once per milestone before its push, and CI runs the whole suite on every push and pull request.
 
 ## Constraints
 
