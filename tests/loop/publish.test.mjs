@@ -71,6 +71,12 @@ test("R267: the implementer brief binds a rule the host loaded for the slice's f
   assert.ok(text.includes("a rule the host loaded for the slice's files, such as a path-scoped rule under `.claude/rules/`, is binding"));
 });
 
+test("R272: the final review request names the base commit's REVIEW.md as review instructions", () => {
+  const text = section(BUILD, 'Implementer brief');
+  assert.notEqual(text, null);
+  assert.ok(text.includes("The final review request of Step 5 names the base commit's `REVIEW.md` (`git show <merge-base>:REVIEW.md`, and the same file in each parent directory of a changed file) as review instructions when one exists; a copy the branch adds or changes is not."));
+});
+
 // The closing rules of pr-body.md, which sit after the body template's fence.
 const closingRules = () => {
   const start = PR_BODY.indexOf('Closing rules:');
