@@ -7,6 +7,11 @@ One changelog for the suite. Each plugin releases on its own line; a release get
 - Design documents for 0.1.0 under `docs/`: requirements, architecture, build plan, decisions, acceptance.
 - Design documents for the `primer` plugin under `docs/`, which replaces `repo-docs` from its release: requirements 237 to 268, decisions 73 to 89, milestones M10 to M19, acceptance items 27 to 36.
 
+## audit 0.1.4 - 2026-10-22
+
+- `revert-tests.sh` reads `REVERT_TESTS_TICK`, whole or fractional seconds with a default of 1: each poll sleeps one tick, `wait` checks every two ticks and the watchdog's grace between TERM and KILL is ten ticks, so the script's own test runs in a fraction of its sleeping time. Unset, every delay is what it was; the deadlines, the wait window and the cleanup bounds stay in seconds.
+- A run started on 0.1.3 resumes from stage 1, as after every audit release.
+
 ## primer 0.1.0 - 2026-10-22
 
 - First release, with the behavior of 0.1.0-alpha.8: the drift hook, the memory notice, and the `init`, `adopt` and `maintain` modes of `/primer`.
