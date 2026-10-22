@@ -38,6 +38,7 @@ const EXECUTABLES = [
     .map((n) => `plugins/audit/scripts/${n}.sh`),
   'plugins/repo-docs/hooks/drift.sh',
   'plugins/primer/hooks/drift.sh',
+  'plugins/primer/hooks/notice.sh',
 ];
 const EXECUTABLE_EXTENSIONS = ['.sh', '.mjs', '.js', '.cjs', '.py', '.ps1', '.bat', '.cmd', '.exe'];
 const PLUGIN_TOP = ['.claude-plugin', 'skills', 'commands', 'agents', 'hooks', 'scripts', 'output-styles', 'rules', 'chat', 'README.md', 'LICENSE'];
@@ -59,7 +60,10 @@ const DOCS_HOOK = {
   hooks: { PreToolUse: [{ matcher: 'Bash|PowerShell', hooks: [{ type: 'command', command: 'sh "${CLAUDE_PLUGIN_ROOT}/hooks/drift.sh"' }] }] },
 };
 const PRIMER_HOOK = {
-  hooks: { PreToolUse: [{ matcher: 'Bash|PowerShell', hooks: [{ type: 'command', command: 'sh "${CLAUDE_PLUGIN_ROOT}/hooks/drift.sh"' }] }] },
+  hooks: {
+    PreToolUse: [{ matcher: 'Bash|PowerShell', hooks: [{ type: 'command', command: 'sh "${CLAUDE_PLUGIN_ROOT}/hooks/drift.sh"' }] }],
+    SessionStart: [{ matcher: 'startup', hooks: [{ type: 'command', command: 'sh "${CLAUDE_PLUGIN_ROOT}/hooks/notice.sh"' }] }],
+  },
 };
 
 // ---- helpers
@@ -422,7 +426,7 @@ function hookFailures(ctx) {
   const out = [];
   if (!same(ctx.json(RULES_HOOKS), ROOT_HOOKS)) out.push(`${RULES_HOOKS}: not the SessionStart startup shape`);
   if (!same(ctx.json(DOCS_HOOKS), DOCS_HOOK)) out.push(`${DOCS_HOOKS}: not the PreToolUse Bash|PowerShell shape`);
-  if (!same(ctx.json(PRIMER_HOOKS), PRIMER_HOOK)) out.push(`${PRIMER_HOOKS}: not the PreToolUse Bash|PowerShell shape`);
+  if (!same(ctx.json(PRIMER_HOOKS), PRIMER_HOOK)) out.push(`${PRIMER_HOOKS}: not the PreToolUse Bash|PowerShell and SessionStart startup shape`);
   const manifests = new Map(ctx.plugins.map((p) => [p.path, p.manifest]));
   const message = (file) => `${file}: hooks outside ${RULES_HOOKS}, ${DOCS_HOOKS} and ${PRIMER_HOOKS}`;
   for (const file of ctx.shipped) {

@@ -34,7 +34,7 @@
       "name": "primer",
       "source": "./plugins/primer",
       "description": "Project instructions in the forms Claude Code loads: a short CLAUDE.md, path-scoped rules, nested instructions and skills, with auto memory promoted into them and a hook that checks every commit.",
-      "version": "0.1.0-alpha.7"
+      "version": "0.1.0-alpha.8"
     }
   ]
 }

@@ -2,7 +2,7 @@
 
 Keeps a repository's project instructions in the forms Claude Code loads: a short `CLAUDE.md` hub, path-scoped rules under `.claude/rules/`, nested `CLAUDE.md` files and skills under `.claude/skills/`. It promotes auto memory into them and checks every commit with a hook.
 
-Status: prerelease. This version ships the drift hook, the `init` and `adopt` modes, and the verify, promote and propose passes of `maintain`; `/primer` says which modes the installed version runs.
+Status: prerelease. This version ships the drift hook, the memory notice, the `init` and `adopt` modes, and the verify, promote and propose passes of `maintain`; `/primer` says which modes the installed version runs.
 
 ## Install
 
@@ -13,7 +13,7 @@ Status: prerelease. This version ships the drift hook, the `init` and `adopt` mo
 
 ## Requirements
 
-Git. On Windows, Git for Windows: the hook runs under its `sh`. Nothing else; no Node, no `jq`.
+Git. On Windows, Git for Windows: the hooks run under its `sh`. Nothing else; no Node, no `jq`.
 
 ## Use
 
@@ -59,6 +59,16 @@ It blocks the commit, with the reason, when:
 When the commit touches files that a path-scoped rule, a skill's `paths` or a nested `CLAUDE.md` covers, and that file is not part of the commit, it lets the commit run and tells Claude which files to recheck.
 
 Without the marker it does nothing. It never writes a file. It is not a git hook: commits made outside Claude Code are not checked.
+
+## Memory notice
+
+When a session starts in a repository whose hub starts with `<!-- primer -->`, the notice counts the `feedback` and `project` notes in the repository's auto memory that changed since the last promote pass, and shows one line when there are any:
+
+```
+primer: auto memory has 2 notes since the last review; run /primer
+```
+
+`/primer` in `maintain` mode reviews them and records the review, after which the line goes until new notes arrive. Without the marker the notice says nothing. It never writes a file.
 
 ## Uninstall
 

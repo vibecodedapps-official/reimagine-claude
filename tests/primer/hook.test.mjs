@@ -148,10 +148,13 @@ before(() => {
 after(() => rmSync(base, { recursive: true, force: true }));
 
 describe('primer drift hook', () => {
-  test('hooks.json registers one PreToolUse hook for Bash and PowerShell', () => {
+  test('hooks.json registers one PreToolUse hook for Bash and PowerShell and one SessionStart hook for startup', () => {
     const json = JSON.parse(readFileSync(join(root, 'plugins/primer/hooks/hooks.json'), 'utf8'));
     assert.deepEqual(json, {
-      hooks: { PreToolUse: [{ matcher: 'Bash|PowerShell', hooks: [{ type: 'command', command: 'sh "${CLAUDE_PLUGIN_ROOT}/hooks/drift.sh"' }] }] },
+      hooks: {
+        PreToolUse: [{ matcher: 'Bash|PowerShell', hooks: [{ type: 'command', command: 'sh "${CLAUDE_PLUGIN_ROOT}/hooks/drift.sh"' }] }],
+        SessionStart: [{ matcher: 'startup', hooks: [{ type: 'command', command: 'sh "${CLAUDE_PLUGIN_ROOT}/hooks/notice.sh"' }] }],
+      },
     });
   });
 

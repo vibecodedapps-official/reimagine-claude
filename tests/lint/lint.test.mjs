@@ -405,14 +405,18 @@ negative('R207: plugins/repo-docs/hooks/hooks.json: not the PreToolUse Bash|Powe
   edit(dir, 'plugins/repo-docs/hooks/hooks.json', '"Bash|PowerShell"', '"Bash"');
   bump(dir, 'repo-docs');
 }, 1, ['plugins/repo-docs/hooks/hooks.json: not the PreToolUse Bash|PowerShell shape']);
-negative('R259: plugins/primer/hooks/hooks.json: not the PreToolUse Bash|PowerShell shape', (dir) => {
+negative('R259: plugins/primer/hooks/hooks.json: not the PreToolUse Bash|PowerShell and SessionStart startup shape', (dir) => {
   edit(dir, 'plugins/primer/hooks/hooks.json', '"Bash|PowerShell"', '"Bash"');
   bump(dir, 'primer');
-}, 1, ['plugins/primer/hooks/hooks.json: not the PreToolUse Bash|PowerShell shape']);
-negative('R259: plugins/primer/hooks/hooks.json: not the PreToolUse Bash|PowerShell shape (missing)', (dir) => {
+}, 1, ['plugins/primer/hooks/hooks.json: not the PreToolUse Bash|PowerShell and SessionStart startup shape']);
+negative('R259: plugins/primer/hooks/hooks.json: not the PreToolUse Bash|PowerShell and SessionStart startup shape (SessionStart command)', (dir) => {
+  edit(dir, 'plugins/primer/hooks/hooks.json', '/hooks/notice.sh', '/hooks/drift.sh');
+  bump(dir, 'primer');
+}, 1, ['plugins/primer/hooks/hooks.json: not the PreToolUse Bash|PowerShell and SessionStart startup shape']);
+negative('R259: plugins/primer/hooks/hooks.json: not the PreToolUse Bash|PowerShell and SessionStart startup shape (missing)', (dir) => {
   rmSync(join(dir, 'plugins/primer/hooks/hooks.json'));
   bump(dir, 'primer');
-}, 1, ['plugins/primer/hooks/hooks.json: not the PreToolUse Bash|PowerShell shape']);
+}, 1, ['plugins/primer/hooks/hooks.json: not the PreToolUse Bash|PowerShell and SessionStart startup shape']);
 negative('R8: <file>: hooks outside plugins/rules/hooks/hooks.json, plugins/repo-docs/hooks/hooks.json and plugins/primer/hooks/hooks.json (hooks.json)', (dir) => {
   put(dir, 'plugins/loop/hooks/hooks.json', '{}\n');
   bump(dir, 'loop');
