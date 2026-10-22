@@ -22,13 +22,15 @@
 #  2 no changed tests to run            3 a missing tool: exit 127 counts as a run
 #  4 setup fails in the head copy (4a), and in the reverted copy only (4b)
 #  5 processes: a background process left by a passing file and a child that ignores TERM
-#    after its parent dies at the deadline (5a); a command that ignores TERM until KILL
-#    (5b); 5a with no controlling terminal, under dash where installed (5c, needs setsid)
+#    after its parent dies at the deadline (5a); a command that ignores TERM until KILL,
+#    with REVERT_TESTS_TICK unset (5b); 5a with no controlling terminal, under dash where
+#    installed (5c, needs setsid); 5b with the low tick (5d)
 #  6 the time cap                        7 the file cap, with 21 files
 #  8 a path conflict                     9 the environment: LC_ALL, GIT_*, TMPDIR, and
 #    GIT_CEILING_DIRECTORIES
 # 10 an interrupt mid-run: exit 2, no process, no work dir, no result file
-# 11 argument and keys errors: exit 2 with one line; an existing work dir is left alone
+# 11 argument and keys errors: exit 2 with one line; an existing work dir is left alone;
+#    REVERT_TESTS_TICK of 0 (11g) and of .5 (11h)
 # 12 the patterns fixture               13 the ground-truth fixture
 # 14 an empty merge-base tree
 # 15 bg and wait: a run in the background (15a), a keys error with a stale .exit (15b), the
@@ -56,6 +58,10 @@ GIT_CONFIG_GLOBAL=/dev/null
 GIT_CONFIG_NOSYSTEM=1
 export GIT_CONFIG_GLOBAL GIT_CONFIG_NOSYSTEM
 unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE
+# A tenth of a second per tick, so the script's polls and its ten-tick grace take a tenth
+# of the time. The `sleep 60` fixtures stay: the watchdog ends them.
+REVERT_TESTS_TICK=0.1
+export REVERT_TESTS_TICK
 
 # Every temporary path lives under one root, removed as one quoted path. On Windows (Git
 # Bash) it is in C:/ form, as the orchestrator's paths are.
@@ -359,18 +365,32 @@ grep -qx -- '- Exit status: timed out after [0-9]* seconds (exit status 143)' "$
 	mismatch "$case_id: status [$(cat "$tmp/st")]"
 
 # 5b. A command that ignores TERM itself, so its group ends only on the KILL 10 seconds
-# after the deadline.
+# after the deadline. REVERT_TESTS_TICK is unset for this run alone, so the grace is the
+# default ten ticks of 1 second: the one case that proves the default is unchanged.
 case_id="case 5b"
 mkrepo c5b
 put 100644 README 'x\n'
 commit main
 put 100644 tests/test_stubborn.sh 'echo $$ > "$RT_PIDS/stubborn"\nsleep 60\n'
 commit feature main
+unset REVERT_TESTS_TICK
 run "$R" 'command\ttrap "" TERM; sh\nrun\ttests/test_*.sh\ntimeout\t2\n'
+REVERT_TESTS_TICK=0.1
+export REVERT_TESTS_TICK
 ok
 verdicts '- `tests/test_stubborn.sh`: does not pass at head (timed out)\n'
 status tests/test_stubborn.sh > "$tmp/st"
 grep -qx -- '- Exit status: timed out after 1[2-9] seconds (exit status 137)' "$tmp/st" ||
+	mismatch "$case_id: status [$(cat "$tmp/st")]"
+
+# 5d. 5b's repo with the low tick: the KILL comes ten ticks, 1 second, after the deadline,
+# a duration the default can never give, so the grace is ten ticks.
+case_id="case 5d"
+run "$R" 'command\ttrap "" TERM; sh\nrun\ttests/test_*.sh\ntimeout\t2\n'
+ok
+verdicts '- `tests/test_stubborn.sh`: does not pass at head (timed out)\n'
+status tests/test_stubborn.sh > "$tmp/st"
+grep -qx -- '- Exit status: timed out after [2-9] seconds (exit status 137)' "$tmp/st" ||
 	mismatch "$case_id: status [$(cat "$tmp/st")]"
 
 # 5c. 5a's repo again in a new session with no controlling terminal, as under CI, started
@@ -525,6 +545,15 @@ case_id="case 11f"
 "$sh_bin" "$rt" > "$tmp/out" 2> "$tmp/err"
 rc=$?
 fails 'usage: revert-tests.sh run|bg <repo> <base> <head> <keys file> <work dir> <result file>, or wait <result file>'
+case_id="case 11g"
+REVERT_TESTS_TICK=0
+run "$R" "$run_keys"
+fails 'revert-tests: REVERT_TESTS_TICK must be seconds above 0'
+case_id="case 11h"
+REVERT_TESTS_TICK=.5
+run "$R" "$run_keys"
+fails 'revert-tests: REVERT_TESTS_TICK must be seconds above 0'
+REVERT_TESTS_TICK=0.1
 
 # 16. A partial clone is refused without fetching missing blobs.
 case_id="case 16, partial clone is refused without fetching"
@@ -837,7 +866,8 @@ sed -n '/^watchdog() {/,/^}/p; /^stopdog() {/,/^}/p; /^trap .trap "" HUP INT TER
 	"$rt" > "$tmp/sd.sh"
 [ "$(grep -cE '^(watchdog\(\) \{|stopdog\(\) \{|trap )' "$tmp/sd.sh")" = 3 ] ||
 	mismatch "$case_id: the watchdog, stopdog, or the trap line is not in the script"
-bash -c '. "$1"; w=$2; n=0
+# The watchdog sleeps in ticks, read outside the text taken; these are the defaults.
+bash -c '. "$1"; w=$2; tick=1; tick10=10; n=0
 	while [ "$n" -lt 200 ]; do
 		watchdog 1 600 &
 		wdog=$!

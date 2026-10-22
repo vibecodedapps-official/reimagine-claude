@@ -153,7 +153,7 @@ when the invocation block says `command: resume`; the rules of
    - The pinned sha of every reference and source of truth, resolved again as stage 1
      did through the brief's ref mapping lines; a change invalidates stage 1.
    - Upstream stage outputs, by `git hash-object --no-filters <file>`.
-   - `plugin_version`, compared with the literal `"0.1.3"`; any other recorded value
+   - `plugin_version`, compared with the literal `"0.1.4"`; any other recorded value
      invalidates stage 1.
    - The live inputs, by `git hash-object --no-filters <file>`: for stage 6,
      `live/findings.md` and each `live/carried/<id>.md` it names; for stages 7 and 8,

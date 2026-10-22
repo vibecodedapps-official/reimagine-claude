@@ -19,14 +19,19 @@
 #   KILL 60 seconds later, and adds `revert-tests: stopped at the deadline of <n> seconds`
 #   to `.err`. On HUP, INT, or TERM it sends the group TERM and exits 2 without writing
 #   `.exit`. When `bg` is gone without a signal (KILL), the group's leader sends the group
-#   TERM within a second, unless the group had one already, and KILL 60 seconds later;
+#   TERM within a tick, unless the group had one already, and KILL 60 seconds later;
 #   `.exit` is not written.
-# - `wait` checks every 2 seconds for at most REVERT_TESTS_WAIT seconds (default 540).
+# - `wait` checks every two ticks for at most REVERT_TESTS_WAIT seconds (default 540).
 #   With `.exit` present, it prints the last line of `.err` that is not blank on stderr
 #   (or, with none and a status other than 0, `revert-tests: the run ended with status
 #   <n>`), so a shell's job notice before `run`'s own line is dropped, removes both files, and
 #   exits 0 for status 0, else 2. With neither file present after 30 seconds (or the
 #   window, when shorter), it exits 2: no run started. At the window's end it exits 3.
+#
+# Tick: REVERT_TESTS_TICK, whole or fractional seconds above 0 (default 1). Each poll
+# sleeps one tick, `wait` checks every two ticks, and the watchdog's TERM-to-KILL grace
+# (step 4) is ten ticks; every other time is in seconds, as stated.
+# tests/audit/revert-tests.sh sets it low.
 #
 # Portability: bash (Linux, macOS, Git Bash), which the script re-executes itself under
 # when another sh starts it, and awk in forms mawk and gawk accept. Each command needs its
@@ -75,7 +80,7 @@
 #    REVERT_TESTS_CAP when set (whole seconds; tests/audit/revert-tests.sh sets it, so its time
 #    cap case does not wait 30 minutes). Each command starts as a
 #    job under `set -m`, in its own process group. At the deadline the group gets TERM,
-#    then KILL 10 seconds later. Whether the command ends or times out, the group then
+#    then KILL ten ticks later. Whether the command ends or times out, the group then
 #    gets KILL, and the script waits until no process in it is left. A process that
 #    leaves the group (setsid, a daemon) is beyond reach; on Windows, a native program's
 #    own children are outside the group.
@@ -162,6 +167,17 @@ forkdone() {
 	fi
 }
 
+# The tick (see Tick): digits with at most one inner `.`, not all zeros.
+tick=${REVERT_TESTS_TICK:-1}
+case $tick in
+'' | *[!0-9.]* | .* | *. | *.*.*) die "REVERT_TESTS_TICK must be seconds above 0" ;;
+*[1-9]*) ;;
+*) die "REVERT_TESTS_TICK must be seconds above 0" ;;
+esac
+ticks=$(awk -v t="$tick" 'BEGIN { print t * 2, t * 10 }') || die "awk failed"
+tick2=${ticks% *}
+tick10=${ticks#* }
+
 if [ "${1:-}" = bg ]; then
 	[ $# -eq 7 ] || usage
 	shift
@@ -186,17 +202,17 @@ if [ "${1:-}" = bg ]; then
 		trap 'termed=1' TERM
 		bash "$0" run "$@" &
 		r=$!
-		n=0
+		lost=
 		while kill -0 "$r" 2> /dev/null; do
 			if ! kill -0 "$bgpid" 2> /dev/null; then
-				if [ "$n" -eq 0 ] && [ -z "$termed" ]; then
-					kill -TERM 0 2> /dev/null
-				elif [ "$n" -ge 60 ]; then
+				if [ -z "$lost" ]; then
+					lost=$SECONDS
+					[ -n "$termed" ] || kill -TERM 0 2> /dev/null
+				elif [ $((SECONDS - lost)) -ge 60 ]; then
 					kill -KILL 0 2> /dev/null
 				fi
-				n=$((n + 1))
 			fi
-			sleep 1
+			sleep "$tick"
 		done
 		wait "$r"
 	) > "$out.err" 2>&1 < /dev/null & } 2> "$out.fork"
@@ -205,18 +221,18 @@ if [ "${1:-}" = bg ]; then
 	# Without `.err`, `wait` reports no run started rather than still running.
 	forkdone "$child" "$out.fork" "$out.err"
 	(
-		n=0
+		dl_start=$SECONDS
 		fired=
 		while kill -0 "$child" 2> /dev/null; do
-			if [ "$n" -eq "$deadline" ]; then
+			n=$((SECONDS - dl_start))
+			if [ -z "$fired" ] && [ "$n" -ge "$deadline" ]; then
 				kill -TERM -"$child" 2> /dev/null
 				fired=1
-			elif [ "$n" -ge $((deadline + 60)) ]; then
+			elif [ -n "$fired" ] && [ "$n" -ge $((deadline + 60)) ]; then
 				kill -KILL -"$child" 2> /dev/null
 				break
 			fi
-			sleep 1
-			n=$((n + 1))
+			sleep "$tick"
 		done
 		[ -z "$fired" ] || exit 3
 	) &
@@ -244,8 +260,9 @@ if [ "${1:-}" = wait ]; then
 	if [ "$win" -lt "$grace" ]; then
 		grace=$win
 	fi
-	n=0
+	w_start=$SECONDS
 	while :; do
+		n=$((SECONDS - w_start))
 		if [ -f "$out.exit" ]; then
 			st=$(cat "$out.exit")
 			case $st in
@@ -269,8 +286,7 @@ if [ "${1:-}" = wait ]; then
 			echo "revert-tests: still running" >&2
 			exit 3
 		fi
-		sleep 2
-		n=$((n + 2))
+		sleep "$tick2"
 	done
 fi
 
@@ -307,10 +323,9 @@ cleanup() {
 	fi
 	if [ -n "$live" ]; then
 		kill -KILL -"$live" 2> /dev/null
-		cn=0
-		while kill -0 -"$live" 2> /dev/null && [ "$cn" -lt 10 ]; do
-			sleep 1
-			cn=$((cn + 1))
+		cn_start=$SECONDS
+		while kill -0 -"$live" 2> /dev/null && [ $((SECONDS - cn_start)) -lt 10 ]; do
+			sleep "$tick"
 		done
 	fi
 	if [ -n "$made" ]; then
@@ -594,30 +609,29 @@ export_list() {
 	} >> "$w/special.md" || die "cannot write in $work"
 }
 
-# watchdog <pgid> <deadline>: at the deadline, TERM the group, then KILL it 10 seconds
+# watchdog <pgid> <deadline>: at the deadline, TERM the group, then KILL it ten ticks
 # later.
 watchdog() {
 	# bash's own clock: a `date` child here can die of a broken pipe when the job ends
 	# at once and the watchdog is killed before its first read.
 	wd_start=$SECONDS
 	while :; do
-		sleep 1
+		sleep "$tick"
 		[ $((SECONDS - wd_start)) -lt "$2" ] || break
 	done
 	: > "$w/timedout"
 	kill -TERM -"$1" 2> /dev/null
-	sleep 10
+	sleep "$tick10"
 	kill -KILL -"$1" 2> /dev/null
 }
 
 # gone <pgid>: wait until no process is left in the group, at most 10 seconds.
 gone() {
-	gn=0
+	gn_start=$SECONDS
 	while kill -0 -"$1" 2> /dev/null; do
-		[ "$gn" -lt 10 ] || return 1
+		[ $((SECONDS - gn_start)) -lt 10 ] || return 1
 		kill -KILL -"$1" 2> /dev/null
-		sleep 1
-		gn=$((gn + 1))
+		sleep "$tick"
 	done
 }
 
