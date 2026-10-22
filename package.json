@@ -16,6 +16,7 @@
     "test:primer": "node --test \"tests/primer/*.test.mjs\"",
     "test:lint": "node --test \"tests/lint/*.test.mjs\"",
     "test:release": "node --test \"tests/release/*.test.mjs\"",
+    "eval": "claude plugin eval . --eval-dir tests/evals --runs 2 --no-publish",
     "lint": "node tools/lint.mjs"
   }
 }

@@ -68,11 +68,13 @@ The audit keeps its run registry in the plugin data directory; delete it by hand
 
 Node 22 or later, no dependencies. `npm test` runs the suites under `tests/`; `npm run lint` runs the repository rules in `tools/lint.mjs`. CI runs both on ubuntu, macOS and Windows, runs the audit's awk suites again under mawk, and validates every manifest with a pinned Claude Code version.
 
+`npm run eval` runs the eval cases under `tests/evals/` with the host's `claude plugin eval`, two runs per case with and without the plugin, locally and never in CI; it needs Claude Code with that command, a login, and git 2.31 or later, and its results land in the ignored `tests/evals/results/`.
+
 The repository keeps its own `CLAUDE.md` as a primer hub, and `.claude/settings.json` declares this catalog and enables `primer` for sessions here, so the drift hook checks every commit. A session in a trusted folder fetches the catalog and the plugin; run `claude plugin install primer@reimagine-claude --scope project` once in the repository so every session, headless ones included, loads it. To leave it off on your machine, set `"primer@reimagine-claude": false` under `enabledPlugins` in `.claude/settings.local.json`.
 
 Design documents, in reading order: `docs/requirements.md`, `docs/architecture.md`, `docs/build-plan.md`, `docs/decisions.md`, `docs/acceptance.md`.
 
-Releases are per plugin, in this order: `node tools/release.mjs <plugin> <version>`, then a heading `## <plugin> <version> - <date>` in `CHANGELOG.md`, then `claude plugin tag --push plugins/<plugin>`, which creates `<plugin>--v<version>`. Lint requires the heading only once the tag exists.
+Releases are per plugin, in this order: `node tools/release.mjs <plugin> <version>`, then a heading `## <plugin> <version> - <date>` in `CHANGELOG.md`, then `npm run eval` with its scores recorded in `docs/acceptance.md`, then `claude plugin tag --push plugins/<plugin>`, which creates `<plugin>--v<version>`. Lint requires the heading only once the tag exists.
 
 ## License
 
