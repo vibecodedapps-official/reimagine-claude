@@ -62,7 +62,7 @@ const hostile = (name) =>
 describe('sh suites', { concurrency: Math.max(1, availableParallelism() - 1) }, () => {
   for (const name of ['readonly', 'revert-tests', 'working-tree', 'live', 'ledger']) suite(name);
   for (const name of ['ground-truth', 'patterns']) hostile(name);
-  for (const name of ['ground-truth', 'solo', 'solo-dirty', 'full', 'tokens', 'patterns']) fixture(name);
+  for (const name of ['ground-truth', 'solo', 'solo-dirty', 'full', 'tokens', 'patterns', 'review']) fixture(name);
   for (const name of ['handoff', 'work-items', 'memory', 'collisions']) suite(name);
   test('lint.sh passes on plugins/audit', async () => {
     assert.match((await passes('lint.sh')).stdout, /^lint: ok$/m);

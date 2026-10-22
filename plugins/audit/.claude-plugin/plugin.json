@@ -1,6 +1,6 @@
 {
   "name": "audit",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "A read-only, adversarial audit of finished pull requests that stops at a report, with an act step that commits approved items.",
   "author": { "name": "vibecodedapps.net" },
   "repository": "https://github.com/vibecodedapps-official/reimagine-claude",

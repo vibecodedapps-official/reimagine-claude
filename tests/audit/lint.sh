@@ -77,10 +77,12 @@
 #   `uniq`, and bar `sort -o`, `--output` or `--compress-program` and `uniq` with an
 #   output file operand.
 # - The default rank in skills/audit/stages/1-orient.md lists `AGENTS.md`, `CLAUDE.md`,
-#   `README.md`, `docs/`, `.claude/rules/` and `.claude/skills/` in that order;
-#   skills/audit/stages/9-act.md names the two directories among the sources of the
-#   required checks; it and skills/audit/common.md name the rules in `.claude/rules/`
-#   that apply to a file and the skills in `.claude/skills/` among the instruction files
+#   `README.md`, `docs/`, `.claude/rules/`, `.claude/skills/` and `REVIEW.md` in that
+#   order, and says `REVIEW.md` is read at the pinned base with `git show <base>:<path>`;
+#   skills/audit/stages/9-act.md names the two directories and `REVIEW.md` at the base
+#   among the sources of the required checks; it and skills/audit/common.md name the
+#   rules in `.claude/rules/` that apply to a file, the skills in `.claude/skills/` and
+#   the `REVIEW.md` copies the brief records at the base among the instruction files
 #   read before a change; each file is read as one line.
 # - skills/audit/SKILL.md allowed-tools pre-approves `git ls-tree`, `git cat-file` and
 #   `git branch --list`, each also in its `git -C *` form; the bare `git cat-file` only
@@ -508,18 +510,21 @@ for f in skills/audit/common.md agents/auditor.md agents/adversary.md agents/map
 done
 
 # The default rank, the required checks and the instruction files read before a change
-# name the rules and skills directories; each file is read as one line.
+# name the rules and skills directories and REVIEW.md at the base; each file is read as
+# one line.
 f=skills/audit/stages/1-orient.md
 if [ -f "$f" ]; then
 	tr -d '\r' < "$f" | tr '\n\t' '  ' | tr -s ' ' > "$tmp/list"
-	grep -qF '(`AGENTS.md`, `CLAUDE.md`, `README.md`, `docs/`, `.claude/rules/`, `.claude/skills/`)' "$tmp/list" ||
-		fail "$f: the default rank does not list .claude/rules/ and .claude/skills/ after docs/"
+	grep -qF '(`AGENTS.md`, `CLAUDE.md`, `README.md`, `docs/`, `.claude/rules/`, `.claude/skills/`, `REVIEW.md`)' "$tmp/list" ||
+		fail "$f: the default rank does not list .claude/rules/, .claude/skills/ and REVIEW.md after docs/"
+	grep -qF 'read at the pinned base with `git show <base>:<path>`, never from the head or the working tree' "$tmp/list" ||
+		fail "$f: the default rank does not say REVIEW.md is read at the base with git show <base>:<path>"
 fi
 f=skills/audit/stages/9-act.md
 if [ -f "$f" ]; then
 	tr -d '\r' < "$f" | tr '\n\t' '  ' | tr -s ' ' > "$tmp/list"
-	grep -qF '`README.md`, `.claude/rules/`, `.claude/skills/`, CI configuration' "$tmp/list" ||
-		fail "$f: the required checks do not name .claude/rules/ and .claude/skills/"
+	grep -qF '`README.md`, `.claude/rules/`, `.claude/skills/`, `REVIEW.md` at the base, CI configuration' "$tmp/list" ||
+		fail "$f: the required checks do not name .claude/rules/, .claude/skills/ and REVIEW.md at the base"
 fi
 for f in skills/audit/stages/9-act.md skills/audit/common.md; do
 	[ -f "$f" ] || continue
@@ -527,6 +532,8 @@ for f in skills/audit/stages/9-act.md skills/audit/common.md; do
 	grep -qF 'the rules in `.claude/rules/` that apply to it (one with no `paths`, or one whose `paths` match it)' "$tmp/list" &&
 		grep -qF 'the skills in `.claude/skills/`' "$tmp/list" ||
 		fail "$f: the instruction files read before a change do not name the rules and skills that apply"
+	grep -qF 'the `REVIEW.md` copies `audit-brief.md` records at the base' "$tmp/list" ||
+		fail "$f: the instruction files read before a change do not name the REVIEW.md copies at the base"
 done
 
 if [ "$fails" -gt 0 ]; then

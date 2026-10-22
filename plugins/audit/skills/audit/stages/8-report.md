@@ -66,6 +66,28 @@ result's text, approver and time; a `result_file` result's text is its copy
    path 3), each item naming its finding id as absorbed, so every reported item can be
    given to `/audit:act`. Remove `tmp/gate-report.md` once read.
 
+   Then apply the `REVIEW.md` rules `audit-brief.md` records, on every path, each to the
+   items in the files its copy governs. The orchestrator judges whether an item falls
+   under a rule, from its title, question, evidence and files, and names the rule's
+   `<path>:<line>` under every item it touches. In this order:
+   1. Do not report: an item the rule covers is skipped. It leaves the body (sections 2
+      to 7 and 9, the counts, the verdict and the `next:` block), never counts, and
+      `work-items.jsonl` drops it from every operation, and an operation left with no
+      item. A claim whose verdict rests on it keeps its verdict and cites its evidence,
+      not its id. Each such rule gets one line in section 2,
+      `<n> findings skipped by REVIEW.md: <rule>`, `<n>` the items it skipped, `0`
+      included, and `<rule>` the rule as quoted with its `(<path>:<line>)`. An item two
+      rules cover is counted in the first one's line.
+   2. Require evidence: an item of the rule's class that does not meet it (`common.md`,
+      "When a finding counts") is held: the report shows its gate as `provisional`, with
+      the gate it had and `held by REVIEW.md: <rule>`, and it never counts. An item
+      that meets it says `REVIEW.md evidence met: <rule>`.
+   3. Severity calibration: the rule sets the severity of each item it covers, and of
+      each position of a contested one, before step 4 counts. The item shows the
+      calibrated severity and `reviewed <severity>, set by REVIEW.md: <rule>`, also
+      when they are equal. A calibration never lifts a severity over the `medium` cap
+      of an `unverified assumption`.
+
 3. **Decide the terminal state** from stages 1 to 7; stage 8's own entry is `running`.
    The state is `reported` when every applicable stage 1 to 7 entry is `complete` or
    `not_applicable`, and `partial` when any of them failed, is `running` or missing, or
@@ -73,8 +95,8 @@ result's text, approver and time; a `result_file` result's text is its copy
    writes stage 8 `complete`; a failed read-only check in step 11 makes the run
    `blocked`.
 
-4. **Count before deciding.** An item counts only when its gate is `counts`. Its counted
-   severity:
+4. **Count before deciding.** An item counts only when its gate is `counts` and no
+   `REVIEW.md` rule skips or holds it (step 2). Its counted severity, after calibration:
    - `agreed`: its severity.
    - `contested` with two positions: equal severities count at that severity; with one
      position `dropped`, the item counts only when the keeping position's label is
@@ -105,15 +127,16 @@ result's text, approver and time; a `result_file` result's text is its copy
    the record when nothing else was shown, as in a headless session: the run id, the
    absolute run directory, the manifest path, the terminal state, and the resume
    command `/audit:resume <run-id>`, with the tier and the bundles as `report.md` lays
-   them out. Outside the Coverage and Usage sections, which are run records, the report
-   names no model, agent type or tool: a position is named by its review (pass one,
-   pass two, second opinion, late review), never by what produced it. The twelve
-   sections:
+   them out, and the `REVIEW.md:` line from the brief. Outside the Coverage and Usage
+   sections, which are run records, the report names no model, agent type or tool: a
+   position is named by its review (pass one, pass two, second opinion, late review),
+   never by what produced it. The twelve sections:
    1. **Verdict**, from steps 4 and 5, then the `next:` block of step 14.
    2. **Findings by ticket**, severity first. Each item sits under a heading
       `#### C<n>: <title>`, which the work-items validator reads, with its evidence,
       gate, disposition and absorbed ids. A `provisional` item says which review it
-      still lacks, from its `gate.md` reason, or from the recomputed gate in path 2.
+      still lacks, from its `gate.md` reason, or from the recomputed gate in path 2,
+      or that a `REVIEW.md` rule holds it. Then the skip lines of step 2.
    3. **Verified as sound**: every Verified OK item of the pass-one reports, marked
       `challenged` when a pass-two `## Verified OK challenged` list names it, else
       `not challenged`. At low tier every one is `not challenged`.

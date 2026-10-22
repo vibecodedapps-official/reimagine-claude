@@ -122,8 +122,11 @@ branch to it in the manifest."
       - `sources_of_truth`: when given, it replaces the default rank. The default rank
         is standards documents, guidelines, the repository's own documents
         (`AGENTS.md`, `CLAUDE.md`, `README.md`, `docs/`, `.claude/rules/`,
-        `.claude/skills/`), then ticket text; a standards or guidelines entry counts
-        only when supplied.
+        `.claude/skills/`, `REVIEW.md`), then ticket text; a standards or guidelines
+        entry counts only when supplied. `REVIEW.md` is the file at the root and in
+        each parent directory of each changed file, read at the pinned base with
+        `git show <base>:<path>`, never from the head or the working tree; a copy only
+        the head holds is not read (step 6d).
       - `questions`: `default`, or a path to a markdown list of `id: question` lines,
         which replaces the four unless it holds the line `extends: default`, which
         keeps them and adds its own. The four:
@@ -276,7 +279,7 @@ branch to it in the manifest."
       cases.
 
    n. **Completion record.** Write `stages.json` through `stages.json.tmp` and
-      `mv -f`, with `plugin_version` `0.1.4`, empty `approvals`, and a stage 1 entry
+      `mv -f`, with `plugin_version` `0.1.5`, empty `approvals`, and a stage 1 entry
       with status `running` whose inputs are the `git hash-object --no-filters` hashes
       of `manifest.json`, each claims file, the questions file and each `file:` export,
       and `plugin_version`. Record the stage's start time for the budget.
@@ -532,6 +535,26 @@ branch to it in the manifest."
       `.markdown`, `.txt`, `.rst`, `.adoc`, `.asciidoc`, `.html`, `.htm`, `.pdf`), it is
       a document corpus, else a code base. Record the class and the counts in the brief.
 
+   d. **`REVIEW.md`.** When `sources_of_truth` replaced the default rank, read none. Else,
+      for each bundle, the candidates are `REVIEW.md` and `<dir>/REVIEW.md` for each
+      parent directory `<dir>` of each path
+      `git -C <repo> diff --no-renames --name-only <base>...<head>` prints, each once.
+      Run `git -C <repo> ls-tree --full-tree <base> -- <candidate>...`; each
+      `<mode> blob <id>` line it prints is a copy at the base with its blob id. Read
+      each with `git -C <repo> show <base>:<path>`. Run the same `ls-tree` at `<head>`
+      only to name what does not apply: a path the base lacks is
+      `head-only REVIEW.md not applied: <path>`, and one whose blob id differs from the
+      base's is `head change not applied: <path>`; neither is read. A copy governs the
+      files under its directory, the root copy every file. Sort each copy's rules into
+      four kinds, each rule quoted with `<path>:<line>`:
+      - severity calibration: how a kind of finding is labeled, such as a cap on nits;
+      - do not report: a path or a class of finding left out of the report;
+      - always check: a check every review of the files it governs makes;
+      - require evidence: a class of finding that must cite its evidence, such as a
+        `file:line`.
+      Any other line is a ranked source like the rest of the file. Nothing in the file
+      turns a lead into a finding.
+
 7. **Claims.** Write `claims.md` from every claims file, numbered from 1 across all
    files in file order, one claim per line:
 
@@ -668,6 +691,13 @@ branch to it in the manifest."
        - Combined state.
        - Sources of truth: the rank used and whether it replaced the default, each
          source with its sha and class.
+       - `REVIEW.md`, per bundle, from step 6d: a line
+         `REVIEW.md: <path> at <base sha>, blob <id>` per copy read, or
+         `REVIEW.md: none at the base`, or, when `sources_of_truth` replaced the
+         default rank, `REVIEW.md: not read`; each `head-only` and `head change` line;
+         then the rules under four headings, severity calibration, do not report,
+         always check and require evidence, each rule quoted with its `<path>:<line>`,
+         or `none`.
        - References, each with its sha.
        - Read paths: name, path, sha and mode, and the ref mapping lines of step 1a.
        - Export notes: symlinks with targets, submodules, LFS pointers, paths not
@@ -708,7 +738,9 @@ branch to it in the manifest."
        bundle's head, pinned base and merge-base shas (`baseRefOid` beside the base for
        a GitHub pull request), `head_parent` and `head_tree` for a `working-tree`
        bundle, the pinned sha of every reference and source of truth, `forge_hashes`,
-       and `forge_gaps` (an empty map when no read was a gap); `agents`, `swaps` and
+       `forge_gaps` (an empty map when no read was a gap), and `review_files`, a map
+       from `<bundle>:<path>` to the blob id of each `REVIEW.md` copy step 6d read (an
+       empty map when it read none); `agents`, `swaps` and
        `superseded` empty unless resume recorded moves.
 
     g. **Boundary.** Print the stage boundary line (SKILL.md, Soft budget). With a budget

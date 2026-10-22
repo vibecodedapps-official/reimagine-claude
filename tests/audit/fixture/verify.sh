@@ -4,9 +4,9 @@
 #
 # Usage: m=$(sh tests/audit/fixture/build.sh solo) && sh tests/audit/fixture/verify.sh "$m" solo
 #
-# name is solo, solo-dirty, full, tokens, patterns, or ground-truth. Without it, the name
+# name is solo, solo-dirty, full, tokens, patterns, review, or ground-truth. Without it, the name
 # comes from the fixture directory: manifest-groups.json means full; otherwise an app
-# checkout on scratch-branch means solo-dirty; otherwise solo. tokens, patterns, and
+# checkout on scratch-branch means solo-dirty; otherwise solo. tokens, patterns, review, and
 # ground-truth are never detected: pass the name.
 #
 # Expected values are literals copied from expected.md; change them only together with
@@ -40,7 +40,7 @@ if [ -z "$name" ]; then
 	fi
 fi
 case $name in
-solo | solo-dirty | full | tokens | patterns | ground-truth) ;;
+solo | solo-dirty | full | tokens | patterns | review | ground-truth) ;;
 *)
 	echo "verify: unknown fixture '$name'"
 	exit 2
@@ -89,6 +89,80 @@ if [ "$name" = tokens ]; then
 		"$(sed -n 's/^ *"ticket_token"/"ticket_token"/p' "$F/manifest-token.json" 2>/dev/null)"
 	same "manifest-bad-token.json ticket_token" '"ticket_token": "#n",' \
 		"$(sed -n 's/^ *"ticket_token"/"ticket_token"/p' "$F/manifest-bad-token.json" 2>/dev/null)"
+	finish
+	exit 0
+fi
+
+# review: the two bundles, where REVIEW.md is at each base and head, the exports, the two
+# manifests, and the behavior of the planted defects, run in temp copies.
+if [ "$name" = review ]; then
+	same "app stable" 5a58bb567cb446f7df17864e1232f98f08b5d1d8 "$(rev "$A" stable)"
+	same "app main" a88f49a5fcd5078cc03afd85e2993792f35564e4 "$(rev "$A" main)"
+	same "app feature head" c546c34d31c1b8e4a81b10319a757429bb1f4def "$(rev "$A" feature)"
+	same "app head-only head" d0e144e8baf7e4854f3a4ed0998fef23ee4e5fde "$(rev "$A" head-only)"
+	same "app merge-base of feature" a88f49a5fcd5078cc03afd85e2993792f35564e4 \
+		"$(git -C "$A" merge-base main feature 2>/dev/null)"
+	same "app merge-base of head-only" 5a58bb567cb446f7df17864e1232f98f08b5d1d8 \
+		"$(git -C "$A" merge-base stable head-only 2>/dev/null)"
+	same "app commits on main after stable" "a88f49a5fcd5078cc03afd85e2993792f35564e4 add the review instructions" \
+		"$(git -C "$A" log --format='%H %s' stable..main 2>/dev/null)"
+	same "app commits on feature" "c546c34d31c1b8e4a81b10319a757429bb1f4def REV-1: number jobs from a counter file" \
+		"$(git -C "$A" log --format='%H %s' main..feature 2>/dev/null)"
+	same "app commits on head-only" "d0e144e8baf7e4854f3a4ed0998fef23ee4e5fde REV-2: number jobs from a counter file, with review instructions" \
+		"$(git -C "$A" log --format='%H %s' stable..head-only 2>/dev/null)"
+	same "app files changed on feature" "src/jobs.sh tests/test_jobs.sh vendor/strutil.sh" \
+		"$(git -C "$A" diff --name-only main...feature 2>/dev/null | tr '\n' ' ' | sed 's/ $//')"
+	same "app diff stat of feature" "3 files changed, 20 insertions(+), 5 deletions(-)" \
+		"$(git -C "$A" diff --shortstat main...feature 2>/dev/null | sed 's/^ //')"
+	same "app files changed on head-only" "REVIEW.md src/jobs.sh tests/test_jobs.sh vendor/strutil.sh" \
+		"$(git -C "$A" diff --name-only stable...head-only 2>/dev/null | tr '\n' ' ' | sed 's/ $//')"
+	same "app diff stat of head-only" "4 files changed, 33 insertions(+), 5 deletions(-)" \
+		"$(git -C "$A" diff --shortstat stable...head-only 2>/dev/null | sed 's/^ //')"
+	# The candidates stage 1 lists: the root and each parent directory of a changed file.
+	copies() {
+		git -C "$A" ls-tree --full-tree "$1" -- REVIEW.md src/REVIEW.md tests/REVIEW.md vendor/REVIEW.md 2>/dev/null
+	}
+	blob=$(printf '100644 blob d6131b7ab9ec0909709e0474674ad2ca589fb45e\tREVIEW.md')
+	same "REVIEW.md at main, the first base" "$blob" "$(copies main)"
+	same "REVIEW.md at feature, the first head" "$blob" "$(copies feature)"
+	same "REVIEW.md at stable, the second base" "" "$(copies stable)"
+	same "REVIEW.md at head-only, the second head" "$blob" "$(copies head-only)"
+	same "REVIEW.md rules" "5:- Report style nits as notes at most.|9:- Do not report findings in \`vendor/\`.|13:- Require a file:line citation for any concurrency finding." \
+		"$(git -C "$A" show main:REVIEW.md 2>/dev/null | grep -n '^- ' | tr '\n' '|' | sed 's/|$//')"
+	same "app checkout branch" feature "$(git -C "$A" rev-parse --abbrev-ref HEAD 2>/dev/null)"
+	same "app status" "" "$(git -C "$A" status --porcelain 2>/dev/null)"
+	for id in REV-1 REV-2; do
+		same "export $id id" "id: $id" "$(grep '^id:' "$F/exports/$id.md" 2>/dev/null)"
+	done
+	same "manifest.json bundle" '{ "repo": "./app", "branch": "feature", "base": "main",' \
+		"$(sed -n 's/^ *{ "repo"/{ "repo"/p' "$F/manifest.json" 2>/dev/null)"
+	same "manifest-head-only.json bundle" '{ "repo": "./app", "branch": "head-only", "base": "stable",' \
+		"$(sed -n 's/^ *{ "repo"/{ "repo"/p' "$F/manifest-head-only.json" 2>/dev/null)"
+
+	# Behavior, in temp copies. tree <rev> <dir> exports a revision of the app repo.
+	tmp=$(mktemp -d)
+	trap 'rm -rf "$tmp"' EXIT
+	tree() {
+		mkdir -p "$2" &&
+			git -c core.autocrlf=false -C "$A" archive "$1" 2>/dev/null | tar -x -C "$2"
+	}
+	for b in main feature stable head-only; do
+		tree "$b" "$tmp/$b"
+		(cd "$tmp/$b" && sh tests/test_jobs.sh >/dev/null 2>&1) || fail "the tests fail at $b"
+	done
+	# The vendored trim drops the blank inside a name at each head, and keeps it at each base.
+	for b in main stable; do
+		(cd "$tmp/$b" && sh src/jobs.sh add 'nightly backup' >/dev/null 2>&1)
+		same "data/jobs.csv after add at $b" "id,name|1,nightly backup" \
+			"$(tr '\n' '|' < "$tmp/$b/data/jobs.csv" | sed 's/|$//')"
+	done
+	for b in feature head-only; do
+		(cd "$tmp/$b" && sh src/jobs.sh add 'nightly backup' >/dev/null 2>&1)
+		same "data/jobs.csv after add at $b" "id,name|1,nightlybackup" \
+			"$(tr '\n' '|' < "$tmp/$b/data/jobs.csv" | sed 's/|$//')"
+		same "data/next_id after add at $b" 2 "$(cat "$tmp/$b/data/next_id" 2>/dev/null)"
+	done
+
 	finish
 	exit 0
 fi

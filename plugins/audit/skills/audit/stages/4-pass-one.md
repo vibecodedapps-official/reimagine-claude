@@ -48,7 +48,13 @@ barrier miss. SKILL.md and `common.md` apply throughout and are not restated her
    - for a group scope and `combined`, the duty to write the outward trace (`## Outward
      trace` in `audit-evidence.md`); a specialist scope writes none;
    - its checklist rows from the table below: the role's row for a specialist or
-     `combined`, and the decision row for every scope assigned a `decision` claim.
+     `combined`, and the decision row for every scope assigned a `decision` claim;
+   - the brief's `REVIEW.md` rules whose copy governs a file of the scope, each quoted
+     with its `<path>:<line>`: each always-check rule as a checklist row, asked of
+     every file of the scope the copy governs, and each require-evidence rule, so a
+     finding of its class cites a quote or a run (`common.md`, "When a finding
+     counts"); or `none`. Severity calibration and do-not-report rules are not listed:
+     the report applies them.
 
    | Role | Checklist |
    |---|---|

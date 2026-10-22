@@ -1,9 +1,9 @@
 #!/bin/sh
-# build.sh <name>: build the fixture <name> (solo, solo-dirty, full, tokens, patterns, or
+# build.sh <name>: build the fixture <name> (solo, solo-dirty, full, tokens, patterns, review, or
 # ground-truth) in a new temp directory and print the absolute path of its manifest on
 # stdout, nothing else.
 #
-# Usage: sh tests/audit/fixture/build.sh solo | solo-dirty | full | tokens | patterns | ground-truth
+# Usage: sh tests/audit/fixture/build.sh solo | solo-dirty | full | tokens | patterns | review | ground-truth
 #
 # Every expected outcome is listed as a literal in tests/audit/fixture/expected.md. Git runs
 # with fixed identity, fixed commit dates, no global or system config, no signing, and
@@ -13,9 +13,9 @@ set -eu
 
 name=${1:-}
 case $name in
-solo | solo-dirty | full | tokens | patterns | ground-truth) ;;
+solo | solo-dirty | full | tokens | patterns | review | ground-truth) ;;
 *)
-	echo "build.sh: unknown fixture '$name'; expected solo, solo-dirty, full, tokens, patterns, or ground-truth" >&2
+	echo "build.sh: unknown fixture '$name'; expected solo, solo-dirty, full, tokens, patterns, review, or ground-truth" >&2
 	exit 2
 	;;
 esac
@@ -1367,8 +1367,238 @@ EOF
 }
 
 # ---------------------------------------------------------------------------
+# review: REVIEW.md at the base of one bundle, and only in the head of another.
+# rev_jobs_sh <head 0|1>
+rev_jobs_sh() {
+	cat <<'EOF'
+#!/bin/sh
+# jobs.sh: queue jobs in data/jobs.csv. Usage: sh src/jobs.sh add <name>
+set -eu
+
+JOBS_FILE=${JOBS_FILE:-data/jobs.csv}
+EOF
+	if [ "$1" = 1 ]; then
+		cat <<'EOF'
+ID_FILE=${ID_FILE:-data/next_id}
+
+. "$(dirname "$0")/../vendor/strutil.sh"
+
+# next_id: print the next job id and store the one after it.
+next_id() {
+    id=`cat "$ID_FILE" 2>/dev/null || echo 1`
+    echo $((id + 1)) > "$ID_FILE"
+    echo "$id"
+}
+
+# add_job <name>: append one job row with the next id, and print the id.
+add_job() {
+    name=$(trim "$1")
+    id=$(next_id)
+    printf '%s,%s\n' "$id" "$name" >> "$JOBS_FILE"
+    echo "$id"
+}
+EOF
+	else
+		cat <<'EOF'
+
+. "$(dirname "$0")/../vendor/strutil.sh"
+
+# add_job <name>: append one job row, numbered after the rows already there, and print
+# the id.
+add_job() {
+    name=$(trim "$1")
+    id=$(($(wc -l < "$JOBS_FILE")))
+    printf '%s,%s\n' "$id" "$name" >> "$JOBS_FILE"
+    echo "$id"
+}
+EOF
+	fi
+	cat <<'EOF'
+
+case ${1:-} in
+add) shift; add_job "$@" ;;
+*) echo "usage: jobs.sh add <name>" >&2; exit 2 ;;
+esac
+EOF
+}
+
+# rev_strutil_sh <head 0|1>
+rev_strutil_sh() {
+	cat <<'EOF'
+# strutil.sh: string helpers, vendored from upstream. Update it by copying a release.
+
+EOF
+	if [ "$1" = 1 ]; then
+		cat <<'EOF'
+# trim <text>: print <text> without the blanks at either end.
+trim() {
+    printf '%s\n' "$1" | tr -d ' \t'
+}
+EOF
+	else
+		cat <<'EOF'
+# trim <text>: print <text> without the spaces at either end.
+trim() {
+    printf '%s\n' "$1" | sed 's/^ *//; s/ *$//'
+}
+EOF
+	fi
+}
+
+# rev_test_jobs_sh <head 0|1>
+rev_test_jobs_sh() {
+	cat <<'EOF'
+#!/bin/sh
+# Tests for src/jobs.sh, run from the repo root.
+set -eu
+
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
+JOBS_FILE=$work/jobs.csv
+ID_FILE=$work/next_id
+export JOBS_FILE ID_FILE
+printf 'id,name\n' > "$JOBS_FILE"
+
+test_add_numbers_rows() {
+    [ "$(sh src/jobs.sh add backup)" = 1 ]
+    [ "$(sh src/jobs.sh add report)" = 2 ]
+}
+
+test_add_numbers_rows
+echo "pass test_add_numbers_rows"
+EOF
+	if [ "$1" = 1 ]; then
+		cat <<'EOF'
+
+test_add_trims_name() {
+    sh src/jobs.sh add '	cleanup  ' > /dev/null
+    [ "$(tail -n 1 "$JOBS_FILE")" = 3,cleanup ]
+}
+
+test_add_trims_name
+echo "pass test_add_trims_name"
+EOF
+	fi
+}
+
+rev_review_md() {
+	cat <<'EOF'
+# Review instructions
+
+## Severity
+
+- Report style nits as notes at most.
+
+## Do not report
+
+- Do not report findings in `vendor/`.
+
+## Require evidence
+
+- Require a file:line citation for any concurrency finding.
+EOF
+}
+
+build_review() {
+	init app
+
+	# Base of the head-only bundle: no REVIEW.md anywhere.
+	put app/README.md <<'EOF'
+# jobs
+
+A job queue in data/jobs.csv. Add a job with `sh src/jobs.sh add <name>`; run the tests
+with `sh tests/test_jobs.sh`.
+EOF
+	put app/data/jobs.csv <<'EOF'
+id,name
+EOF
+	rev_jobs_sh 0 | put app/src/jobs.sh
+	rev_strutil_sh 0 | put app/vendor/strutil.sh
+	rev_test_jobs_sh 0 | put app/tests/test_jobs.sh
+	commit app "initial job queue"
+	g -C "$T/app" branch stable
+
+	# Base of the first bundle: the root REVIEW.md.
+	rev_review_md | put app/REVIEW.md
+	commit app "add the review instructions"
+
+	# Bundle one, REV-1, on main.
+	g -C "$T/app" checkout -q -b feature
+	rev_jobs_sh 1 | put app/src/jobs.sh
+	rev_strutil_sh 1 | put app/vendor/strutil.sh
+	rev_test_jobs_sh 1 | put app/tests/test_jobs.sh
+	commit app "REV-1: number jobs from a counter file"
+
+	# Bundle two, REV-2, on stable: the same change, and REVIEW.md in its own commit.
+	g -C "$T/app" checkout -q -b head-only stable
+	rev_jobs_sh 1 | put app/src/jobs.sh
+	rev_strutil_sh 1 | put app/vendor/strutil.sh
+	rev_test_jobs_sh 1 | put app/tests/test_jobs.sh
+	rev_review_md | put app/REVIEW.md
+	commit app "REV-2: number jobs from a counter file, with review instructions"
+	g -C "$T/app" checkout -q feature
+}
+
+write_review_exports() {
+	put exports/REV-1.md <<'EOF'
+---
+id: REV-1
+url: https://tickets.example.invalid/browse/REV-1
+title: Number jobs from a counter file
+state: In Progress
+description: |
+  `sh src/jobs.sh add <name>` takes the job id from a counter file, data/next_id, so an
+  id is never reused after a row is removed. A job name keeps no blanks at either end,
+  tabs included. Add a test.
+source: file export
+exported_by: fixture
+exported_at: 2026-09-29
+---
+EOF
+	put exports/REV-2.md <<'EOF'
+---
+id: REV-2
+url: https://tickets.example.invalid/browse/REV-2
+title: Number jobs from a counter file, with review instructions
+state: In Progress
+description: |
+  `sh src/jobs.sh add <name>` takes the job id from a counter file, data/next_id, so an
+  id is never reused after a row is removed. A job name keeps no blanks at either end,
+  tabs included. Add a test, and add review instructions as REVIEW.md.
+source: file export
+exported_by: fixture
+exported_at: 2026-09-29
+---
+EOF
+}
+
+write_review_manifests() {
+	put manifest.json <<'EOF'
+{
+  "bundles": [
+    { "repo": "./app", "branch": "feature", "base": "main",
+      "tickets": ["file:./exports/REV-1.md"] }
+  ]
+}
+EOF
+	put manifest-head-only.json <<'EOF'
+{
+  "bundles": [
+    { "repo": "./app", "branch": "head-only", "base": "stable",
+      "tickets": ["file:./exports/REV-2.md"] }
+  ]
+}
+EOF
+}
+
+# ---------------------------------------------------------------------------
 case $name in
 tokens) build_tokens ;;
+review)
+	build_review
+	write_review_exports
+	write_review_manifests
+	;;
 patterns)
 	build_patterns
 	write_patterns_exports

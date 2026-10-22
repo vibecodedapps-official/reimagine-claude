@@ -52,6 +52,12 @@ to `Q4` or a custom list.
    - A recommended change that adds or moves a documented fact places it where the
      repository's instruction files and the brief's placement rules say.
    - `work-item impact` names the ticket or acceptance criterion affected, or `none`.
+   - Ask each `REVIEW.md` always-check row of your scope file of the files it covers,
+     as a check like the questions: a defect it shows is a finding under Q1 (with a
+     custom list, the question closest to best practice, else the first), and a rule
+     met goes under `## Verified OK`. A finding of a class a require-evidence row names
+     cites a quote `repo@sha:path:line` or a run, or the report holds it. A
+     `REVIEW.md` row never turns a lead into a finding.
 6. Write `## Verified OK`: each item checked and found sound, with its evidence. In a group
    or `combined` scope, then write `## Outward trace` as `audit-evidence.md` says, in every
    tree the brief maps, with the commands of Boundaries item 2 only. The trace adds to the

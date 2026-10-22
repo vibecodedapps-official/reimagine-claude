@@ -310,7 +310,7 @@ Failure rule: on any refused or failed step, release any lock you hold with `rmd
 
 ```json
 {
-  "plugin_version": "0.1.4",
+  "plugin_version": "0.1.5",
   "approvals": [ { "kind": "fetch", "target": "<repo name>:<remote>",
                    "decision": "approved", "time": "2026-10-15T09:15:00Z",
                    "commands": ["git -C <repo> fetch --no-tags --refmap= ..."] } ],
@@ -336,7 +336,7 @@ Failure rule: on any refused or failed step, release any lock you hold with `rmd
 2. `status` is `running`, `complete`, `failed`, `not_applicable` or `superseded`.
 3. `approvals[]` kinds are `fetch`, `live`, `export-over-1gb` and `background-fetch`, each with `target`, `decision` and `time`. A `fetch` adds `commands`, the exact commands run under it, and `resolved`, each bare name with the kind it resolved to; a planned command that differs is asked again. A `live` approval adds `by` and `source` (`live/results-<k>.md:<line>`). A `background-fetch` adds the old and new commits.
 4. When a stage starts, write its entry `running` with its inputs. When every listed output exists and the stage's read-only check passed, write the final status. That write is the stage's last act. `stages.json` is the only record of completion.
-5. Stage keys: stage 1 records `forge_hashes` and `forge_gaps` (the forge files and failed reads resume compares and retries) and each pull request's pinned head; stages 2 and 3 record `output_hashes` and `failed_scopes`, stage 2 `split_files`, stage 3 `test_planted`; stage 5 records `ledger_build` when `ledger.sh build5` never succeeded; stage 6 records `sentinels`, `missing_positions` and `batched`; stage 7 records `converged_check` (`pass` or `fail`) and lists split slices among its outputs. Stages 6, 7 and 8 record each live file they read, `live/findings.md`, `live/claims.md` and each `live/carried/<id>.md`, by hash or `absent`.
+5. Stage keys: stage 1 records `forge_hashes` and `forge_gaps` (the forge files and failed reads resume compares and retries), `review_files` (each `REVIEW.md` read at a bundle's base, by blob id) and each pull request's pinned head; stages 2 and 3 record `output_hashes` and `failed_scopes`, stage 2 `split_files`, stage 3 `test_planted`; stage 5 records `ledger_build` when `ledger.sh build5` never succeeded; stage 6 records `sentinels`, `missing_positions` and `batched`; stage 7 records `converged_check` (`pass` or `fail`) and lists split slices among its outputs. Stages 6, 7 and 8 record each live file they read, `live/findings.md`, `live/claims.md` and each `live/carried/<id>.md`, by hash or `absent`.
 
 ### Usage
 

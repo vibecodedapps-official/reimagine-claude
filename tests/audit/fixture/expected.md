@@ -1,7 +1,7 @@
 # Fixture expected outcomes
 
 `sh tests/audit/fixture/build.sh <name>` builds `solo`, `solo-dirty`, `full`, `tokens`,
-`patterns`, or `ground-truth` in a new temp directory and prints the absolute path of its manifest, nothing else. Below, `$F`
+`patterns`, `review`, or `ground-truth` in a new temp directory and prints the absolute path of its manifest, nothing else. Below, `$F`
 is that directory (the manifest's directory). Every value here is a literal. A value
 changes only with a recorded reason: change `build.sh` and this file in the same commit,
 and say why in the commit body.
@@ -15,6 +15,8 @@ handoff's hash and each verdicts file's heading hash below, and that `handoff.sh
 gives the claim count per kind below; for `tokens`, its commit ids and messages, files,
 exports, and the `ticket_token` lines of its manifests; for `patterns`, its commit
 ids, files, exports, and `run_once` line, plus four behavior checks run in temp copies;
+for `review`, its commit ids, diffs, where `REVIEW.md` is at each base and head, its
+rules, exports, and manifests, plus behavior checks run in temp copies;
 and, for `ground-truth`, its commit ids, branches, diffs, exports, and manifest, plus a
 behavior check per case run in temp copies)
 and prints one line per mismatch. CI runs it after each build. Its expected values are copies of the literals
@@ -649,6 +651,108 @@ grep -n 'invalid id' $F/app/src/users.sh    # 16 and 27
 grep -n 'WARN:' $F/app/src/log.sh $F/app/src/warnings.sh   # log.sh:6, warnings.sh:5 and 7
 grep -c claims $F/manifest.json             # 0
 sh tests/audit/fixture/verify.sh $F/manifest.json patterns        # verify patterns: ok
+```
+
+## review
+
+One repo, `app`, two exported tickets and two manifests, one bundle each, for the
+`REVIEW.md` rules of requirement 271. The first bundle's base holds a root `REVIEW.md`;
+the second bundle makes the same change on a base with no `REVIEW.md` and adds the file
+in its own commit, so the copy exists only in its head. Two base branches in one repo
+keep the change, and so the findings, the same in both runs: only where `REVIEW.md` sits
+differs. It shares nothing with `solo`: its commit ids are its own. No comment, name,
+commit message, or ticket text says that anything is wrong. Whether an audit finds a
+defect is not decided here: `docs/acceptance.md` records it per audit run (item 37).
+
+### Layout
+
+| Path | What it is |
+|---|---|
+| `$F/manifest.json` | Bundle one: `./app`, branch `feature`, base `main`, ticket `file:./exports/REV-1.md` |
+| `$F/manifest-head-only.json` | Bundle two: `./app`, branch `head-only`, base `stable`, ticket `file:./exports/REV-2.md` |
+| `$F/exports/REV-1.md`, `REV-2.md` | Ticket exports with ids `REV-1`, `REV-2`, in the format of `APP-1`; no `acceptance_criteria` |
+| `$F/app` | The app repo, checked out on `feature`, no tracked changes |
+
+`build.sh` prints `$F/manifest.json`; `manifest-head-only.json` sits beside it.
+
+### Commits
+
+| Commit | Id | Branch | Files |
+|---|---|---|---|
+| `initial job queue` | `5a58bb567cb446f7df17864e1232f98f08b5d1d8` | `stable`, merge-base of `head-only` | `README.md`, `data/jobs.csv`, `src/jobs.sh`, `tests/test_jobs.sh`, `vendor/strutil.sh` |
+| `add the review instructions` | `a88f49a5fcd5078cc03afd85e2993792f35564e4` | `main`, merge-base of `feature` | `REVIEW.md` |
+| `REV-1: number jobs from a counter file` | `c546c34d31c1b8e4a81b10319a757429bb1f4def` | `feature` head | `src/jobs.sh`, `tests/test_jobs.sh`, `vendor/strutil.sh` |
+| `REV-2: number jobs from a counter file, with review instructions` | `d0e144e8baf7e4854f3a4ed0998fef23ee4e5fde` | `head-only` head, on `stable` | `REVIEW.md`, `src/jobs.sh`, `tests/test_jobs.sh`, `vendor/strutil.sh` |
+
+- Changed files (three-dot), bundle one: `src/jobs.sh`, `tests/test_jobs.sh`,
+  `vendor/strutil.sh`; 3 files changed, 20 insertions(+), 5 deletions(-).
+- Changed files (three-dot), bundle two: `REVIEW.md`, `src/jobs.sh`, `tests/test_jobs.sh`,
+  `vendor/strutil.sh`; 4 files changed, 33 insertions(+), 5 deletions(-). Its
+  `src/jobs.sh`, `tests/test_jobs.sh` and `vendor/strutil.sh` are those of `feature`.
+- Each bundle has 1 ticket and under 500 changed lines, so the tier is `low`.
+- `REVIEW.md` candidates (stage 1, step 6d): `REVIEW.md`, `src/REVIEW.md`,
+  `tests/REVIEW.md` and `vendor/REVIEW.md`. `git ls-tree --full-tree <rev> -- <those>`
+  prints `100644 blob d6131b7ab9ec0909709e0474674ad2ca589fb45e`, a tab and `REVIEW.md` at `main`,
+  `feature` and `head-only`, and nothing at `stable`.
+- The tests are `sh tests/test_jobs.sh`, from the repo root; they pass at every branch.
+
+### `REVIEW.md`
+
+The same 13 lines at `main` and in the head of `head-only`. Its three rules:
+
+| Line | Rule | Kind |
+|---|---|---|
+| 5 | `- Report style nits as notes at most.` | severity calibration |
+| 9 | ``- Do not report findings in `vendor/`.`` | do not report |
+| 13 | `- Require a file:line citation for any concurrency finding.` | require evidence |
+
+### Expected outcomes
+
+Both bundles hold the same three defects; the head file lines are the same in both.
+
+- Concurrency: `src/jobs.sh` lines 11 to 15, `next_id`, reads `data/next_id` and writes
+  the next value with no lock, so two `add` calls at once can read the same id and write
+  two rows with it. The ticket asks that an id is never reused. A quote of these lines
+  with the causal explanation is a `verified fact` with a `file:line` citation. The race
+  is not run here: its outcome depends on timing.
+- Style nit: `src/jobs.sh` line 12 uses backticks, where the rest of the file uses
+  `$(...)`.
+- Vendored edit: `vendor/strutil.sh` line 5, `tr -d ' \t'`, deletes every blank, so
+  `sh src/jobs.sh add 'nightly backup'` stores `nightlybackup`. The base version kept the
+  inner blank. The file's header says it is copied from upstream.
+
+With `manifest.json`, the report's header names `REVIEW.md` at
+`a88f49a5fcd5078cc03afd85e2993792f35564e4`; the nit shows at `note` at most, with its
+reviewed severity; the `vendor/` findings leave the body and are counted in one line,
+`<n> findings skipped by REVIEW.md: <rule>`; the concurrency finding shows the
+require-evidence rule, met or held.
+
+With `manifest-head-only.json`, the brief says `REVIEW.md: none at the base` and
+`head-only REVIEW.md not applied: REVIEW.md`; the report's header says none applied at
+the base and names the head-only copy; no severity is calibrated, no finding is skipped
+and no gate is raised.
+
+### Behavior checks
+
+`verify.sh` runs these in temp copies made with `git archive`, so the fixture repo never
+changes.
+
+- `sh tests/test_jobs.sh` exits 0 at `main`, `feature`, `stable` and `head-only`.
+- `sh src/jobs.sh add 'nightly backup'` leaves `data/jobs.csv` as `id,name` and
+  `1,nightly backup` at `main` and `stable`, and as `id,name` and `1,nightlybackup` at
+  `feature` and `head-only`, where `data/next_id` then holds `2`.
+
+### Verify
+
+```sh
+A="git -C $F/app"
+$A merge-base main feature                  # a88f49a5fcd5078cc03afd85e2993792f35564e4
+$A merge-base stable head-only              # 5a58bb567cb446f7df17864e1232f98f08b5d1d8
+$A diff --name-only main...feature          # src/jobs.sh tests/test_jobs.sh vendor/strutil.sh
+$A diff --name-only stable...head-only      # REVIEW.md src/jobs.sh tests/test_jobs.sh vendor/strutil.sh
+$A ls-tree --full-tree stable -- REVIEW.md  # no output
+$A rev-parse --abbrev-ref HEAD              # feature
+sh tests/audit/fixture/verify.sh $F/manifest.json review          # verify review: ok
 ```
 
 ## ground-truth

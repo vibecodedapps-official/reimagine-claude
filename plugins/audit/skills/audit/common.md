@@ -223,10 +223,11 @@ apply to the target file: the repository's `AGENTS.md` and `CLAUDE.md` and the f
 index, at the root and in each directory on the file's path (a nested file governs its
 subtree), the rules in `.claude/rules/` that apply to it (one with no `paths`, or one
 whose `paths` match it) and the skills in `.claude/skills/`, as the tree read for the
-audit holds them, and the placement rules `audit-brief.md` records from the user's own
-instruction files. Where those files give the fact a home (commit messages, a docs file, a
-changelog), the recommendation names that home, with a pointer from the code where it
-helps, and never a place they exclude.
+audit holds them, the `REVIEW.md` copies `audit-brief.md` records at the base, and the
+placement rules `audit-brief.md` records from the user's own instruction files. Where
+those files give the fact a home (commit messages, a docs file, a changelog), the
+recommendation names that home, with a pointer from the code where it helps, and never a
+place they exclude.
 
 ### Ids and origin tags
 
@@ -447,6 +448,13 @@ A converged item whose disposition is `contested` counts at one severity:
   lower one.
 
 An item whose gate is `provisional`, and an item that is `dismissed`, never counts.
+
+A require-evidence rule of a `REVIEW.md` that `audit-brief.md` records raises the gate of
+its class to what a finding already needs here: an item of that class counts only when
+the position it counts at is `verified fact` with a quote `repo@sha:path:line` or a run
+as its evidence. The report holds any other item of the class (`stages/8-report.md`,
+step 2); `gate.md` stays as the script wrote it. Nothing in a `REVIEW.md` turns a lead
+into a finding or makes a finding count.
 
 ## Output contract
 

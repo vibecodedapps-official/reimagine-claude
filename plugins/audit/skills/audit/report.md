@@ -55,6 +55,7 @@ manifest: <absolute path of <run dir>/manifest.json> (source: <the manifest file
 resume: /audit:resume <run-id>
 tier: <tier> (<reason>)
 bundles: <bundle> <repo> <head sha> against <base> <base sha> (merge-base <sha>), ...
+REVIEW.md: <bundle> <path> at <base sha>, ... | <bundle> none applied at the base | not read[; head-only REVIEW.md not applied: <bundle> <path>, ...][; head change not applied: <bundle> <path>, ...]
 generated: <time>
 ```
 
@@ -62,6 +63,9 @@ The header carries everything a reader needs to find the record when nothing els
 shown, as in a headless session: the run id, the run directory, the manifest path, the
 terminal state and the resume command. For a `head: working-tree` bundle, `<head sha>` is
 followed by `(working tree on <parent sha>)`, the built commit and the `HEAD` it sits on.
+The `REVIEW.md:` line names each copy applied, read at the bundle's base, or says none
+applied there, or `not read` when `sources_of_truth` replaced the default rank; a copy
+only the head holds, or changes, is named as not applied.
 
 ### 1. Verdict
 
@@ -75,7 +79,9 @@ by gate (`counts`, `provisional`) and by disposition (`agreed`, `contested`,
 `dismissed`). A contested item counts at the severity the counting rule gives: equal
 severities at that severity; with one `dropped` position only when the keeping position
 is `verified fact`; otherwise the higher severity when its position is `verified fact`,
-else the lower. `provisional` and `dismissed` items never count.
+else the lower. `provisional` and `dismissed` items never count. Severities are those
+after a `REVIEW.md` calibration, an item a `REVIEW.md` rule holds is `provisional`, and an
+item one skips is in no count (`stages/8-report.md`, step 2).
 
 The verdict line reads:
 
@@ -103,7 +109,15 @@ under a heading `#### C<n>: <title>`, which the work-items validator reads. Unde
 the effective severity, gate, disposition, absorbed ledger ids, the evidence as cited in
 the ledger, what breaks and for whom, and the item's state after each review (pass-two
 verdict, second opinion, late review). A provisional item is marked `provisional` and
-says which review it still lacks.
+says which review it still lacks, or `held by REVIEW.md: <rule>` beside the gate it
+had. Under each item a `REVIEW.md` rule touches, the rule with its `<path>:<line>`: a
+calibrated severity with `reviewed <severity>, set by REVIEW.md: <rule>`, and
+`REVIEW.md evidence met: <rule>` for an item that meets a require-evidence rule.
+
+After the items, one line per `REVIEW.md` do-not-report rule, `0` included, the items it
+removed from every section of the body:
+
+`<n> findings skipped by REVIEW.md: <rule>`
 
 ### 3. Verified as sound
 
