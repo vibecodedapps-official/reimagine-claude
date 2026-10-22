@@ -43,6 +43,14 @@ Hand-run checks for the suite. Each milestone adds its items; items 27 to 36 wer
 
 ## Record of runs
 
+### 2026-10-21: primer 0.1.0-alpha.7 on GitHub
+
+Windows 11 Pro 10.0.26200, Claude Code 2.1.304, gh 2.91.0, Node 26.4.0, git 2.56.0; GitHub-hosted runners for CI. Branch `main` at e90d3d1, tag `primer--v0.1.0-alpha.7`.
+
+- **Pushed and tagged.** Pull request #11 ran CI on its head, every job green on 0429926 as run 39700296531; `main` moved by fast-forward from 42721ca to 0429926; the changelog heading commit e90d3d1 went to `main` directly; `claude plugin tag --push plugins/primer` created and pushed the annotated tag; lint on the tagged tree with the deny tokens printed `lint: ok (136 files, 5 plugins)`.
+- **Item 21 passed.** Run 39702711474 on the push of e90d3d1: test on ubuntu, macOS and Windows, mawk, and validate all green.
+- **Item 1 for primer passed in part, from GitHub.** On an empty configuration directory with `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1`, `claude plugin marketplace add vibecodedapps-official/reimagine-claude` and `claude plugin install primer@reimagine-claude` exit 0, and `claude plugin list` shows primer alone at 0.1.0-alpha.7, enabled; the cached `SKILL.md` holds the propose step of `## Maintain` and no pass marked as missing. The profile is not logged in, so no session showed `/primer`.
+
 ### 2026-10-21: primer propose milestone
 
 Windows 11 Pro 10.0.26200, Claude Code 2.1.304, Node 26.4.0, git 2.56.0; WSL Ubuntu 24.04.5 with Node 22.23.3, git 2.43.0, gawk 5.2.1 and mawk 1.3.4. Branch `feat/primer-m16` from `main` at 42721ca, primer at 0.1.0-alpha.7. Headless sessions on the scratch profile with `--plugin-dir plugins/primer`, in a clone of the adopted messy fixture at d483783 at a path with no memory directory, outside the user's home.
