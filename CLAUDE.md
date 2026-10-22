@@ -1,7 +1,7 @@
 <!-- primer -->
 # reimagine-claude
 
-One repository and one marketplace, `reimagine-claude`, holding five Claude Code plugins that install and work alone: `rules`, `loop`, `audit`, `primer` and `repo-docs`, each under `plugins/<name>/`, with `primer` replacing `repo-docs` at the 0.1.0 release. The design documents under `docs/` specify that release; where they disagree, requirements.md wins over architecture.md, and both win over build-plan.md. Read `docs/requirements.md` before changing behavior under `plugins/` or `tests/`. Read `docs/architecture.md` before adding or moving a file. Read `docs/build-plan.md` before starting or finishing a milestone. Read `docs/acceptance.md` before running or recording an acceptance item. Read `docs/decisions.md` before reversing a design choice.
+One repository and one marketplace, `reimagine-claude`, holding four Claude Code plugins that install and work alone: `rules`, `loop`, `audit` and `primer`, each under `plugins/<name>/`; `primer` replaces the retired `repo-docs` from its 0.1.0 release. The design documents under `docs/` specify that release; where they disagree, requirements.md wins over architecture.md, and both win over build-plan.md. Read `docs/requirements.md` before changing behavior under `plugins/` or `tests/`. Read `docs/architecture.md` before adding or moving a file. Read `docs/build-plan.md` before starting or finishing a milestone. Read `docs/acceptance.md` before running or recording an acceptance item. Read `docs/decisions.md` before reversing a design choice.
 
 ## Commands
 
