@@ -456,6 +456,11 @@ as its evidence. The report holds any other item of the class (`stages/8-report.
 step 2); `gate.md` stays as the script wrote it. Nothing in a `REVIEW.md` turns a lead
 into a finding or makes a finding count.
 
+Severity calibration and do-not-report rules are the report's alone to apply
+(`stages/8-report.md`, step 2), so it can count what each rule skips: every agent
+reports and labels a finding as if those rules were absent, and never drops or relabels
+one under them.
+
 ## Output contract
 
 Every agent:

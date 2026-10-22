@@ -84,6 +84,9 @@
 #   rules in `.claude/rules/` that apply to a file, the skills in `.claude/skills/` and
 #   the `REVIEW.md` copies the brief records at the base among the instruction files
 #   read before a change; each file is read as one line.
+# - skills/audit/common.md says every agent reports and labels a finding as if
+#   `REVIEW.md`'s severity calibration and do-not-report rules were absent, since the
+#   report applies them and counts what each skips.
 # - skills/audit/SKILL.md allowed-tools pre-approves `git ls-tree`, `git cat-file` and
 #   `git branch --list`, each also in its `git -C *` form; the bare `git cat-file` only
 #   with `-t`, `-s` or `-p`, since `--textconv` and `--filters` run configured programs.
@@ -525,6 +528,15 @@ if [ -f "$f" ]; then
 	tr -d '\r' < "$f" | tr '\n\t' '  ' | tr -s ' ' > "$tmp/list"
 	grep -qF '`README.md`, `.claude/rules/`, `.claude/skills/`, `REVIEW.md` at the base, CI configuration' "$tmp/list" ||
 		fail "$f: the required checks do not name .claude/rules/, .claude/skills/ and REVIEW.md at the base"
+fi
+# The report alone applies REVIEW.md's severity and do-not-report rules, so every agent
+# reports as if they were absent; the file is read as one line.
+f=skills/audit/common.md
+if [ -f "$f" ]; then
+	tr -d '' < "$f" | tr '
+	' '  ' | tr -s ' ' > "$tmp/list"
+	grep -qF 'every agent reports and labels a finding as if those rules were absent' "$tmp/list" ||
+		fail "$f: does not say every agent reports as if REVIEW.md's severity and do-not-report rules were absent"
 fi
 for f in skills/audit/stages/9-act.md skills/audit/common.md; do
 	[ -f "$f" ] || continue
