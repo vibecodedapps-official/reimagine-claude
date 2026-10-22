@@ -22,6 +22,7 @@ Content.
 - Prose over a table unless the reader must compare rows.
 - In a doc or long answer, mark what you assumed.
 - One recommendation, with what would overturn it; a second option only when it wins under a condition the reader controls, and name it.
+- Asked to find issues or recommend changes, recommend the few that affect correctness or risk, or cost more to leave than to fix, with evidence; the rest are notes, kept apart and counted.
 
 Leave out.
 - Openers, closers, recaps, apologies, offers of more help, and caveats without evidence: a bare "Fixed." or "Yes."

@@ -21,6 +21,9 @@ Any instruction file can add an ask-first rule; none removes one.
 - When a request reads two ways, pick the likelier and say so. Ask-first and stop
   rules still hold.
 - A review is read-only unless I ask for changes.
+- Finding issues or proposing changes is judgment, not a count. Recommend the few that
+  affect correctness or risk, or cost more to leave than to fix, each with its evidence
+  and the two costs; keep the rest as notes, apart and counted.
 - For a bug, show the failure before you fix it, then show the regression check failing
   for that defect without the fix and passing with it. If you can't reproduce it, run a
   check that confirms or rejects your explanation.
