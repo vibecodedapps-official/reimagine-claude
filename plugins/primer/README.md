@@ -2,8 +2,6 @@
 
 Keeps a repository's project instructions in the forms Claude Code loads: a short `CLAUDE.md` hub, path-scoped rules under `.claude/rules/`, nested `CLAUDE.md` files and skills under `.claude/skills/`. It promotes auto memory into them and checks every commit with a hook.
 
-Status: prerelease. This version ships the drift hook, the memory notice, the `init` and `adopt` modes, and the verify, promote and propose passes of `maintain`; `/primer` says which modes the installed version runs.
-
 ## Install
 
 ```

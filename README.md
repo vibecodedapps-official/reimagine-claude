@@ -7,7 +7,7 @@ A suite of four Claude Code plugins, built on three ideas: achieve more with les
 - `audit`: a read-only, adversarial audit of finished pull requests that stops at a report, with an act step for approved items.
 - `primer`: project instructions in the forms Claude Code loads, a short `CLAUDE.md`, path-scoped rules, nested instructions and skills, with a hook that checks every commit.
 
-Status: `rules`, `loop` and `audit` are released from `main`, each with its own version and tag `<plugin>--v<version>`. `primer` ships as `0.1.0-alpha.<n>` prereleases until its 0.1.0 release, the drift hook first and the skill's modes after; `/primer` says what the installed one has. The build order is in `docs/build-plan.md`.
+Status: `rules`, `loop`, `audit` and `primer` are released from `main`, each with its own version and tag `<plugin>--v<version>`. The build order is in `docs/build-plan.md`.
 
 ## Requirements
 

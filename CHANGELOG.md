@@ -7,6 +7,11 @@ One changelog for the suite. Each plugin releases on its own line; a release get
 - Design documents for 0.1.0 under `docs/`: requirements, architecture, build plan, decisions, acceptance.
 - Design documents for the `primer` plugin under `docs/`, which replaces `repo-docs` from its release: requirements 237 to 268, decisions 73 to 89, milestones M10 to M19, acceptance items 27 to 36.
 
+## primer 0.1.0 - 2026-10-22
+
+- First release, with the behavior of 0.1.0-alpha.8: the drift hook, the memory notice, and the `init`, `adopt` and `maintain` modes of `/primer`.
+- `repo-docs` leaves the catalog, which lists four plugins: `rules`, `loop`, `audit` and `primer`. A repository that repo-docs kept converts in one `/primer` run in adopt mode; uninstall repo-docs first, since the catalog does not list it and an update of it fails.
+
 ## loop 0.1.3 - 2026-10-22
 
 - The implementer brief says that a rule the host loaded for the slice's files, such as a path-scoped rule under `.claude/rules/`, is binding, so a slice follows the project rules for the files it changes as it follows the instruction files.
