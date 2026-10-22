@@ -297,6 +297,27 @@ Check:
 
 - Lint passes after tagging; `claude plugin validate --strict` on the root and each remaining plugin; acceptance item 1 for primer from GitHub, item 21, item 22 at the new tag, item 36.
 
+## House-rule edit eight: M24
+
+Added 2026-10-22. Requirement R269, decision 93. Built after M25 and before M20 to M23. Depends on nothing; touches `plugins/rules/` and `tests/rules/` only.
+
+| # | Milestone | Adds | Depends on |
+|---|---|---|---|
+| M24 | house-rule edit eight | the Working item and the chat block line, the test assertion and the moved digest literals, rules 0.1.5 | - |
+
+### M24: house-rule edit eight
+
+Work items:
+
+1. The item of R269 in `plugins/rules/rules/core.md` under Working, after "A review is read-only unless I ask for changes.", wrapped like its neighbors; the one line under Content in the fenced block of `plugins/rules/chat/instructions.md`, which is not listed among the block's deliberate differences, since it does not differ from the item. `tests/rules/rules.test.mjs`: an `items.includes` assertion for R269 beside those of R19 to R236, and the shipped digest literals for `core` and `core,windows`, the rule count and any adopt line numbers, moved by running the script once and pasting the observed values (decision 11), in the same commit. Commit: `feat(rules): judge findings, do not count them`, body in the form of the 2026-10-18 commit `feat(rules): raise the request and its frame, and never route around a denial`.
+2. `node tools/release.mjs rules 0.1.5`. Commit: `release(rules): 0.1.5`.
+3. After the push: the `## rules 0.1.5 - <date>` heading in `CHANGELOG.md`, commit `docs(changelog): add the rules 0.1.5 heading`, pushed, then `claude plugin tag --push plugins/rules`; the acceptance record, commit `docs(acceptance): record the house-rule edit eight milestone`.
+
+Check:
+
+- `npm run test:rules` on each commit; `npm test` and lint with the deny tokens before the push.
+- Acceptance items 4 and 22 rerun: the staleness notice on a profile holding the 0.1.4 block, headless, with the display of the notice recorded as not seen; the tag rule at `rules--v0.1.5`; each recorded with date, machine, versions and permission mode.
+
 ## Test performance: M25
 
 Added 2026-10-22. Requirements R277 to R279, decisions 104 to 108, acceptance item 44. M25 is built first, before M24 and M20 to M23, so that every later milestone pays less for its checks. The suite's coverage does not change: no test is weakened, skipped or deleted, every script keeps its test (R6), fixture literals stay observed (decision 11) and everything still runs on ubuntu, macOS and Windows (R17); CI's matrix is unchanged. Depends on nothing; touches `package.json`, `CLAUDE.md`, `tests/` and `plugins/audit/scripts/revert-tests.sh`.

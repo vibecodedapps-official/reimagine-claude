@@ -15,7 +15,7 @@ Numbers are never reused. A retired requirement keeps its number with the word "
 
 Amended 2026-10-20: the `primer` plugin (requirements 237 to 268) replaces `repo-docs`, whose requirements 197 to 212 are retired. Requirements 1, 6, 8, 16 and 219 carry the change. Until primer's release, `repo-docs` stays in the catalog beside primer's prerelease entry, lint accepts both, and requirements 6, 8 and 219 describe the state after requirement 268.
 
-Amended 2026-10-22: the test performance pass adds requirements 277 to 279 under Tooling; 269 to 276 are reserved for the house-rule edit and the host alignment pass specified beside it, each landing with its own commit.
+Amended 2026-10-22: house-rule edit eight is requirement 269, among the edits; the test performance pass adds requirements 277 to 279 under Tooling; 270 to 276 are reserved for the host alignment pass specified beside them, landing with its own commit.
 
 ## Suite
 
@@ -49,6 +49,7 @@ Amended 2026-10-22: the test performance pass adds requirements 277 to 279 under
 234. **Edit five, under Working.** The item "When the request itself is wrong, that is the first decision to raise: the evidence, and what you would do instead." is present. Check: test.
 235. **Edit six, under Ask first.** The item "Before starting, name the steps the permission mode is likely to deny." is present. Check: test.
 236. **Edit seven, under Ask first.** The item "A call the permission mode or a hook denies is a question for me, not a refusal. Never route around it with another command, a script, or a subagent. Report it in full and wait: the exact call, what it is for, and any later call the task needs that is likely to be denied too. On retry, reissue the same calls and nothing else. A denial from me is final." is present. Check: test.
+269. **Edit eight, under Working.** The item "Finding issues or proposing changes is judgment, not a count. Recommend the few that affect correctness or risk, or cost more to leave than to fix, each with its evidence and the two costs; keep the rest as notes, apart and counted." is present, after the item "A review is read-only unless I ask for changes.". The chat block of requirement 44 carries the same rule in one line under Content: "Asked to find issues or recommend changes, recommend the few that affect correctness or risk, or cost more to leave than to fix, with evidence; the rest are notes, kept apart and counted." Check: test (the item); review (the chat block line).
 21. **No stop removed.** Every ask-first rule and every stop rule in the agreed text is present unchanged. Check: review.
 
 ### Mechanism
