@@ -260,7 +260,7 @@ Work items:
 
 Check:
 
-- Acceptance item 33: on the adopted messy fixture the `CONTRIBUTING.md` procedure and the release script are candidates; a yes writes `.claude/skills/<name>/SKILL.md` under 150 lines with a description and `CONTRIBUTING.md` unchanged (decision 91); in a new session, "turn this into a skill" after a pasted checklist invokes the skill for that item alone.
+- Acceptance item 33: on the adopted messy fixture the `CONTRIBUTING.md` procedure is a candidate and the release script is not, since the adopted `release` skill runs it; a yes writes `.claude/skills/<name>/SKILL.md` under 150 lines with a description and `CONTRIBUTING.md` unchanged (decision 91); in a new session, "turn this into a skill" after a pasted checklist invokes the skill for that item alone.
 
 ### M17: notice
 
