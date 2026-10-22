@@ -35,7 +35,7 @@ const orient = 'plugins/audit/skills/audit/stages/1-orient.md';
 
 // The suite checks the script, not the release state: the copy holds every plugin at 0.1.0-alpha.1, one heading each.
 const pin = (dir) => {
-  for (const path of [catalog, ...['rules', 'loop', 'audit', 'repo-docs', 'primer'].map(manifest)]) {
+  for (const path of [catalog, ...['rules', 'loop', 'audit', 'primer'].map(manifest)]) {
     put(dir, path, read(dir, path).replace(/("version": ")[^"]*"/g, (_, head) => `${head}0.1.0-alpha.1"`));
   }
   for (const path of [skill, resume, orient]) {
@@ -119,7 +119,7 @@ test('R221: rules 0.1.0 changes only the version in the manifest and its catalog
   assert.ok(before.includes('"version": "0.1.0-alpha.1"'));
   assert.equal(read(dir, manifest('rules')), before.replace('"version": "0.1.0-alpha.1"', '"version": "0.1.0"'));
   const versions = Object.fromEntries(JSON.parse(read(dir, catalog)).plugins.map((p) => [p.name, p.version]));
-  assert.deepEqual(versions, { primer: '0.1.0-alpha.1', 'repo-docs': '0.1.0-alpha.1', audit: '0.1.0-alpha.1', loop: '0.1.0-alpha.1', rules: '0.1.0' });
+  assert.deepEqual(versions, { primer: '0.1.0-alpha.1', audit: '0.1.0-alpha.1', loop: '0.1.0-alpha.1', rules: '0.1.0' });
   assert.deepEqual(changed(dir), [' M .claude-plugin/marketplace.json', ' M plugins/rules/.claude-plugin/plugin.json']);
 });
 
@@ -192,7 +192,7 @@ test('R221: releasing loop leaves the other manifests unchanged', () => {
   const r = release(dir, 'loop', '0.1.0-alpha.2');
   assert.equal(r.status, 0, shown(r));
   assert.deepEqual(changed(dir), [' M .claude-plugin/marketplace.json', ' M plugins/loop/.claude-plugin/plugin.json']);
-  for (const name of ['rules', 'audit', 'repo-docs']) {
+  for (const name of ['rules', 'audit', 'primer']) {
     assert.equal(JSON.parse(read(dir, manifest(name))).version, '0.1.0-alpha.1', name);
   }
 });

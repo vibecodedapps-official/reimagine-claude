@@ -2,7 +2,7 @@
   "name": "reimagine-claude",
   "owner": { "name": "vibecodedapps.net" },
   "metadata": {
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "A suite of Claude Code plugins: house rules, a ticket-to-pull-request loop, a read-only audit of finished pull requests, and instruction-file maintenance."
   },
   "plugins": [
@@ -23,12 +23,6 @@
       "source": "./plugins/audit",
       "description": "A read-only, adversarial audit of finished pull requests that stops at a report, with an act step that commits approved items.",
       "version": "0.1.3"
-    },
-    {
-      "name": "repo-docs",
-      "source": "./plugins/repo-docs",
-      "description": "Instruction files in hub and spoke form: a short CLAUDE.md hub that points to spokes, kept in shape by a skill and a drift hook that checks every commit.",
-      "version": "0.1.1"
     },
     {
       "name": "primer",

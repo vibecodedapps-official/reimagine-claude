@@ -18,7 +18,8 @@ const run = promisify(execFile);
 const root = fileURLToPath(new URL('..', import.meta.url));
 
 const CATALOG = '.claude-plugin/marketplace.json';
-const NAMES = ['rules', 'loop', 'audit', 'repo-docs', 'primer'];
+const NAMES = ['rules', 'loop', 'audit', 'primer'];
+const RETIRED = ['repo-docs'];
 const LOOP_SKILL = 'plugins/loop/skills/run/SKILL.md';
 const LOOP_DIR = 'plugins/loop/skills/run/';
 const RULES_SKILL = 'plugins/rules/skills/rules/SKILL.md';
@@ -27,7 +28,6 @@ const PRIMER_SKILL = 'plugins/primer/skills/primer/SKILL.md';
 const STYLE = 'plugins/rules/output-styles/concise-plain.md';
 const CHAT = 'plugins/rules/chat/instructions.md';
 const RULES_HOOKS = 'plugins/rules/hooks/hooks.json';
-const DOCS_HOOKS = 'plugins/repo-docs/hooks/hooks.json';
 const PRIMER_HOOKS = 'plugins/primer/hooks/hooks.json';
 const MERGER = 'plugins/audit/agents/merger.md';
 const CONVERGE = 'plugins/audit/skills/audit/stages/7-converge.md';
@@ -36,7 +36,6 @@ const EXECUTABLES = [
   'plugins/rules/scripts/rules.mjs',
   ...['readonly', 'handoff', 'ledger', 'working-tree', 'revert-tests', 'live', 'memory', 'work-items', 'collisions']
     .map((n) => `plugins/audit/scripts/${n}.sh`),
-  'plugins/repo-docs/hooks/drift.sh',
   'plugins/primer/hooks/drift.sh',
   'plugins/primer/hooks/notice.sh',
 ];
@@ -50,14 +49,11 @@ const PRE_APPROVED = new RegExp(`^Bash\\((date|date \\*|sleep \\*|git (${GIT_REA
 
 const SEMVER_CORE = '(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?';
 const SEMVER = new RegExp(`^${SEMVER_CORE}$`);
-const HEADING = new RegExp(`^## (${NAMES.join('|')}) (${SEMVER_CORE}) - (\\d{4}-\\d{2}-\\d{2})$`);
+const HEADING = new RegExp(`^## (${[...NAMES, ...RETIRED].join('|')}) (${SEMVER_CORE}) - (\\d{4}-\\d{2}-\\d{2})$`);
 const FENCE = /^\s*```/;
 
 const ROOT_HOOKS = {
   hooks: { SessionStart: [{ matcher: 'startup', hooks: [{ type: 'command', command: 'node', args: ['${CLAUDE_PLUGIN_ROOT}/scripts/rules.mjs', 'session-start', '${CLAUDE_PLUGIN_DATA}'] }] }] },
-};
-const DOCS_HOOK = {
-  hooks: { PreToolUse: [{ matcher: 'Bash|PowerShell', hooks: [{ type: 'command', command: 'sh "${CLAUDE_PLUGIN_ROOT}/hooks/drift.sh"' }] }] },
 };
 const PRIMER_HOOK = {
   hooks: {
@@ -425,12 +421,11 @@ function skillFailures(ctx) {
 function hookFailures(ctx) {
   const out = [];
   if (!same(ctx.json(RULES_HOOKS), ROOT_HOOKS)) out.push(`${RULES_HOOKS}: not the SessionStart startup shape`);
-  if (!same(ctx.json(DOCS_HOOKS), DOCS_HOOK)) out.push(`${DOCS_HOOKS}: not the PreToolUse Bash|PowerShell shape`);
   if (!same(ctx.json(PRIMER_HOOKS), PRIMER_HOOK)) out.push(`${PRIMER_HOOKS}: not the PreToolUse Bash|PowerShell and SessionStart startup shape`);
   const manifests = new Map(ctx.plugins.map((p) => [p.path, p.manifest]));
-  const message = (file) => `${file}: hooks outside ${RULES_HOOKS}, ${DOCS_HOOKS} and ${PRIMER_HOOKS}`;
+  const message = (file) => `${file}: hooks outside ${RULES_HOOKS} and ${PRIMER_HOOKS}`;
   for (const file of ctx.shipped) {
-    if (posix.basename(file) === 'hooks.json' && ![RULES_HOOKS, DOCS_HOOKS, PRIMER_HOOKS].includes(file)) out.push(message(file));
+    if (posix.basename(file) === 'hooks.json' && ![RULES_HOOKS, PRIMER_HOOKS].includes(file)) out.push(message(file));
     else if (manifests.get(file) && Object.hasOwn(manifests.get(file), 'hooks')) out.push(message(file));
   }
   return out;

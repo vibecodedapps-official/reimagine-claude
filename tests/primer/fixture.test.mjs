@@ -117,11 +117,10 @@ describe('primer messy fixture', () => {
       assert.ok(readme.includes('## Notes for AI agents'));
 
       const event = JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'git commit -m x' }, cwd: repo });
-      for (const hookPath of ['plugins/repo-docs/hooks/drift.sh', 'plugins/primer/hooks/drift.sh']) {
-        const hook = spawnSync('sh', [hookPath], { cwd: root, input: event, encoding: 'utf8' });
-        assert.equal(hook.status, 0, `${hookPath}: ${hook.stderr}`);
-        assert.equal(hook.stdout, '', hookPath);
-      }
+      const hookPath = 'plugins/primer/hooks/drift.sh';
+      const hook = spawnSync('sh', [hookPath], { cwd: root, input: event, encoding: 'utf8' });
+      assert.equal(hook.status, 0, `${hookPath}: ${hook.stderr}`);
+      assert.equal(hook.stdout, '', hookPath);
 
       const tests = spawnSync('node', ['--test'], { cwd: repo, encoding: 'utf8' });
       assert.equal(tests.status, 0, tests.stdout + tests.stderr);
