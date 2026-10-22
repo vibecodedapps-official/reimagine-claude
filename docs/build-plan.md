@@ -306,9 +306,9 @@ Added 2026-10-22. Requirements R270 to R276, decisions 94 to 103, acceptance ite
 | M20 | review file | `REVIEW.md` in the audit's source lists and the loop's review request; the fixture; audit and loop versions | - |
 | M21 | evals | the eval cases under `tests/evals/`, `npm run eval`, the release-order line in README | - |
 | M22 | measurement | the startup-cost item and the auto-mode items run and recorded; the preamble sentence | - |
-| M23 | workflow engine | the script, the stage 4 engine switch, resume, lint rules, item 15 through the engine; audit version | M20; the gate of R270: the item 15 baseline taken, counts matched, tokens at or under it, a clean relaunch |
+| M23 | workflow engine | the script, the stage 4 engine switch, resume, lint rules, item 15 through the engine; audit version | M20; the gate of R270, not met on 2026-10-22 (decision 103) |
 
-M20, M21 and M22 may run in parallel, since none touches `plugins/primer/` or another's files; every edit to `.claude-plugin/marketplace.json`, `CHANGELOG.md`, `tools/lint.mjs` and `README.md` is serialized. M23 runs alone, after M20, since both edit the audit's stage files, and only when its gate is met: as of 2026-10-22 the baseline and the comparison run have not run (decision 103), so M23 is not built until the owner has them run and the record shows the gate met.
+M20, M21 and M22 may run in parallel, since none touches `plugins/primer/` or another's files; every edit to `.claude-plugin/marketplace.json`, `CHANGELOG.md`, `tools/lint.mjs` and `README.md` is serialized. M23 runs alone, after M20, since both edit the audit's stage files, and only when its gate is met: the spikes of 2026-10-22 assessed it and found it not met (decision 103), so M23 is not built in this pass and waits for the reopening decision 103 names.
 
 ### M20: review file
 
