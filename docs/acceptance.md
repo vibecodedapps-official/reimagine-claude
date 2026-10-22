@@ -43,6 +43,14 @@ Hand-run checks for the suite. Each milestone adds its items; items 27 to 36 wer
 
 ## Record of runs
 
+### 2026-10-22: audit 0.1.3 and loop 0.1.3 on GitHub
+
+Windows 11 Pro 10.0.26200, Claude Code 2.1.304, gh 2.91.0, Node 26.4.0, git 2.56.0; GitHub-hosted runners for CI. Branch `main` at a6b113b, tags `audit--v0.1.3` and `loop--v0.1.3`.
+
+- **Pushed and tagged.** Pull request #13 ran CI on its head, every job green on 493d93c as run 39730690151; `main` moved by fast-forward from 7b5697a to 493d93c; the changelog heading commit a6b113b went to `main` directly; `claude plugin tag --push` on `plugins/audit` and `plugins/loop` created and pushed both annotated tags at a6b113b; lint on the tagged tree with the deny tokens printed `lint: ok (138 files, 5 plugins)`.
+- **Item 21 passed.** Run 39732820533 on the push of a6b113b: test on ubuntu, macOS and Windows, mawk, and validate all green.
+- **Item 1 for audit and loop passed in part, from GitHub.** On an empty configuration directory with `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1`, `claude plugin marketplace add vibecodedapps-official/reimagine-claude`, `claude plugin install audit@reimagine-claude` and `claude plugin install loop@reimagine-claude` exit 0, and `claude plugin list` shows both at 0.1.3, enabled; the cached `stages/1-orient.md` names `.claude/rules/` and the cached `steps/4-build.md` holds the binding line. The profile is not logged in, so no session listed the commands.
+
 ### 2026-10-22: siblings milestone
 
 Windows 11 Pro 10.0.26200, Claude Code 2.1.304, Node 26.4.0, git 2.56.0; WSL Ubuntu 24.04.5 with Node 22.23.3, git 2.43.0, gawk 5.2.1 and mawk 1.3.4. Branch `feat/primer-m18` from `main` at 7b5697a, audit and loop at 0.1.3. A headless session on the scratch profile with `--plugin-dir plugins/audit`, in a fixture outside the user's home.
