@@ -65,6 +65,12 @@ const REPORT = read('report.md');
 const RECORD = read('record.md');
 const MULTI = read('multi-repo.md');
 
+test("R267: the implementer brief binds a rule the host loaded for the slice's files", () => {
+  const text = section(BUILD, 'Implementer brief');
+  assert.notEqual(text, null);
+  assert.ok(text.includes("a rule the host loaded for the slice's files, such as a path-scoped rule under `.claude/rules/`, is binding"));
+});
+
 // The closing rules of pr-body.md, which sit after the body template's fence.
 const closingRules = () => {
   const start = PR_BODY.indexOf('Closing rules:');
