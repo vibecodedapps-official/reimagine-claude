@@ -43,6 +43,14 @@ Hand-run checks for the suite. Each milestone adds its items; items 27 to 36 wer
 
 ## Record of runs
 
+### 2026-10-21: primer 0.1.0-alpha.8 on GitHub
+
+Windows 11 Pro 10.0.26200, Claude Code 2.1.304, gh 2.91.0, Node 26.4.0, git 2.56.0; GitHub-hosted runners for CI. Branch `main` at c43ae27, tag `primer--v0.1.0-alpha.8`.
+
+- **Pushed and tagged.** Pull request #12 ran CI on its head, every job green on 7e93146 as run 39714675348; `main` moved by fast-forward from 08b8829 to 7e93146; the changelog heading commit c43ae27 went to `main` directly; `claude plugin tag --push plugins/primer` created and pushed the annotated tag; lint on the tagged tree with the deny tokens printed `lint: ok (138 files, 5 plugins)`.
+- **Item 21 passed.** Run 39716894271 on the push of c43ae27: test on ubuntu, macOS and Windows, mawk, and validate all green.
+- **Item 1 for primer passed in part, from GitHub.** On an empty configuration directory with `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1`, `claude plugin marketplace add vibecodedapps-official/reimagine-claude` and `claude plugin install primer@reimagine-claude` exit 0, and `claude plugin list` shows primer alone at 0.1.0-alpha.8, enabled; the cached plugin holds `hooks/notice.sh` and its SessionStart entry in `hooks.json`. The profile is not logged in, so no session showed `/primer`.
+
 ### 2026-10-21: primer memory notice milestone
 
 Windows 11 Pro 10.0.26200, Claude Code 2.1.304, Node 26.4.0, git 2.56.0; WSL Ubuntu 24.04.5 with Node 22.23.3, git 2.43.0, gawk 5.2.1 and mawk 1.3.4. Branch `feat/primer-m17` from `main` at 08b8829, primer at 0.1.0-alpha.8. Headless sessions on the scratch profile with `--plugin-dir plugins/primer`, in the item 32 clone and in a repository without the marker, both outside the user's home.
