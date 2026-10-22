@@ -84,7 +84,8 @@ compaction, read the item ids and `--per-item` from the block recorded there.
 
 4. **Baseline checks and regenerated files.** Before the first change in each
    repository, run its required checks (from its `AGENTS.md`, `CLAUDE.md`, `README.md`,
-   CI configuration or package scripts) and the checks that cover the approved items.
+   `.claude/rules/`, `.claude/skills/`, CI configuration or package scripts) and the
+   checks that cover the approved items.
    Log each command, where it ran, its exit status and its failures as `baseline`,
    failures already present included.
 
@@ -124,11 +125,12 @@ compaction, read the item ids and `--per-item` from the block recorded there.
 
    Before the first edit, read the instruction files that apply to each file a group
    touches: `AGENTS.md`, `CLAUDE.md` and the files they index, at the root and in each
-   directory on the file's path, and the user's own `CLAUDE.md` in
-   `$CLAUDE_CONFIG_DIR`, else `~/.claude`, with the files it indexes. Those files decide
-   where a documented fact goes. When a recommended change puts a rationale, history
-   note, decision, how-to or ticket number where they exclude it, stop and show the
-   place they name before editing.
+   directory on the file's path, the rules in `.claude/rules/` that apply to it (one
+   with no `paths`, or one whose `paths` match it), the skills in `.claude/skills/`,
+   and the user's own `CLAUDE.md` in `$CLAUDE_CONFIG_DIR`, else `~/.claude`, with the
+   files it indexes. Those files decide where a documented fact goes. When a
+   recommended change puts a rationale, history note, decision, how-to or ticket number
+   where they exclude it, stop and show the place they name before editing.
 
 5. **Group the items.** Group by ticket and repository, from each item's work-item
    impact; an item with several tickets goes to the first listed, noted in the log, and

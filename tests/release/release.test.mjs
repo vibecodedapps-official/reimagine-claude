@@ -147,7 +147,7 @@ test('R221: audit 0.1.0 also sets the plugin_version literals', () => {
   ]);
   assert.equal(read(dir, skill).split('\n')[312], '  "plugin_version": "0.1.0",');
   assert.equal(read(dir, resume).split('\n')[155], '   - `plugin_version`, compared with the literal `"0.1.0"`; any other recorded value');
-  assert.equal(read(dir, orient).split('\n')[277], '      `mv -f`, with `plugin_version` `0.1.0`, empty `approvals`, and a stage 1 entry');
+  assert.equal(read(dir, orient).split('\n')[278], '      `mv -f`, with `plugin_version` `0.1.0`, empty `approvals`, and a stage 1 entry');
 });
 
 test('R221: an ignored file under plugins/audit is not read for literals', () => {

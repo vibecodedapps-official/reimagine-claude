@@ -221,10 +221,12 @@ When a `recommended change` adds or moves a documented fact (a rationale, a hist
 a decision, a how-to, a ticket number), its author first reads the instruction files that
 apply to the target file: the repository's `AGENTS.md` and `CLAUDE.md` and the files they
 index, at the root and in each directory on the file's path (a nested file governs its
-subtree), as the tree read for the audit holds them, and the placement rules
-`audit-brief.md` records from the user's own instruction files. Where those files give the
-fact a home (commit messages, a docs file, a changelog), the recommendation names that
-home, with a pointer from the code where it helps, and never a place they exclude.
+subtree), the rules in `.claude/rules/` that apply to it (one with no `paths`, or one
+whose `paths` match it) and the skills in `.claude/skills/`, as the tree read for the
+audit holds them, and the placement rules `audit-brief.md` records from the user's own
+instruction files. Where those files give the fact a home (commit messages, a docs file, a
+changelog), the recommendation names that home, with a pointer from the code where it
+helps, and never a place they exclude.
 
 ### Ids and origin tags
 

@@ -121,8 +121,9 @@ branch to it in the manifest."
         the bundle's own commands in step 6b.
       - `sources_of_truth`: when given, it replaces the default rank. The default rank
         is standards documents, guidelines, the repository's own documents
-        (`AGENTS.md`, `CLAUDE.md`, `README.md`, `docs/`), then ticket text; a standards
-        or guidelines entry counts only when supplied.
+        (`AGENTS.md`, `CLAUDE.md`, `README.md`, `docs/`, `.claude/rules/`,
+        `.claude/skills/`), then ticket text; a standards or guidelines entry counts
+        only when supplied.
       - `questions`: `default`, or a path to a markdown list of `id: question` lines,
         which replaces the four unless it holds the line `extends: default`, which
         keeps them and adds its own. The four:
@@ -275,7 +276,7 @@ branch to it in the manifest."
       cases.
 
    n. **Completion record.** Write `stages.json` through `stages.json.tmp` and
-      `mv -f`, with `plugin_version` `0.1.2`, empty `approvals`, and a stage 1 entry
+      `mv -f`, with `plugin_version` `0.1.3`, empty `approvals`, and a stage 1 entry
       with status `running` whose inputs are the `git hash-object --no-filters` hashes
       of `manifest.json`, each claims file, the questions file and each `file:` export,
       and `plugin_version`. Record the stage's start time for the budget.

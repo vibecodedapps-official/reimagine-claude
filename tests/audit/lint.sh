@@ -76,6 +76,12 @@
 #   `-s` or `-p`, and `git branch --list`; all but the digester's also name `cut` and
 #   `uniq`, and bar `sort -o`, `--output` or `--compress-program` and `uniq` with an
 #   output file operand.
+# - The default rank in skills/audit/stages/1-orient.md lists `AGENTS.md`, `CLAUDE.md`,
+#   `README.md`, `docs/`, `.claude/rules/` and `.claude/skills/` in that order;
+#   skills/audit/stages/9-act.md names the two directories among the sources of the
+#   required checks; it and skills/audit/common.md name the rules in `.claude/rules/`
+#   that apply to a file and the skills in `.claude/skills/` among the instruction files
+#   read before a change; each file is read as one line.
 # - skills/audit/SKILL.md allowed-tools pre-approves `git ls-tree`, `git cat-file` and
 #   `git branch --list`, each also in its `git -C *` form; the bare `git cat-file` only
 #   with `-t`, `-s` or `-p`, since `--textconv` and `--filters` run configured programs.
@@ -499,6 +505,28 @@ for f in skills/audit/common.md agents/auditor.md agents/adversary.md agents/map
 	for c in "$@"; do
 		grep -qF "$c" "$tmp/list" || fail "$f: the command list lacks $c"
 	done
+done
+
+# The default rank, the required checks and the instruction files read before a change
+# name the rules and skills directories; each file is read as one line.
+f=skills/audit/stages/1-orient.md
+if [ -f "$f" ]; then
+	tr -d '\r' < "$f" | tr '\n\t' '  ' | tr -s ' ' > "$tmp/list"
+	grep -qF '(`AGENTS.md`, `CLAUDE.md`, `README.md`, `docs/`, `.claude/rules/`, `.claude/skills/`)' "$tmp/list" ||
+		fail "$f: the default rank does not list .claude/rules/ and .claude/skills/ after docs/"
+fi
+f=skills/audit/stages/9-act.md
+if [ -f "$f" ]; then
+	tr -d '\r' < "$f" | tr '\n\t' '  ' | tr -s ' ' > "$tmp/list"
+	grep -qF '`README.md`, `.claude/rules/`, `.claude/skills/`, CI configuration' "$tmp/list" ||
+		fail "$f: the required checks do not name .claude/rules/ and .claude/skills/"
+fi
+for f in skills/audit/stages/9-act.md skills/audit/common.md; do
+	[ -f "$f" ] || continue
+	tr -d '\r' < "$f" | tr '\n\t' '  ' | tr -s ' ' > "$tmp/list"
+	grep -qF 'the rules in `.claude/rules/` that apply to it (one with no `paths`, or one whose `paths` match it)' "$tmp/list" &&
+		grep -qF 'the skills in `.claude/skills/`' "$tmp/list" ||
+		fail "$f: the instruction files read before a change do not name the rules and skills that apply"
 done
 
 if [ "$fails" -gt 0 ]; then
