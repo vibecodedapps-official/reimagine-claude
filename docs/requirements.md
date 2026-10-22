@@ -15,6 +15,8 @@ Numbers are never reused. A retired requirement keeps its number with the word "
 
 Amended 2026-10-20: the `primer` plugin (requirements 237 to 268) replaces `repo-docs`, whose requirements 197 to 212 are retired. Requirements 1, 6, 8, 16 and 219 carry the change. Until primer's release, `repo-docs` stays in the catalog beside primer's prerelease entry, lint accepts both, and requirements 6, 8 and 219 describe the state after requirement 268.
 
+Amended 2026-10-22: the test performance pass adds requirements 277 to 279 under Tooling; 269 to 276 are reserved for the house-rule edit and the host alignment pass specified beside it, each landing with its own commit.
+
 ## Suite
 
 1. **One repository, one marketplace.** The marketplace is named `reimagine-claude` and lists exactly four plugins: `rules`, `loop`, `audit` and `primer`, each at `plugins/<name>/`. Before a release a prerelease catalog may list a plugin that is built at a prerelease version (requirement 14), so a work machine can install it from `main` before its release, and may list `repo-docs` until requirement 268 retires it. Check: lint.
@@ -398,6 +400,9 @@ Project instructions in the forms the host loads: a short hub, rules, nested ins
 222. **CI.** On push to `main` and on pull requests: `npm run lint` and `npm test` on ubuntu, macOS and Windows with full history; the audit awk suites again under mawk on ubuntu; `claude plugin validate --strict` on the marketplace and every plugin with a pinned Claude Code version at least seven days old and the autoupdater disabled. Check: review; acceptance (a green run).
 223. **Git attributes.** `.gitattributes` holds `* text=auto eol=lf`, `*.sh text eol=lf`, `*.mjs text eol=lf`, `*.md text eol=lf`. Check: lint.
 224. **Ignore list.** `.gitignore` holds `.scratch/`, `.reimagine/`, `.claude/settings.local.json`, `node_modules/`, `.DS_Store`, `*.log`. Check: review.
+277. **Area test scripts and the test policy.** `package.json` has `test:rules`, `test:loop`, `test:audit`, `test:primer`, `test:lint` and `test:release` beside `test`, each `node --test` over the test files of that directory, so `test` is their union and the preamble's definition of **test** stays true. A commit runs the area scripts that cover what it touched; `npm test` and `npm run lint` run once per milestone before its push, and CI (requirement 222) runs the whole suite on every push and pull request. The hub's `## Commands` lists the area scripts and the policy in one line. Check: review.
+278. **Lint checks syntax concurrently.** `tools/lint.mjs` starts `node --check` for every `.mjs` file at once and waits for all, so the rule's wall time is one check, not their sum; the messages of requirement 219 are unchanged. Check: review.
+279. **`revert-tests.sh` tick.** `plugins/audit/scripts/revert-tests.sh` reads `REVERT_TESTS_TICK`, whole or fractional seconds, default 1: each poll loop sleeps one tick, the `wait` interval is two ticks and the TERM-to-KILL grace of its watchdog is ten ticks, so with the variable unset every delay is what it was. `tests/audit/revert-tests.sh` sets it low for its runs and keeps the wall-clock fixtures the watchdog ends. Check: test.
 
 ## Non-goals
 

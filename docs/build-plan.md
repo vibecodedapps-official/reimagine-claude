@@ -1,6 +1,6 @@
 # Build plan: 0.1.0
 
-Drafted 2026-10-14. requirements.md and architecture.md win over this plan. Requirements are cited as R1 to R268; the primer milestones M10 to M19 follow M9 and are dated where they were added. Each milestone ends with its checks green on the implementer's machine; `npm test` runs from M1 on, `npm run lint` from M7 on, and the forbidden-name sweep (decision 10) runs before every commit from the first one. Pushes and pull requests follow the ask-first rules of the owner's instruction files; the handoff that starts the implementation says what is approved.
+Drafted 2026-10-14. requirements.md and architecture.md win over this plan. Requirements are cited as R1 to R279; the primer milestones M10 to M19 follow M9, and M20 to M25 follow them, each dated where it was added. Each milestone ends with its checks green on the implementer's machine; `npm test` runs from M1 on, `npm run lint` from M7 on, and the forbidden-name sweep (decision 10) runs before every commit from the first one. Pushes and pull requests follow the ask-first rules of the owner's instruction files; the handoff that starts the implementation says what is approved.
 
 The implementation runs with an Opus orchestrator and Sonnet subagents. The orchestrator owns every design document, every commit, and every check; subagents write files from a brief that quotes the requirement and see nothing else.
 
@@ -296,6 +296,31 @@ Work items:
 Check:
 
 - Lint passes after tagging; `claude plugin validate --strict` on the root and each remaining plugin; acceptance item 1 for primer from GitHub, item 21, item 22 at the new tag, item 36.
+
+## Test performance: M25
+
+Added 2026-10-22. Requirements R277 to R279, decisions 104 to 108, acceptance item 44. M25 is built first, before M24 and M20 to M23, so that every later milestone pays less for its checks. The suite's coverage does not change: no test is weakened, skipped or deleted, every script keeps its test (R6), fixture literals stay observed (decision 11) and everything still runs on ubuntu, macOS and Windows (R17); CI's matrix is unchanged. Depends on nothing; touches `package.json`, `CLAUDE.md`, `tests/` and `plugins/audit/scripts/revert-tests.sh`.
+
+| # | Milestone | Adds | Depends on |
+|---|---|---|---|
+| M25 | test performance | the area scripts and the policy line, concurrency in the lint and primer hook suites, the `revert-tests.sh` tick, the after-timings | - |
+
+### M25: test performance
+
+Work items, each its own commit, in this order:
+
+1. `tests/lint/lint.test.mjs`: the cases move under one `describe` with `concurrency` set from `availableParallelism()` as `tests/audit/sh.test.mjs` does, with the `before` and `after` hooks inside it; each case keeps its own copy of the repository from `caseDir()` and the `seq` counter stays synchronous, so nothing is shared. `tests/primer/hook.test.mjs`: the groups whose cases each build their own repository with `make()` get `concurrency`; the "files the command itself stages" group shares one fixture through `before` and stays serial. Commit: `test(perf): run independent cases concurrently`.
+2. `plugins/audit/scripts/revert-tests.sh`: `REVERT_TESTS_TICK` (R279), read beside the three variables it already reads, with the poll loops at one tick, the `wait` interval at two and the watchdog's TERM-to-KILL grace at ten; a value is validated as the others are. `tests/audit/revert-tests.sh` exports a low tick and keeps every `sleep 60` fixture the watchdog ends; the suite proves the default is unchanged by one case that runs with the variable unset. Audit takes its next version in the same commit. Commit: `feat(audit): read the poll tick from the environment`.
+3. `package.json`: the six area scripts of R277; `CLAUDE.md`'s `## Commands`: one bullet per area script, or one bullet naming the pattern, and the policy line, under the 60-line cap (R238). Commit: `chore(repo): add the area test scripts`.
+4. The after-timings: each test file alone with `node --test --test-reporter=spec`, then `npm test` and `npm run lint` whole, on the machine of the baseline, recorded under acceptance item 44 beside the baseline, with the permission mode line; a missed target is recorded by how much and which lever fell short.
+
+Lever 4 of the pass, lint's concurrent syntax check, is already in the code (decision 107), so R278 is a review item and no commit.
+
+Check:
+
+- `npm test` and lint with the deny tokens pass on Windows and on one POSIX machine; the audit sh suites pass under mawk with the tick set and unset.
+- Acceptance item 44: a full `npm test` at half the baseline or better and every area script under 30 seconds except `test:audit`, whose target is the baseline of `revert-tests.sh` alone divided by the tick ratio.
+- After the push, the `## audit <version> - <date>` heading for the version item 2 set, commit `docs(changelog): add the audit <version> heading`, pushed, then `claude plugin tag --push plugins/audit`; the after-timings of item 4 and the record, commit `docs(acceptance): record the test performance milestone`.
 
 ## Acceptance record
 

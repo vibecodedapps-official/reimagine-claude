@@ -1,6 +1,6 @@
 # Acceptance
 
-Hand-run checks for the suite. Each milestone adds its items; items 27 to 36 were added 2026-10-20 for the primer plugin. An item is `N. **Title.** Setup: ... Command: ... Expected: ... Covers R.... Rerun when ...`, followed by its run history; an item not yet run says "Not yet run." Runs use scratch profiles (`CLAUDE_CONFIG_DIR` outside the repository) and throwaway repositories. Every entry in the record of runs gives the date, the machine, the Claude Code, gh and Node versions, the items run, and the result.
+Hand-run checks for the suite. Each milestone adds its items; items 27 to 36 were added 2026-10-20 for the primer plugin, and item 44 on 2026-10-22 for the test performance pass, with 37 to 43 reserved for the host alignment pass specified beside it. An item is `N. **Title.** Setup: ... Command: ... Expected: ... Covers R.... Rerun when ...`, followed by its run history; an item not yet run says "Not yet run." Runs use scratch profiles (`CLAUDE_CONFIG_DIR` outside the repository) and throwaway repositories. Every entry in the record of runs gives the date, the machine, the Claude Code, gh and Node versions, the items run, and the result.
 
 ## Items
 
@@ -40,8 +40,35 @@ Hand-run checks for the suite. Each milestone adds its items; items 27 to 36 wer
 34. **Primer memory notice at startup.** Setup: item 32's profile, a new `feedback` note added by hand with a `modified` later than the stamp. Command: start a new session in the fixture. Expected: one line `primer: auto memory has 1 notes since the last review; run /primer` is visible at startup; after a promote pass a new session shows nothing; a repository without the marker shows nothing. Covers R258. Rerun when the hook or the host's SessionStart handling changes. Run 2026-10-21 on Windows: passed in part, headless; the hook's output is shown, its display at startup waits for an interactive session (record of 2026-10-21, primer memory notice milestone). Not yet run on macOS.
 35. **Audit ranks project rules.** Setup: `tests/audit/fixture/build.sh patterns` on a fixture that holds a `.claude/rules/` file. Command: a low-tier headless audit run. Expected: the stage 1 source list names `.claude/rules/` and `.claude/skills/` after `docs/`. Covers R267. Rerun when stage 1 changes. Run 2026-10-22 on Windows: passed, headless (record of 2026-10-22, siblings milestone). Not yet run on macOS.
 36. **Repo-docs retired.** Setup: a scratch profile with the catalog at the primer release. Command: `/plugin install repo-docs@reimagine-claude`, then `/plugin install primer@reimagine-claude`. Expected: the first fails with the plugin not found; the second loads; `/primer` is listed; the README names adopt as the way to convert a repo-docs repository; lint passes with the `## repo-docs` headings in the changelog. Covers R1, R219, R268. Rerun each primer release. Run 2026-10-22 on Windows from the local catalog: passed in part; the installing profile is not logged in, so `/primer` was listed by a session on the scratch profile with the 0.1.0 plugin directory (record of 2026-10-22, primer release milestone). Run 2026-10-22 on Windows from GitHub: passed in part, the same way (record of 2026-10-22, primer 0.1.0 on GitHub). Not yet run on macOS.
+44. **Suite timing.** Setup: a clean tree at the commit under test, on the machine of the baseline record. Command: each test file alone with `node --test --test-reporter=spec <file>`, then `npm test` and `npm run lint` whole, timed. Expected: `npm test` at half the baseline wall time or better; every area script under 30 seconds except `test:audit`, whose target is the baseline of `revert-tests.sh` alone divided by the tick ratio; the same test count and no new skip. Covers R277 to R279. Rerun each release. Baseline run 2026-10-22 on Windows, before M25: 891 s, with every file's time in the record (record of 2026-10-22, suite timing baseline). Not yet run after M25.
 
 ## Record of runs
+
+### 2026-10-22: suite timing baseline
+
+Windows 11 Pro 10.0.26200, 32 logical CPUs, Node 26.4.0, git 2.56.0 (Git for Windows), Claude Code 2.1.304; `main` at ddf4387, clean tree. No host session, so no permission mode. Each file alone with `node --test --test-reporter=spec <file>`, then `npm test` and `npm run lint` whole; the three slowest audit sh suites once more alone with `sh tests/audit/<suite>.sh`. This is the baseline of item 44; nothing from this repository changed, and the measurement decided decisions 104 to 108.
+
+- **Process creation.** Ten spawns in a row from PowerShell: `sh -c :` 1.97 s, `node -e 0` 0.63 s, `git --version` 0.68 s, so about 200 ms per `sh`, 63 ms per `node` and 68 ms per `git`. A Linux container's `sh` spawn is a few milliseconds, so a suite that spawns `sh` per case pays about fifty times more here.
+- **Each file alone.**
+
+  | File | Alone | Tests |
+  |---|---|---|
+  | `tests/audit/sh.test.mjs` | 677.9 s | 18 |
+  | `tests/primer/hook.test.mjs` | 398.8 s | 114 |
+  | `tests/lint/lint.test.mjs` | 211.6 s | 127 |
+  | `tests/release/release.test.mjs` | 16.8 s | 14 |
+  | `tests/primer/notice.test.mjs` | 14.7 s | 12 |
+  | `tests/rules/rules.test.mjs` | 11.1 s | 125, 7 skipped |
+  | `tests/primer/fixture.test.mjs` | 6.1 s | 2 |
+  | `tests/rules/session-start.test.mjs` | 1.2 s | 15 |
+  | the other six files | under 0.3 s each | 65 |
+
+- **Whole.** `npm test` 891.2 s, exit 0, 492 tests, 485 passed, 7 skipped; `npm run lint` 1.8 s, exit 0, and `node tools/lint.mjs` alone 1.25 s to 1.48 s over three runs.
+- **Inside the audit file,** under its 18-way concurrency: `readonly.sh` 677.7 s, `revert-tests.sh` 525.7 s, `working-tree.sh` 439.3 s, `live.sh` 335.7 s, `ledger.sh` 284.1 s, the ground-truth fixture build and verify 220 s, `handoff.sh` 129 s, `work-items.sh` 105 s, `lint.sh` 101 s. Alone: `readonly.sh` 437 s, `revert-tests.sh` 310 s, `working-tree.sh` 212 s, each exit 0.
+- **Inside the primer hook file:** 123 timed cases, median 3.9 s; the slowest groups are "advice from the changed set" 54 s, "paths values" 53 s and "line caps" 48 s. Each case makes its own repository with `git init`, writes and stages files with `git`, and runs `sh plugins/primer/hooks/drift.sh`, which runs `git` several times, so a case is spawn-bound.
+- **Inside the lint file:** 127 cases serial, median 1.6 s, slowest 2.0 s; each copies the clean repository with `cpSync` and runs `tools/lint.mjs` once. Inside lint, timed by wrapping its process calls: 17 `node --check` runs started together, 1,988 ms of process time, and 17 serial `git` reads, 842 ms, in a 1,252 ms run; the syntax checks were already concurrent (decision 107).
+- **Shape against the Linux measurement of the pass.** The whole suite exceeds its slowest file by 213 s, since the 14 files run in parallel and the audit suites, the lint cases and the hook cases contend for `sh`, `git` and disk. The Linux shape holds with two corrections: on Windows process creation, not the sleeping in `revert-tests.sh`, is the first cost (310 s alone here against 84 s there, with about 75 s of sleeping in both), and the primer hook file is the second-slowest, not the fourth.
+- **Not run.** No item of this document; the checks of the repository were run on the amended documents only.
 
 ### 2026-10-22: primer 0.1.0 on GitHub
 
