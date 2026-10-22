@@ -177,6 +177,12 @@ esac
 ticks=$(awk -v t="$tick" 'BEGIN { print t * 2, t * 10 }') || die "awk failed"
 tick2=${ticks% *}
 tick10=${ticks#* }
+# bash's SECONDS counts whole seconds, so with a fractional tick a span of n can end up to
+# a second early; such a tick waits for n + 1.
+slack=0
+case $tick in
+*.*[1-9]*) slack=1 ;;
+esac
 
 if [ "${1:-}" = bg ]; then
 	[ $# -eq 7 ] || usage
@@ -208,7 +214,7 @@ if [ "${1:-}" = bg ]; then
 				if [ -z "$lost" ]; then
 					lost=$SECONDS
 					[ -n "$termed" ] || kill -TERM 0 2> /dev/null
-				elif [ $((SECONDS - lost)) -ge 60 ]; then
+				elif [ $((SECONDS - lost)) -ge $((60 + slack)) ]; then
 					kill -KILL 0 2> /dev/null
 				fi
 			fi
@@ -225,10 +231,10 @@ if [ "${1:-}" = bg ]; then
 		fired=
 		while kill -0 "$child" 2> /dev/null; do
 			n=$((SECONDS - dl_start))
-			if [ -z "$fired" ] && [ "$n" -ge "$deadline" ]; then
+			if [ -z "$fired" ] && [ "$n" -ge $((deadline + slack)) ]; then
 				kill -TERM -"$child" 2> /dev/null
 				fired=1
-			elif [ -n "$fired" ] && [ "$n" -ge $((deadline + 60)) ]; then
+			elif [ -n "$fired" ] && [ "$n" -ge $((deadline + 60 + slack)) ]; then
 				kill -KILL -"$child" 2> /dev/null
 				break
 			fi
@@ -262,7 +268,7 @@ if [ "${1:-}" = wait ]; then
 	fi
 	w_start=$SECONDS
 	while :; do
-		n=$((SECONDS - w_start))
+		n=$((SECONDS - w_start - slack))
 		if [ -f "$out.exit" ]; then
 			st=$(cat "$out.exit")
 			case $st in
@@ -324,7 +330,7 @@ cleanup() {
 	if [ -n "$live" ]; then
 		kill -KILL -"$live" 2> /dev/null
 		cn_start=$SECONDS
-		while kill -0 -"$live" 2> /dev/null && [ $((SECONDS - cn_start)) -lt 10 ]; do
+		while kill -0 -"$live" 2> /dev/null && [ $((SECONDS - cn_start)) -lt $((10 + slack)) ]; do
 			sleep "$tick"
 		done
 	fi
@@ -617,7 +623,7 @@ watchdog() {
 	wd_start=$SECONDS
 	while :; do
 		sleep "$tick"
-		[ $((SECONDS - wd_start)) -lt "$2" ] || break
+		[ $((SECONDS - wd_start)) -lt $(($2 + slack)) ] || break
 	done
 	: > "$w/timedout"
 	kill -TERM -"$1" 2> /dev/null
@@ -629,7 +635,7 @@ watchdog() {
 gone() {
 	gn_start=$SECONDS
 	while kill -0 -"$1" 2> /dev/null; do
-		[ $((SECONDS - gn_start)) -lt 10 ] || return 1
+		[ $((SECONDS - gn_start)) -lt $((10 + slack)) ] || return 1
 		kill -KILL -"$1" 2> /dev/null
 		sleep "$tick"
 	done

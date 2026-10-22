@@ -153,7 +153,7 @@ when the invocation block says `command: resume`; the rules of
    - The pinned sha of every reference and source of truth, resolved again as stage 1
      did through the brief's ref mapping lines; a change invalidates stage 1.
    - Upstream stage outputs, by `git hash-object --no-filters <file>`.
-   - `plugin_version`, compared with the literal `"0.1.5"`; any other recorded value
+   - `plugin_version`, compared with the literal `"0.1.6"`; any other recorded value
      invalidates stage 1.
    - Stage 1's `review_files` are not read again: each is a blob at a bundle's pinned
      base, which step 3 compares.

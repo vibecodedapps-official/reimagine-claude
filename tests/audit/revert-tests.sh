@@ -24,7 +24,8 @@
 #  5 processes: a background process left by a passing file and a child that ignores TERM
 #    after its parent dies at the deadline (5a); a command that ignores TERM until KILL,
 #    with REVERT_TESTS_TICK unset (5b); 5a with no controlling terminal, under dash where
-#    installed (5c, needs setsid); 5b with the low tick (5d)
+#    installed (5c, needs setsid); 5b with the low tick (5d); files that end before the
+#    deadline under the low tick (5e)
 #  6 the time cap                        7 the file cap, with 21 files
 #  8 a path conflict                     9 the environment: LC_ALL, GIT_*, TMPDIR, and
 #    GIT_CEILING_DIRECTORIES
@@ -392,6 +393,28 @@ verdicts '- `tests/test_stubborn.sh`: does not pass at head (timed out)\n'
 status tests/test_stubborn.sh > "$tmp/st"
 grep -qx -- '- Exit status: timed out after [2-9] seconds (exit status 137)' "$tmp/st" ||
 	mismatch "$case_id: status [$(cat "$tmp/st")]"
+
+# 5e. Two files that take 1.5 seconds against a deadline of 2, run at head and without the
+# change, under the low tick: each run's deadline counts whole seconds of the shell's
+# clock, and none may end before 2 seconds have passed.
+case_id="case 5e"
+mkrepo c5e
+put 100644 README 'x
+'
+commit main
+put 100644 tests/test_s1.sh 'sleep 1.5
+'
+put 100644 tests/test_s2.sh 'sleep 1.5
+'
+commit feature main
+run "$R" 'command	sh
+run	tests/test_*.sh
+timeout	2
+'
+ok
+verdicts '- `tests/test_s1.sh`: passes at head and without the change
+- `tests/test_s2.sh`: passes at head and without the change
+'
 
 # 5c. 5a's repo again in a new session with no controlling terminal, as under CI, started
 # with dash when it is installed: dash turns job control off without a terminal, so the
