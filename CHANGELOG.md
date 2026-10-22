@@ -7,6 +7,12 @@ One changelog for the suite. Each plugin releases on its own line; a release get
 - Design documents for 0.1.0 under `docs/`: requirements, architecture, build plan, decisions, acceptance.
 - Design documents for the `primer` plugin under `docs/`, which replaces `repo-docs` from its release: requirements 237 to 268, decisions 73 to 89, milestones M10 to M19, acceptance items 27 to 36.
 
+## audit 0.1.6 - 2026-10-22
+
+- `revert-tests.sh` with a fractional `REVERT_TESTS_TICK` no longer ends a deadline, the wait window or a cleanup bound up to a second early: the shell's clock counts whole seconds, so such a tick now waits one second more. A whole tick, the default included, waits as before.
+- Agents report and label findings as if `REVIEW.md`'s severity and do-not-report rules were absent, and the report alone applies them. Before, an agent could drop a finding under a skip rule itself, so the report's line counting skipped findings showed 0.
+- A run started on 0.1.5 resumes from stage 1, as after every audit release.
+
 ## loop 0.1.4 - 2026-10-22
 
 - The final review request names the base commit's `REVIEW.md`, at the root and in each parent directory of a changed file, as review instructions when one exists, so the reviewer holds the change to the repository's own review calibration; a copy the branch adds or changes is not used.
