@@ -679,15 +679,15 @@ defect is not decided here: `docs/acceptance.md` records it per audit run (item 
 
 | Commit | Id | Branch | Files |
 |---|---|---|---|
-| `initial job queue` | `5a58bb567cb446f7df17864e1232f98f08b5d1d8` | `stable`, merge-base of `head-only` | `README.md`, `data/jobs.csv`, `src/jobs.sh`, `tests/test_jobs.sh`, `vendor/strutil.sh` |
-| `add the review instructions` | `a88f49a5fcd5078cc03afd85e2993792f35564e4` | `main`, merge-base of `feature` | `REVIEW.md` |
-| `REV-1: number jobs from a counter file` | `c546c34d31c1b8e4a81b10319a757429bb1f4def` | `feature` head | `src/jobs.sh`, `tests/test_jobs.sh`, `vendor/strutil.sh` |
-| `REV-2: number jobs from a counter file, with review instructions` | `d0e144e8baf7e4854f3a4ed0998fef23ee4e5fde` | `head-only` head, on `stable` | `REVIEW.md`, `src/jobs.sh`, `tests/test_jobs.sh`, `vendor/strutil.sh` |
+| `initial job queue` | `14dc41fefcbab707adab0407318f5cfe46a3519d` | `stable`, merge-base of `head-only` | `README.md`, `data/jobs.csv`, `src/jobs.sh`, `tests/test_jobs.sh`, `vendor/strutil.sh` |
+| `add the review instructions` | `7f893c4b5139561ff0aefb62edcbe039205f654a` | `main`, merge-base of `feature` | `REVIEW.md` |
+| `REV-1: number jobs from a counter file` | `a5a49bd6121bc2988418810805376ee6d13389b1` | `feature` head | `src/jobs.sh`, `tests/test_jobs.sh`, `vendor/strutil.sh` |
+| `REV-2: number jobs from a counter file, with review instructions` | `48b9701adebc8b87c620f4a52ff62fcf1ce5a9cb` | `head-only` head, on `stable` | `REVIEW.md`, `src/jobs.sh`, `tests/test_jobs.sh`, `vendor/strutil.sh` |
 
 - Changed files (three-dot), bundle one: `src/jobs.sh`, `tests/test_jobs.sh`,
-  `vendor/strutil.sh`; 3 files changed, 20 insertions(+), 5 deletions(-).
+  `vendor/strutil.sh`; 3 files changed, 21 insertions(+), 6 deletions(-).
 - Changed files (three-dot), bundle two: `REVIEW.md`, `src/jobs.sh`, `tests/test_jobs.sh`,
-  `vendor/strutil.sh`; 4 files changed, 33 insertions(+), 5 deletions(-). Its
+  `vendor/strutil.sh`; 4 files changed, 34 insertions(+), 6 deletions(-). Its
   `src/jobs.sh`, `tests/test_jobs.sh` and `vendor/strutil.sh` are those of `feature`.
 - Each bundle has 1 ticket and under 500 changed lines, so the tier is `low`.
 - `REVIEW.md` candidates (stage 1, step 6d): `REVIEW.md`, `src/REVIEW.md`,
@@ -708,7 +708,7 @@ The same 13 lines at `main` and in the head of `head-only`. Its three rules:
 
 ### Expected outcomes
 
-Both bundles hold the same three defects; the head file lines are the same in both.
+Both bundles hold the same four defects; the head file lines are the same in both.
 
 - Concurrency: `src/jobs.sh` lines 11 to 15, `next_id`, reads `data/next_id` and writes
   the next value with no lock, so two `add` calls at once can read the same id and write
@@ -719,12 +719,18 @@ Both bundles hold the same three defects; the head file lines are the same in bo
   `$(...)`.
 - Vendored edit: `vendor/strutil.sh` line 5, `tr -d ' \t'`, deletes every blank, so
   `sh src/jobs.sh add 'nightly backup'` stores `nightlybackup`. The base version kept the
-  inner blank. The file's header says it is copied from upstream.
+  inner blank. The file's header says it is copied from upstream. The defect shows in what
+  `src/jobs.sh` stores, so the `vendor/` rule may not cover it.
+- Vendored only: `vendor/strutil.sh` line 11, `repeat`, loops while `$i -le $2`, so
+  `repeat ab 2` prints `ababab`; the base used `-lt` and printed `abab`. No file outside
+  `vendor/` calls `repeat`, so the defect is in `vendor/` alone and the `vendor/` rule
+  covers it.
 
 With `manifest.json`, the report's header names `REVIEW.md` at
-`a88f49a5fcd5078cc03afd85e2993792f35564e4`; the nit shows at `note` at most, with its
-reviewed severity; the `vendor/` findings leave the body and are counted in one line,
-`<n> findings skipped by REVIEW.md: <rule>`; the concurrency finding shows the
+`7f893c4b5139561ff0aefb62edcbe039205f654a`; the nit shows at `note` at most, with its
+reviewed severity; the `repeat` finding, with any other found in `vendor/` alone, leaves
+the body and is counted in one line, `<n> findings skipped by REVIEW.md: <rule>`, with
+`<n>` 1 or more; the concurrency finding shows the
 require-evidence rule, met or held.
 
 With `manifest-head-only.json`, the brief says `REVIEW.md: none at the base` and
@@ -741,13 +747,15 @@ changes.
 - `sh src/jobs.sh add 'nightly backup'` leaves `data/jobs.csv` as `id,name` and
   `1,nightly backup` at `main` and `stable`, and as `id,name` and `1,nightlybackup` at
   `feature` and `head-only`, where `data/next_id` then holds `2`.
+- `. vendor/strutil.sh; repeat ab 2` prints `abab` at `main` and `stable` and `ababab` at
+  `feature` and `head-only`, where `git grep -l repeat <rev> -- src tests` prints nothing.
 
 ### Verify
 
 ```sh
 A="git -C $F/app"
-$A merge-base main feature                  # a88f49a5fcd5078cc03afd85e2993792f35564e4
-$A merge-base stable head-only              # 5a58bb567cb446f7df17864e1232f98f08b5d1d8
+$A merge-base main feature                  # 7f893c4b5139561ff0aefb62edcbe039205f654a
+$A merge-base stable head-only              # 14dc41fefcbab707adab0407318f5cfe46a3519d
 $A diff --name-only main...feature          # src/jobs.sh tests/test_jobs.sh vendor/strutil.sh
 $A diff --name-only stable...head-only      # REVIEW.md src/jobs.sh tests/test_jobs.sh vendor/strutil.sh
 $A ls-tree --full-tree stable -- REVIEW.md  # no output

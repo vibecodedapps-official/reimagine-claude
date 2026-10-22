@@ -1443,6 +1443,24 @@ trim() {
 }
 EOF
 	fi
+	cat <<'EOF'
+
+# repeat <text> <n>: print <text> <n> times on one line.
+repeat() {
+    i=0
+EOF
+	if [ "$1" = 1 ]; then
+		echo '    while [ "$i" -le "$2" ]; do'
+	else
+		echo '    while [ "$i" -lt "$2" ]; do'
+	fi
+	cat <<'EOF'
+        printf '%s' "$1"
+        i=$((i + 1))
+    done
+    echo
+}
+EOF
 }
 
 # rev_test_jobs_sh <head 0|1>

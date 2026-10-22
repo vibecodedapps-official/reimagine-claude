@@ -96,27 +96,27 @@ fi
 # review: the two bundles, where REVIEW.md is at each base and head, the exports, the two
 # manifests, and the behavior of the planted defects, run in temp copies.
 if [ "$name" = review ]; then
-	same "app stable" 5a58bb567cb446f7df17864e1232f98f08b5d1d8 "$(rev "$A" stable)"
-	same "app main" a88f49a5fcd5078cc03afd85e2993792f35564e4 "$(rev "$A" main)"
-	same "app feature head" c546c34d31c1b8e4a81b10319a757429bb1f4def "$(rev "$A" feature)"
-	same "app head-only head" d0e144e8baf7e4854f3a4ed0998fef23ee4e5fde "$(rev "$A" head-only)"
-	same "app merge-base of feature" a88f49a5fcd5078cc03afd85e2993792f35564e4 \
+	same "app stable" 14dc41fefcbab707adab0407318f5cfe46a3519d "$(rev "$A" stable)"
+	same "app main" 7f893c4b5139561ff0aefb62edcbe039205f654a "$(rev "$A" main)"
+	same "app feature head" a5a49bd6121bc2988418810805376ee6d13389b1 "$(rev "$A" feature)"
+	same "app head-only head" 48b9701adebc8b87c620f4a52ff62fcf1ce5a9cb "$(rev "$A" head-only)"
+	same "app merge-base of feature" 7f893c4b5139561ff0aefb62edcbe039205f654a \
 		"$(git -C "$A" merge-base main feature 2>/dev/null)"
-	same "app merge-base of head-only" 5a58bb567cb446f7df17864e1232f98f08b5d1d8 \
+	same "app merge-base of head-only" 14dc41fefcbab707adab0407318f5cfe46a3519d \
 		"$(git -C "$A" merge-base stable head-only 2>/dev/null)"
-	same "app commits on main after stable" "a88f49a5fcd5078cc03afd85e2993792f35564e4 add the review instructions" \
+	same "app commits on main after stable" "7f893c4b5139561ff0aefb62edcbe039205f654a add the review instructions" \
 		"$(git -C "$A" log --format='%H %s' stable..main 2>/dev/null)"
-	same "app commits on feature" "c546c34d31c1b8e4a81b10319a757429bb1f4def REV-1: number jobs from a counter file" \
+	same "app commits on feature" "a5a49bd6121bc2988418810805376ee6d13389b1 REV-1: number jobs from a counter file" \
 		"$(git -C "$A" log --format='%H %s' main..feature 2>/dev/null)"
-	same "app commits on head-only" "d0e144e8baf7e4854f3a4ed0998fef23ee4e5fde REV-2: number jobs from a counter file, with review instructions" \
+	same "app commits on head-only" "48b9701adebc8b87c620f4a52ff62fcf1ce5a9cb REV-2: number jobs from a counter file, with review instructions" \
 		"$(git -C "$A" log --format='%H %s' stable..head-only 2>/dev/null)"
 	same "app files changed on feature" "src/jobs.sh tests/test_jobs.sh vendor/strutil.sh" \
 		"$(git -C "$A" diff --name-only main...feature 2>/dev/null | tr '\n' ' ' | sed 's/ $//')"
-	same "app diff stat of feature" "3 files changed, 20 insertions(+), 5 deletions(-)" \
+	same "app diff stat of feature" "3 files changed, 21 insertions(+), 6 deletions(-)" \
 		"$(git -C "$A" diff --shortstat main...feature 2>/dev/null | sed 's/^ //')"
 	same "app files changed on head-only" "REVIEW.md src/jobs.sh tests/test_jobs.sh vendor/strutil.sh" \
 		"$(git -C "$A" diff --name-only stable...head-only 2>/dev/null | tr '\n' ' ' | sed 's/ $//')"
-	same "app diff stat of head-only" "4 files changed, 33 insertions(+), 5 deletions(-)" \
+	same "app diff stat of head-only" "4 files changed, 34 insertions(+), 6 deletions(-)" \
 		"$(git -C "$A" diff --shortstat stable...head-only 2>/dev/null | sed 's/^ //')"
 	# The candidates stage 1 lists: the root and each parent directory of a changed file.
 	copies() {
@@ -161,6 +161,16 @@ if [ "$name" = review ]; then
 		same "data/jobs.csv after add at $b" "id,name|1,nightlybackup" \
 			"$(tr '\n' '|' < "$tmp/$b/data/jobs.csv" | sed 's/|$//')"
 		same "data/next_id after add at $b" 2 "$(cat "$tmp/$b/data/next_id" 2>/dev/null)"
+	done
+	# The vendored repeat prints its text once too often at each head, and nothing outside
+	# vendor/ calls it.
+	for b in main stable; do
+		same "repeat ab 2 at $b" abab "$(cd "$tmp/$b" && sh -c '. vendor/strutil.sh; repeat ab 2' 2>/dev/null)"
+	done
+	for b in feature head-only; do
+		same "repeat ab 2 at $b" ababab "$(cd "$tmp/$b" && sh -c '. vendor/strutil.sh; repeat ab 2' 2>/dev/null)"
+		same "callers of repeat outside vendor/ at $b" "" \
+			"$(git -C "$A" grep -l repeat "$b" -- src tests 2>/dev/null)"
 	done
 
 	finish
