@@ -297,6 +297,65 @@ Check:
 
 - Lint passes after tagging; `claude plugin validate --strict` on the root and each remaining plugin; acceptance item 1 for primer from GitHub, item 21, item 22 at the new tag, item 36.
 
+## Host alignment: M20 to M23
+
+Added 2026-10-22. Requirements R270 to R276, decisions 94 to 103, acceptance items 37 to 43; the spikes are recorded under "pre-implementation spikes for host alignment" in acceptance.md. The same orchestrator and subagent split as above; each milestone ends with its checks green and its acceptance items recorded, lint runs with `LINT_DENY_TOKENS` set before every commit, and each push follows the owner's yes at the next version of any plugin it changes. These milestones are built after M25 and M24.
+
+| # | Milestone | Adds | Depends on |
+|---|---|---|---|
+| M20 | review file | `REVIEW.md` in the audit's source lists and the loop's review request; the fixture; audit and loop versions | - |
+| M21 | evals | the eval cases under `tests/evals/`, `npm run eval`, the release-order line in README | - |
+| M22 | measurement | the startup-cost item and the auto-mode items run and recorded; the preamble sentence | - |
+| M23 | workflow engine | the script, the stage 4 engine switch, resume, lint rules, item 15 through the engine; audit version | M20; the gate of R270: the item 15 baseline taken, counts matched, tokens at or under it, a clean relaunch |
+
+M20, M21 and M22 may run in parallel, since none touches `plugins/primer/` or another's files; every edit to `.claude-plugin/marketplace.json`, `CHANGELOG.md`, `tools/lint.mjs` and `README.md` is serialized. M23 runs alone, after M20, since both edit the audit's stage files, and only when its gate is met: as of 2026-10-22 the baseline and the comparison run have not run (decision 103), so M23 is not built until the owner has them run and the record shows the gate met.
+
+### M20: review file
+
+Work items:
+
+1. Audit: `REVIEW.md` at the root and in the parent directories of each changed file, read at the base commit, in the default source list of stage 1, stage 9 and `common.md`; stage 1 records the copies read and their shas; the report's severity labels, the `<n> findings skipped by REVIEW.md: <rule>` line, the "always check" pass-one check and the "require evidence" gate (R271). `tests/audit/fixture/build.sh` gains a `review` mode, or extends `patterns`, with a root `REVIEW.md` that caps nits, excludes one path and requires a `file:line` citation for one class, and a second bundle whose `REVIEW.md` exists only in its head; `tests/audit/lint.sh` learns the new list entry. Audit takes its next version. Commit: `feat(audit): read the base commit's review file as a source of truth`.
+2. Loop: the one sentence of R272 in `steps/4-build.md`; loop takes its next version. Commit: `feat(loop): name the review file in the final review request`.
+3. After the push: the CHANGELOG headings for both, commit `docs(changelog): add the audit and loop headings` naming the versions, pushed, then `claude plugin tag --push` for each; the acceptance record, commit `docs(acceptance): record the review file milestone`.
+
+Check:
+
+- `npm run test:audit` and `npm run test:loop` on each commit; `npm test` and lint with the deny tokens before the push.
+- Acceptance item 37 on both bundles, headless, with the permission mode recorded.
+
+### M21: evals
+
+Work items:
+
+1. `tests/evals/loop/prose-trigger/`, `tests/evals/loop/bundled-loop/`, `tests/evals/primer/mode-line/`, each `prompt.md` with `plugins`, `max_turns` and `allowed_tools` and its `graders/` (R273, decision 100), in the form of the spike's two cases; `tests/evals/results/` in `.gitignore` beside the ignore list of R224, whose text gains the entry. Commit: `test(evals): add the trigger and mode-line cases`.
+2. `package.json`: `"eval": "claude plugin eval . --eval-dir tests/evals --runs 2 --no-publish"`; README's development section names it and its needs (the host's eval command, a login, git 2.31 or later), and the release order runs it after the changelog heading and before the tag. Commit: `chore(repo): add the eval script and its release step`.
+
+Check:
+
+- Lint and `npm run test:lint`; acceptance item 38: every case at 2 of 2 with the plugin, the forced failure reported, the scores recorded with the host version and the permission mode, commit `docs(acceptance): record the evals milestone`.
+
+### M22: measurement
+
+Work items:
+
+1. acceptance.md: nothing to build; item 39 run and recorded as the baseline of R274, item 40 to 42 run under `--permission-mode auto` with every refusal verbatim, and the records naming the permission mode (R275). A difference from the manual-mode runs becomes a decision. Commit: `docs(acceptance): record the startup cost and the auto-mode pass`.
+
+Check:
+
+- Items 39 to 42 recorded; nothing under `plugins/` changed.
+
+### M23: workflow engine
+
+Built only when the gate of R270 is met and recorded. Work items:
+
+1. `plugins/audit/workflows/passes.js` (R270): the literal `meta`, three `phase()` calls, `agent()` with `schema` for every unit, the agent counts from the baseline record; stage 4's engine selection and the `engine` field with its reason, stages 5 and 6 reading the script's return from the run directory; `stages.json` gains the session id, run id, script path and phase reached, and `resume.md` relaunches with `resumeFromRunId` (R161). Decisions 21 and 24 gain a sentence each on what the workflow path makes unnecessary. Audit takes its next version. Commit: `feat(audit): run passes one, two and the second opinion as a workflow`.
+2. `tools/lint.mjs`: the workflow rule of R219 and R6's script list; `tests/lint/lint.test.mjs` gains one negative case per message. Commit: `feat(lint): check the audit workflow script`.
+3. After the push: the CHANGELOG heading, commit `docs(changelog): add the audit <version> heading`, pushed, then the tag; the acceptance record, commit `docs(acceptance): record the workflow engine milestone`.
+
+Check:
+
+- `npm test` and lint; acceptance item 43: item 15's counts through the engine at tokens at or under the baseline, both recorded; the stopped run relaunched; `disableWorkflows` forcing `engine: prompt`; the prompt-path result on the same fixture unchanged.
+
 ## House-rule edit eight: M24
 
 Added 2026-10-22. Requirement R269, decision 93. Built after M25 and before M20 to M23. Depends on nothing; touches `plugins/rules/` and `tests/rules/` only.
@@ -349,4 +408,4 @@ Every milestone's acceptance items are run in a scratch profile (`CLAUDE_CONFIG_
 
 ## Out of scope
 
-Everything in requirements 225 to 231 and 266.
+Everything in requirements 225 to 231, 266 and 276.
