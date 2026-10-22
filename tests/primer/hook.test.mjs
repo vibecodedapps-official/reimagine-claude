@@ -1,24 +1,39 @@
 // Runs the primer drift hook (plugins/primer/hooks/drift.sh) against throwaway repositories, one test per rule.
 // The hook needs sh, git, awk and sed on PATH. Every repository lives under one temporary base that is removed at the end.
+// The groups whose cases each build their own repository run their cases concurrently.
 import { describe, test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { availableParallelism, tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
+const concurrency = Math.max(1, availableParallelism() - 1);
 
 let base;
 let env;
 let gitEnv;
 
-const git = (cwd, ...args) => {
-  const r = spawnSync(
+// Resolves with the status and the utf8 output; input, when given, is written to stdin.
+const exec = (command, args, options, input) =>
+  new Promise((resolve, reject) => {
+    const child = spawn(command, args, { ...options, stdio: [input === undefined ? 'ignore' : 'pipe', 'pipe', 'pipe'] });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.setEncoding('utf8').on('data', (d) => (stdout += d));
+    child.stderr.setEncoding('utf8').on('data', (d) => (stderr += d));
+    child.on('error', reject);
+    child.on('close', (status) => resolve({ status, stdout, stderr }));
+    if (input !== undefined) child.stdin.end(input);
+  });
+
+const git = async (cwd, ...args) => {
+  const r = await exec(
     'git',
     ['-c', 'user.name=fixture', '-c', 'user.email=fixture@example.invalid', '-c', 'commit.gpgsign=false', '-c', 'core.autocrlf=false', '-c', 'init.defaultBranch=main', ...args],
-    { cwd, env: gitEnv, encoding: 'utf8' },
+    { cwd, env: gitEnv },
   );
   assert.equal(r.status, 0, `git ${args.join(' ')} in ${cwd}\n${r.stderr}`);
   return r.stdout;
@@ -30,19 +45,19 @@ const write = (dir, path, content) => {
   writeFileSync(file, content);
 };
 
-const repo = (name, files) => {
+const repo = async (name, files) => {
   const dir = join(base, name);
   mkdirSync(dir, { recursive: true });
   for (const [path, content] of Object.entries(files)) write(dir, path, content);
-  git(dir, 'init', '-q');
-  git(dir, 'add', '-A');
-  git(dir, 'commit', '-q', '-m', 'init');
+  await git(dir, 'init', '-q');
+  await git(dir, 'add', '-A');
+  await git(dir, 'commit', '-q', '-m', 'init');
   return dir;
 };
 
-const hook = (input, envOverride = {}) => {
+const hook = async (input, envOverride = {}) => {
   // A forward-slash path relative to cwd, which Git Bash on Windows reads as given.
-  const r = spawnSync('sh', ['plugins/primer/hooks/drift.sh'], { cwd: root, env: { ...env, ...envOverride }, input, encoding: 'utf8' });
+  const r = await exec('sh', ['plugins/primer/hooks/drift.sh'], { cwd: root, env: { ...env, ...envOverride } }, input);
   assert.equal(r.status, 0, `hook exited ${r.status}\n${r.stderr}`);
   return r.stdout;
 };
@@ -121,17 +136,17 @@ let brokenPath;
 let fixture;
 
 // Back to a clean index and tree after a step that changed files.
-const clean = (dir) => {
-  git(dir, 'reset', '-q');
-  git(dir, 'checkout', '-q', '--', '.');
+const clean = async (dir) => {
+  await git(dir, 'reset', '-q');
+  await git(dir, 'checkout', '-q', '--', '.');
   rmSync(join(dir, 'src/new.ts'), { force: true });
 };
-const stage = (dir, path, content) => {
+const stage = async (dir, path, content) => {
   write(dir, path, content);
-  git(dir, 'add', '--', path);
+  await git(dir, 'add', '--', path);
 };
 
-before(() => {
+before(async () => {
   base = mkdtempSync(join(tmpdir(), 'primer-hook-'));
   const emptyConfig = join(base, 'empty.gitconfig');
   writeFileSync(emptyConfig, '');
@@ -140,9 +155,9 @@ before(() => {
   delete env.GIT_WORK_TREE;
   delete env.GIT_INDEX_FILE;
   gitEnv = { ...env, GIT_AUTHOR_DATE: '2026-09-01T10:00:00Z', GIT_COMMITTER_DATE: '2026-09-01T10:00:00Z' };
-  broken = make('broken', { 'CLAUDE.md': brokenHub });
+  broken = await make('broken', { 'CLAUDE.md': brokenHub });
   brokenPath = broken;
-  fixture = make('fixture', {});
+  fixture = await make('fixture', {});
 });
 
 after(() => rmSync(base, { recursive: true, force: true }));
@@ -179,8 +194,8 @@ describe('primer drift hook', () => {
     'git --no-pager commit -m "fix; things"',
   ];
   for (const command of positive) {
-    test(`detects a commit: ${JSON.stringify(command)}`, () => {
-      assert.equal(run(command, broken), deny(brokenFinding));
+    test(`detects a commit: ${JSON.stringify(command)}`, async () => {
+      assert.equal(await run(command, broken), deny(brokenFinding));
     });
   }
 
@@ -196,36 +211,36 @@ describe('primer drift hook', () => {
     'git -C "$REPO" commit -m x',
   ];
   for (const command of wrapped) {
-    test(`detects a commit: ${JSON.stringify(command)}`, () => {
-      assert.equal(run(command, broken), deny(brokenFinding));
+    test(`detects a commit: ${JSON.stringify(command)}`, async () => {
+      assert.equal(await run(command, broken), deny(brokenFinding));
     });
   }
 
-  test('detects a commit after env -C from a non-repository cwd', () => {
-    assert.equal(run('env -C broken git commit -m x', base), deny(brokenFinding));
+  test('detects a commit after env -C from a non-repository cwd', async () => {
+    assert.equal(await run('env -C broken git commit -m x', base), deny(brokenFinding));
   });
 
-  test('detects a commit after git -C ~/dir with HOME set', () => {
-    assert.equal(run('git -C ~/broken commit -m x', base, { env: { HOME: base } }), deny(brokenFinding));
+  test('detects a commit after git -C ~/dir with HOME set', async () => {
+    assert.equal(await run('git -C ~/broken commit -m x', base, { env: { HOME: base } }), deny(brokenFinding));
   });
 
-  test('detects a commit from the PowerShell tool', () => {
-    assert.equal(run('git commit -m x', broken, { tool: 'PowerShell' }), deny(brokenFinding));
+  test('detects a commit from the PowerShell tool', async () => {
+    assert.equal(await run('git commit -m x', broken, { tool: 'PowerShell' }), deny(brokenFinding));
   });
 
-  test('PowerShell reads a backslash before a closing quote as a plain character', () => {
-    assert.equal(run('cd "C:\\work\\"; git commit -m x', broken, { tool: 'PowerShell' }), deny(brokenFinding));
+  test('PowerShell reads a backslash before a closing quote as a plain character', async () => {
+    assert.equal(await run('cd "C:\\work\\"; git commit -m x', broken, { tool: 'PowerShell' }), deny(brokenFinding));
   });
 
-  test('PowerShell reads a backtick before a quote as a literal quote', () => {
-    assert.equal(run('echo "a`"b"; git commit -m x', broken, { tool: 'PowerShell' }), deny(brokenFinding));
+  test('PowerShell reads a backtick before a quote as a literal quote', async () => {
+    assert.equal(await run('echo "a`"b"; git commit -m x', broken, { tool: 'PowerShell' }), deny(brokenFinding));
   });
 
-  test('Bash keeps a backslash-escaped quote inside the string', () => {
-    assert.equal(run('echo "x\\"; git commit -m x', broken, { tool: 'Bash' }), '');
+  test('Bash keeps a backslash-escaped quote inside the string', async () => {
+    assert.equal(await run('echo "x\\"; git commit -m x', broken, { tool: 'Bash' }), '');
   });
 
-  test('detects a commit in pretty-printed stdin', () => {
+  test('detects a commit in pretty-printed stdin', async () => {
     const input = {
       session_id: 'test',
       hook_event_name: 'PreToolUse',
@@ -233,7 +248,7 @@ describe('primer drift hook', () => {
       tool_input: { command: 'git commit -m x', description: 'Run a command' },
       cwd: broken,
     };
-    assert.equal(hook(JSON.stringify(input, null, 2)), deny(brokenFinding));
+    assert.equal(await hook(JSON.stringify(input, null, 2)), deny(brokenFinding));
   });
 
   const slashed = (p) => p.replaceAll('\\', '/');
@@ -244,8 +259,8 @@ describe('primer drift hook', () => {
     ['a forward-slash --work-tree=', () => `git --work-tree=${slashed(brokenPath)} commit -m x`],
   ];
   for (const [label, command] of directory) {
-    test(`detects a commit from a non-repository cwd with ${label}`, () => {
-      assert.equal(run(command(), base), deny(brokenFinding));
+    test(`detects a commit from a non-repository cwd with ${label}`, async () => {
+      assert.equal(await run(command(), base), deny(brokenFinding));
     });
   }
 
@@ -263,221 +278,221 @@ describe('primer drift hook', () => {
     ['git commit -h', {}],
   ];
   for (const [command, extra] of negative) {
-    test(`stays quiet: ${JSON.stringify(command)} ${extra.description ?? ''}`.trim(), () => {
-      assert.equal(run(command, broken, extra), '');
+    test(`stays quiet: ${JSON.stringify(command)} ${extra.description ?? ''}`.trim(), async () => {
+      assert.equal(await run(command, broken, extra), '');
     });
   }
 
-  test('stays quiet on empty stdin', () => {
-    assert.equal(hook(''), '');
+  test('stays quiet on empty stdin', async () => {
+    assert.equal(await hook(''), '');
   });
 
-  test('stays quiet on stdin that is not JSON', () => {
-    assert.equal(hook('not json commit'), '');
+  test('stays quiet on stdin that is not JSON', async () => {
+    assert.equal(await hook('not json commit'), '');
   });
 
-  test('prints nothing outside a repository', () => {
+  test('prints nothing outside a repository', async () => {
     const dir = join(base, 'plain');
     write(dir, 'CLAUDE.md', brokenHub);
-    assert.equal(run('git commit -m x', dir), '');
+    assert.equal(await run('git commit -m x', dir), '');
   });
 
-  test('a byte that is not UTF-8 in the command does not disable the hook under a UTF-8 locale', () => {
-    const dir = make('bad-byte', { 'CLAUDE.md': brokenHub });
+  test('a byte that is not UTF-8 in the command does not disable the hook under a UTF-8 locale', async () => {
+    const dir = await make('bad-byte', { 'CLAUDE.md': brokenHub });
     const input = Buffer.concat([
       Buffer.from('{"tool_name":"Bash","tool_input":{"command":"git commit -m \\"caf'),
       Buffer.from([0xff]),
       Buffer.from('\\""},"cwd":' + JSON.stringify(dir) + '}'),
     ]);
-    for (const locale of ['en_US.UTF-8', 'C.UTF-8', 'C']) assert.equal(hook(input, { LC_ALL: locale }), deny(brokenFinding), locale);
+    for (const locale of ['en_US.UTF-8', 'C.UTF-8', 'C']) assert.equal(await hook(input, { LC_ALL: locale }), deny(brokenFinding), locale);
   });
 
-  describe('quiet and opt-in', () => {
-    test('the base fixture with nothing staged prints nothing', () => {
-      assert.equal(run('git commit -m x', fixture), '');
+  describe('quiet and opt-in', { concurrency }, () => {
+    test('the base fixture with nothing staged prints nothing', async () => {
+      assert.equal(await run('git commit -m x', fixture), '');
     });
-    test('a hub without the marker line prints nothing', () => {
-      const dir = make('no-marker', { 'CLAUDE.md': brokenHub.split('\n').slice(1).join('\n') });
-      assert.equal(run('git commit -m x', dir), '');
+    test('a hub without the marker line prints nothing', async () => {
+      const dir = await make('no-marker', { 'CLAUDE.md': brokenHub.split('\n').slice(1).join('\n') });
+      assert.equal(await run('git commit -m x', dir), '');
     });
-    test('a marker on line 2 after a blank line prints nothing', () => {
-      const dir = make('marker-line-2', { 'CLAUDE.md': '\n' + brokenHub });
-      assert.equal(run('git commit -m x', dir), '');
+    test('a marker on line 2 after a blank line prints nothing', async () => {
+      const dir = await make('marker-line-2', { 'CLAUDE.md': '\n' + brokenHub });
+      assert.equal(await run('git commit -m x', dir), '');
     });
-    test('a hub with CRLF line ends is read', () => {
-      const dir = make('crlf-hub', { 'CLAUDE.md': brokenHub.replaceAll('\n', '\r\n') });
-      assert.equal(run('git commit -m x', dir), deny(brokenFinding));
+    test('a hub with CRLF line ends is read', async () => {
+      const dir = await make('crlf-hub', { 'CLAUDE.md': brokenHub.replaceAll('\n', '\r\n') });
+      assert.equal(await run('git commit -m x', dir), deny(brokenFinding));
     });
-    test('no CLAUDE.md or AGENTS.md prints nothing', () => {
-      assert.equal(run('git commit -m x', repo('nohub', { 'a.txt': 'a\n' })), '');
+    test('no CLAUDE.md or AGENTS.md prints nothing', async () => {
+      assert.equal(await run('git commit -m x', await repo('nohub', { 'a.txt': 'a\n' })), '');
     });
   });
 
-  describe('which file is the hub', () => {
+  describe('which file is the hub', { concurrency }, () => {
     const agentsFinding = 'AGENTS.md names missing path docs/gone.md';
-    test('@AGENTS.md with a newline reads AGENTS.md as the hub', () => {
-      const dir = make('adapter-nl', { 'CLAUDE.md': '@AGENTS.md\n', 'AGENTS.md': brokenHub });
-      assert.equal(run('git commit -m x', dir), deny(agentsFinding));
+    test('@AGENTS.md with a newline reads AGENTS.md as the hub', async () => {
+      const dir = await make('adapter-nl', { 'CLAUDE.md': '@AGENTS.md\n', 'AGENTS.md': brokenHub });
+      assert.equal(await run('git commit -m x', dir), deny(agentsFinding));
     });
-    test('@AGENTS.md without a newline reads AGENTS.md as the hub', () => {
-      const dir = make('adapter-bare', { 'CLAUDE.md': '@AGENTS.md', 'AGENTS.md': brokenHub });
-      assert.equal(run('git commit -m x', dir), deny(agentsFinding));
+    test('@AGENTS.md without a newline reads AGENTS.md as the hub', async () => {
+      const dir = await make('adapter-bare', { 'CLAUDE.md': '@AGENTS.md', 'AGENTS.md': brokenHub });
+      assert.equal(await run('git commit -m x', dir), deny(agentsFinding));
     });
-    test('@AGENTS.md with CRLF reads AGENTS.md as the hub', () => {
-      const dir = make('adapter-crlf', { 'CLAUDE.md': '@AGENTS.md\r\n', 'AGENTS.md': brokenHub });
-      assert.equal(run('git commit -m x', dir), deny(agentsFinding));
+    test('@AGENTS.md with CRLF reads AGENTS.md as the hub', async () => {
+      const dir = await make('adapter-crlf', { 'CLAUDE.md': '@AGENTS.md\r\n', 'AGENTS.md': brokenHub });
+      assert.equal(await run('git commit -m x', dir), deny(agentsFinding));
     });
-    test('an adapter with no AGENTS.md prints nothing', () => {
-      const dir = make('adapter-missing', { 'CLAUDE.md': '@AGENTS.md\n' });
-      assert.equal(run('git commit -m x', dir), '');
+    test('an adapter with no AGENTS.md prints nothing', async () => {
+      const dir = await make('adapter-missing', { 'CLAUDE.md': '@AGENTS.md\n' });
+      assert.equal(await run('git commit -m x', dir), '');
     });
-    test('@AGENTS.md with two newlines is not the adapter, so CLAUDE.md is the hub and has no marker', () => {
-      const dir = make('adapter-two', { 'CLAUDE.md': '@AGENTS.md\n\n', 'AGENTS.md': brokenHub });
-      assert.equal(run('git commit -m x', dir), '');
+    test('@AGENTS.md with two newlines is not the adapter, so CLAUDE.md is the hub and has no marker', async () => {
+      const dir = await make('adapter-two', { 'CLAUDE.md': '@AGENTS.md\n\n', 'AGENTS.md': brokenHub });
+      assert.equal(await run('git commit -m x', dir), '');
     });
-    test('AGENTS.md is the hub when no CLAUDE.md exists', () => {
-      const dir = make('direct-agents', { 'CLAUDE.md': null, 'AGENTS.md': brokenHub });
-      assert.equal(run('git commit -m x', dir), deny(agentsFinding));
+    test('AGENTS.md is the hub when no CLAUDE.md exists', async () => {
+      const dir = await make('direct-agents', { 'CLAUDE.md': null, 'AGENTS.md': brokenHub });
+      assert.equal(await run('git commit -m x', dir), deny(agentsFinding));
     });
-    test('a CLAUDE.md without the marker beside a marked AGENTS.md prints nothing', () => {
-      const dir = make('claude-wins', { 'CLAUDE.md': hubText.split('\n').slice(1).join('\n'), 'AGENTS.md': brokenHub });
-      assert.equal(run('git commit -m x', dir), '');
+    test('a CLAUDE.md without the marker beside a marked AGENTS.md prints nothing', async () => {
+      const dir = await make('claude-wins', { 'CLAUDE.md': hubText.split('\n').slice(1).join('\n'), 'AGENTS.md': brokenHub });
+      assert.equal(await run('git commit -m x', dir), '');
     });
   });
 
-  describe('hub path check', () => {
-    test('a path spelled in another case is a missing path', () => {
-      const dir = make('case-path', { 'CLAUDE.md': hubOf(opening('Docs/design.md')) });
-      assert.equal(run('git commit -m x', dir), deny('CLAUDE.md names missing path Docs/design.md'));
+  describe('hub path check', { concurrency }, () => {
+    test('a path spelled in another case is a missing path', async () => {
+      const dir = await make('case-path', { 'CLAUDE.md': hubOf(opening('Docs/design.md')) });
+      assert.equal(await run('git commit -m x', dir), deny('CLAUDE.md names missing path Docs/design.md'));
     });
-    test('a token named twice in the opening paragraph is one finding', () => {
-      const dir = make('twice', { 'CLAUDE.md': hubOf(opening('docs/gone.md') + ' See `docs/gone.md` again.') });
-      assert.equal(run('git commit -m x', dir), deny(brokenFinding));
+    test('a token named twice in the opening paragraph is one finding', async () => {
+      const dir = await make('twice', { 'CLAUDE.md': hubOf(opening('docs/gone.md') + ' See `docs/gone.md` again.') });
+      assert.equal(await run('git commit -m x', dir), deny(brokenFinding));
     });
-    test('a backticked URL is checked as a path', () => {
-      const dir = make('url', { 'CLAUDE.md': hubOf(opening('https://example.invalid/x')) });
-      assert.equal(run('git commit -m x', dir), deny('CLAUDE.md names missing path https://example.invalid/x'));
+    test('a backticked URL is checked as a path', async () => {
+      const dir = await make('url', { 'CLAUDE.md': hubOf(opening('https://example.invalid/x')) });
+      assert.equal(await run('git commit -m x', dir), deny('CLAUDE.md names missing path https://example.invalid/x'));
     });
-    test('a double quote and a backslash in the finding are escaped', () => {
-      const dir = make('quote', { 'CLAUDE.md': hubOf(opening('docs/a"b\\c.md')) });
+    test('a double quote and a backslash in the finding are escaped', async () => {
+      const dir = await make('quote', { 'CLAUDE.md': hubOf(opening('docs/a"b\\c.md')) });
       assert.equal(
-        run('git commit -m x', dir),
+        await run('git commit -m x', dir),
         '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"primer: CLAUDE.md names missing path docs/a\\"b\\\\c.md"}}\n',
       );
     });
   });
 
-  describe('line caps', () => {
-    test('a 60-line hub passes', () => {
-      const dir = make('cap-hub-60', { 'CLAUDE.md': pad(hubText, 12, 60) });
-      assert.equal(run('git commit -m x', dir), '');
+  describe('line caps', { concurrency }, () => {
+    test('a 60-line hub passes', async () => {
+      const dir = await make('cap-hub-60', { 'CLAUDE.md': pad(hubText, 12, 60) });
+      assert.equal(await run('git commit -m x', dir), '');
     });
-    test('a 61-line hub is denied', () => {
-      const dir = make('cap-hub-61', { 'CLAUDE.md': pad(hubText, 12, 61) });
-      assert.equal(run('git commit -m x', dir), deny('CLAUDE.md has 61 lines, over its cap of 60'));
+    test('a 61-line hub is denied', async () => {
+      const dir = await make('cap-hub-61', { 'CLAUDE.md': pad(hubText, 12, 61) });
+      assert.equal(await run('git commit -m x', dir), deny('CLAUDE.md has 61 lines, over its cap of 60'));
     });
-    test('a 61-line hub whose last line has no newline is denied with 61', () => {
-      const dir = make('cap-hub-no-newline', { 'CLAUDE.md': pad(hubText, 12, 61).slice(0, -1) });
-      assert.equal(run('git commit -m x', dir), deny('CLAUDE.md has 61 lines, over its cap of 60'));
+    test('a 61-line hub whose last line has no newline is denied with 61', async () => {
+      const dir = await make('cap-hub-no-newline', { 'CLAUDE.md': pad(hubText, 12, 61).slice(0, -1) });
+      assert.equal(await run('git commit -m x', dir), deny('CLAUDE.md has 61 lines, over its cap of 60'));
     });
-    test('a 60-line nested CLAUDE.md passes', () => {
-      const dir = make('cap-nested-60', { 'src/api/CLAUDE.md': pad(apiText, 11, 60) });
-      assert.equal(run('git commit -m x', dir), '');
+    test('a 60-line nested CLAUDE.md passes', async () => {
+      const dir = await make('cap-nested-60', { 'src/api/CLAUDE.md': pad(apiText, 11, 60) });
+      assert.equal(await run('git commit -m x', dir), '');
     });
-    test('a 61-line nested CLAUDE.md is denied', () => {
-      const dir = make('cap-nested-61', { 'src/api/CLAUDE.md': pad(apiText, 11, 61) });
-      assert.equal(run('git commit -m x', dir), deny('src/api/CLAUDE.md has 61 lines, over its cap of 60'));
+    test('a 61-line nested CLAUDE.md is denied', async () => {
+      const dir = await make('cap-nested-61', { 'src/api/CLAUDE.md': pad(apiText, 11, 61) });
+      assert.equal(await run('git commit -m x', dir), deny('src/api/CLAUDE.md has 61 lines, over its cap of 60'));
     });
-    test('a 200-line rule passes', () => {
-      const dir = make('cap-rule-200', { '.claude/rules/style.md': pad('# Style\n\nWrite plain prose.\n', 3, 200) });
-      assert.equal(run('git commit -m x', dir), '');
+    test('a 200-line rule passes', async () => {
+      const dir = await make('cap-rule-200', { '.claude/rules/style.md': pad('# Style\n\nWrite plain prose.\n', 3, 200) });
+      assert.equal(await run('git commit -m x', dir), '');
     });
-    test('a 201-line rule is denied', () => {
-      const dir = make('cap-rule-201', { '.claude/rules/style.md': pad('# Style\n\nWrite plain prose.\n', 3, 201) });
-      assert.equal(run('git commit -m x', dir), deny('.claude/rules/style.md has 201 lines, over its cap of 200'));
+    test('a 201-line rule is denied', async () => {
+      const dir = await make('cap-rule-201', { '.claude/rules/style.md': pad('# Style\n\nWrite plain prose.\n', 3, 201) });
+      assert.equal(await run('git commit -m x', dir), deny('.claude/rules/style.md has 201 lines, over its cap of 200'));
     });
-    test('a 150-line SKILL.md passes', () => {
-      const dir = make('cap-skill-150', { '.claude/skills/release/SKILL.md': pad(skillText, 8, 150) });
-      assert.equal(run('git commit -m x', dir), '');
+    test('a 150-line SKILL.md passes', async () => {
+      const dir = await make('cap-skill-150', { '.claude/skills/release/SKILL.md': pad(skillText, 8, 150) });
+      assert.equal(await run('git commit -m x', dir), '');
     });
-    test('a 151-line SKILL.md is denied', () => {
-      const dir = make('cap-skill-151', { '.claude/skills/release/SKILL.md': pad(skillText, 8, 151) });
-      assert.equal(run('git commit -m x', dir), deny('.claude/skills/release/SKILL.md has 151 lines, over its cap of 150'));
+    test('a 151-line SKILL.md is denied', async () => {
+      const dir = await make('cap-skill-151', { '.claude/skills/release/SKILL.md': pad(skillText, 8, 151) });
+      assert.equal(await run('git commit -m x', dir), deny('.claude/skills/release/SKILL.md has 151 lines, over its cap of 150'));
     });
-    test('a 70-line .claude/CLAUDE.md is not a nested file and has no cap', () => {
-      const dir = make('cap-dot-claude', { '.claude/CLAUDE.md': '# Dot\n' + 'x\n'.repeat(69) });
-      assert.equal(run('git commit -m x', dir), '');
+    test('a 70-line .claude/CLAUDE.md is not a nested file and has no cap', async () => {
+      const dir = await make('cap-dot-claude', { '.claude/CLAUDE.md': '# Dot\n' + 'x\n'.repeat(69) });
+      assert.equal(await run('git commit -m x', dir), '');
     });
-    test('an untracked 70-line nested CLAUDE.md is not read', () => {
-      const dir = make('cap-untracked', {});
+    test('an untracked 70-line nested CLAUDE.md is not read', async () => {
+      const dir = await make('cap-untracked', {});
       write(dir, 'docs/CLAUDE.md', '# Docs\n' + 'x\n'.repeat(69));
-      assert.equal(run('git commit -m x', dir), '');
+      assert.equal(await run('git commit -m x', dir), '');
     });
   });
 
-  describe('paths values', () => {
+  describe('paths values', { concurrency }, () => {
     const codeFinding = '.claude/rules/code.md has a paths value the host cannot read';
-    test('a flow list that is not closed is unreadable', () => {
-      const dir = make('paths-unclosed-flow', { '.claude/rules/code.md': codeWith('paths: [unclosed') });
-      assert.equal(run('git commit -m x', dir), deny(codeFinding));
+    test('a flow list that is not closed is unreadable', async () => {
+      const dir = await make('paths-unclosed-flow', { '.claude/rules/code.md': codeWith('paths: [unclosed') });
+      assert.equal(await run('git commit -m x', dir), deny(codeFinding));
     });
-    test('a quote that is not closed is unreadable', () => {
-      const dir = make('paths-unclosed-quote', { '.claude/rules/code.md': codeWith('paths: "src/**') });
-      assert.equal(run('git commit -m x', dir), deny(codeFinding));
+    test('a quote that is not closed is unreadable', async () => {
+      const dir = await make('paths-unclosed-quote', { '.claude/rules/code.md': codeWith('paths: "src/**') });
+      assert.equal(await run('git commit -m x', dir), deny(codeFinding));
     });
-    test('an empty paths with no items is unreadable', () => {
-      const dir = make('paths-empty', { '.claude/rules/code.md': codeWith('paths:') });
-      assert.equal(run('git commit -m x', dir), deny(codeFinding));
+    test('an empty paths with no items is unreadable', async () => {
+      const dir = await make('paths-empty', { '.claude/rules/code.md': codeWith('paths:') });
+      assert.equal(await run('git commit -m x', dir), deny(codeFinding));
     });
-    test('a glob that matches no tracked file is denied', () => {
-      const dir = make('paths-gone', { '.claude/rules/code.md': codeWith('paths: ["src/**/*.{ts,tsx}", "gone/*.md"]') });
-      assert.equal(run('git commit -m x', dir), deny('.claude/rules/code.md paths glob gone/*.md matches no tracked file'));
+    test('a glob that matches no tracked file is denied', async () => {
+      const dir = await make('paths-gone', { '.claude/rules/code.md': codeWith('paths: ["src/**/*.{ts,tsx}", "gone/*.md"]') });
+      assert.equal(await run('git commit -m x', dir), deny('.claude/rules/code.md paths glob gone/*.md matches no tracked file'));
     });
-    test('a brace alternative that matches nothing is fine when another matches', () => {
-      const dir = make('paths-brace-partial', { '.claude/rules/code.md': codeWith('paths: ["src/**/*.{ts,rs}"]') });
-      assert.equal(run('git commit -m x', dir), '');
+    test('a brace alternative that matches nothing is fine when another matches', async () => {
+      const dir = await make('paths-brace-partial', { '.claude/rules/code.md': codeWith('paths: ["src/**/*.{ts,rs}"]') });
+      assert.equal(await run('git commit -m x', dir), '');
     });
-    test('a quoted comma string is split into globs', () => {
-      const dir = make('paths-quoted-string', { '.claude/rules/lib.md': libWith('paths: "lib/*.ts, tests/**/*.test.ts"') });
-      assert.equal(run('git commit -m x', dir), '');
+    test('a quoted comma string is split into globs', async () => {
+      const dir = await make('paths-quoted-string', { '.claude/rules/lib.md': libWith('paths: "lib/*.ts, tests/**/*.test.ts"') });
+      assert.equal(await run('git commit -m x', dir), '');
     });
-    test('a rule with CRLF line ends is read', () => {
-      const dir = make('paths-crlf', { '.claude/rules/lib.md': libWith('paths: lib/*.ts, tests/**/*.test.ts').replaceAll('\n', '\r\n') });
-      assert.equal(run('git commit -m x', dir), '');
+    test('a rule with CRLF line ends is read', async () => {
+      const dir = await make('paths-crlf', { '.claude/rules/lib.md': libWith('paths: lib/*.ts, tests/**/*.test.ts').replaceAll('\n', '\r\n') });
+      assert.equal(await run('git commit -m x', dir), '');
     });
-    test('a slashless glob matches at depth', () => {
-      const dir = make('paths-slashless', { '.claude/rules/area/pick.md': pickWith('paths:\n  - "[ab].ts"') });
-      assert.equal(run('git commit -m x', dir), '');
+    test('a slashless glob matches at depth', async () => {
+      const dir = await make('paths-slashless', { '.claude/rules/area/pick.md': pickWith('paths:\n  - "[ab].ts"') });
+      assert.equal(await run('git commit -m x', dir), '');
     });
-    test('a slashless glob that matches nothing is denied', () => {
-      const dir = make('paths-slashless-gone', { '.claude/rules/area/pick.md': pickWith('paths:\n  - "[xy].ts"') });
-      assert.equal(run('git commit -m x', dir), deny('.claude/rules/area/pick.md paths glob [xy].ts matches no tracked file'));
+    test('a slashless glob that matches nothing is denied', async () => {
+      const dir = await make('paths-slashless-gone', { '.claude/rules/area/pick.md': pickWith('paths:\n  - "[xy].ts"') });
+      assert.equal(await run('git commit -m x', dir), deny('.claude/rules/area/pick.md paths glob [xy].ts matches no tracked file'));
     });
-    test('a skill paths glob that matches nothing is denied', () => {
-      const dir = make('paths-skill-gone', { '.claude/skills/release/SKILL.md': skillText.replace('paths: scripts/**', 'paths: gone/**') });
-      assert.equal(run('git commit -m x', dir), deny('.claude/skills/release/SKILL.md paths glob gone/** matches no tracked file'));
+    test('a skill paths glob that matches nothing is denied', async () => {
+      const dir = await make('paths-skill-gone', { '.claude/skills/release/SKILL.md': skillText.replace('paths: scripts/**', 'paths: gone/**') });
+      assert.equal(await run('git commit -m x', dir), deny('.claude/skills/release/SKILL.md paths glob gone/** matches no tracked file'));
     });
-    test('a skill without a description is denied', () => {
-      const dir = make('skill-no-description', { '.claude/skills/release/SKILL.md': skillNoDescription });
-      assert.equal(run('git commit -m x', dir), deny('.claude/skills/release/SKILL.md has no description'));
+    test('a skill without a description is denied', async () => {
+      const dir = await make('skill-no-description', { '.claude/skills/release/SKILL.md': skillNoDescription });
+      assert.equal(await run('git commit -m x', dir), deny('.claude/skills/release/SKILL.md has no description'));
     });
-    test('an untracked file counts for a glob only when the command runs git add', () => {
-      const dir = make('paths-untracked', { '.claude/rules/gen.md': codeWith('paths: ["gen/*.ts"]') });
+    test('an untracked file counts for a glob only when the command runs git add', async () => {
+      const dir = await make('paths-untracked', { '.claude/rules/gen.md': codeWith('paths: ["gen/*.ts"]') });
       write(dir, 'gen/x.ts', 'export const x = 1;\n');
-      assert.equal(run('git commit -m x', dir), deny('.claude/rules/gen.md paths glob gen/*.ts matches no tracked file'));
-      assert.equal(run('git add -A && git commit -m x', dir), advise('.claude/rules/gen.md'));
+      assert.equal(await run('git commit -m x', dir), deny('.claude/rules/gen.md paths glob gen/*.ts matches no tracked file'));
+      assert.equal(await run('git add -A && git commit -m x', dir), advise('.claude/rules/gen.md'));
     });
   });
 
-  test('several findings come in the order hub, nested, rules, skills', () => {
-    const dir = make('order', {
+  test('several findings come in the order hub, nested, rules, skills', async () => {
+    const dir = await make('order', {
       'CLAUDE.md': pad(brokenHub, 12, 61),
       'src/api/CLAUDE.md': pad(apiText, 11, 61),
       '.claude/rules/code.md': codeWith('paths: [unclosed'),
       '.claude/skills/release/SKILL.md': skillNoDescription,
     });
     assert.equal(
-      run('git commit -m x', dir),
+      await run('git commit -m x', dir),
       deny(
         'CLAUDE.md has 61 lines, over its cap of 60; CLAUDE.md names missing path docs/gone.md; src/api/CLAUDE.md has 61 lines, over its cap of 60; .claude/rules/code.md has a paths value the host cannot read; .claude/skills/release/SKILL.md has no description',
       ),
@@ -504,21 +519,21 @@ describe('primer drift hook', () => {
       ['.claude/rules/style.md changed, matched by the *.md glob of code.md', [['.claude/rules/style.md', '# Style\n\nWrite prose.\n']], advise('.claude/rules/code.md')],
     ];
     for (const [label, changes, expected] of steps) {
-      test(label, () => {
+      test(label, async () => {
         try {
-          clean(fixture);
-          for (const [path, content] of changes) stage(fixture, path, content);
-          assert.equal(run('git commit -m x', fixture), expected);
+          await clean(fixture);
+          for (const [path, content] of changes) await stage(fixture, path, content);
+          assert.equal(await run('git commit -m x', fixture), expected);
         } finally {
-          clean(fixture);
+          await clean(fixture);
         }
       });
     }
 
-    test('a change under a .claude/CLAUDE.md directory draws no advice', () => {
-      const dir = make('advice-dot-claude', { '.claude/CLAUDE.md': '# Dot\n' + 'x\n'.repeat(69) });
-      stage(dir, '.claude/x.txt', 'x\n');
-      assert.equal(run('git commit -m x', dir), '');
+    test('a change under a .claude/CLAUDE.md directory draws no advice', async () => {
+      const dir = await make('advice-dot-claude', { '.claude/CLAUDE.md': '# Dot\n' + 'x\n'.repeat(69) });
+      await stage(dir, '.claude/x.txt', 'x\n');
+      assert.equal(await run('git commit -m x', dir), '');
     });
   });
 
@@ -533,41 +548,41 @@ describe('primer drift hook', () => {
       ['commit with an untracked file and no add', [['src/new.ts', 'export const n = 1;\n']], 'git commit -m x', ''],
     ];
     for (const [label, changes, command, expected] of steps) {
-      test(label, () => {
+      test(label, async () => {
         try {
-          clean(dir());
+          await clean(dir());
           for (const [path, content] of changes) write(dir(), path, content);
-          assert.equal(run(command, dir()), expected);
+          assert.equal(await run(command, dir()), expected);
         } finally {
-          clean(dir());
+          await clean(dir());
         }
       });
     }
   });
 
-  test('a deny wins over advice', () => {
-    const dir = make('deny-wins', { 'CLAUDE.md': brokenHub });
-    stage(dir, 'src/app.tsx', 'export const a = 2;\n');
-    assert.equal(run('git commit -m x', dir), deny(brokenFinding));
+  test('a deny wins over advice', async () => {
+    const dir = await make('deny-wins', { 'CLAUDE.md': brokenHub });
+    await stage(dir, 'src/app.tsx', 'export const a = 2;\n');
+    assert.equal(await run('git commit -m x', dir), deny(brokenFinding));
   });
 
   describe('never writes a file', () => {
     const status = (dir) => git(dir, 'status', '--porcelain=v1', '--ignored', '-uall');
-    const unchanged = (dir, command) => {
-      const prior = { status: status(dir), entries: readdirSync(base).sort() };
-      const out = run(command, dir);
-      assert.deepEqual({ status: status(dir), entries: readdirSync(base).sort() }, prior);
+    const unchanged = async (dir, command) => {
+      const prior = { status: await status(dir), entries: readdirSync(base).sort() };
+      const out = await run(command, dir);
+      assert.deepEqual({ status: await status(dir), entries: readdirSync(base).sort() }, prior);
       return out;
     };
-    test('a deny leaves the repository and the base as they were', () => {
-      assert.equal(unchanged(broken, 'git commit -m x'), deny(brokenFinding));
+    test('a deny leaves the repository and the base as they were', async () => {
+      assert.equal(await unchanged(broken, 'git commit -m x'), deny(brokenFinding));
     });
-    test('advice leaves the repository and the base as they were', () => {
+    test('advice leaves the repository and the base as they were', async () => {
       try {
-        stage(fixture, 'src/api/handler.ts', 'export const h = 2;\n');
-        assert.equal(unchanged(fixture, 'git commit -m x'), advise('.claude/rules/code.md, src/api/CLAUDE.md'));
+        await stage(fixture, 'src/api/handler.ts', 'export const h = 2;\n');
+        assert.equal(await unchanged(fixture, 'git commit -m x'), advise('.claude/rules/code.md, src/api/CLAUDE.md'));
       } finally {
-        clean(fixture);
+        await clean(fixture);
       }
     });
   });
