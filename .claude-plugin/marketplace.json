@@ -1,8 +1,8 @@
 {
-  "name": "reimagine-claude",
+  "name": "reimagine-engine",
   "owner": { "name": "vibecodedapps.net" },
   "metadata": {
-    "version": "0.1.2",
+    "version": "0.1.3",
     "description": "A suite of Claude Code plugins: house rules, a ticket-to-pull-request loop, a read-only audit of finished pull requests, and instruction-file maintenance."
   },
   "plugins": [
@@ -10,25 +10,25 @@
       "name": "rules",
       "source": "./plugins/rules",
       "description": "House rules for Claude Code sessions: one block in your CLAUDE.md, kept current, plus the Concise Plain output style.",
-      "version": "0.1.5"
+      "version": "0.1.6"
     },
     {
       "name": "loop",
       "source": "./plugins/loop",
       "description": "Plan, build, review and publish a bundle of tickets as one reviewed pull request per repository, resuming on the same branch when run again.",
-      "version": "0.1.4"
+      "version": "0.1.5"
     },
     {
       "name": "audit",
       "source": "./plugins/audit",
       "description": "A read-only, adversarial audit of finished pull requests that stops at a report, with an act step that commits approved items.",
-      "version": "0.1.6"
+      "version": "0.1.7"
     },
     {
       "name": "primer",
       "source": "./plugins/primer",
       "description": "Project instructions in the forms Claude Code loads: a short CLAUDE.md, path-scoped rules, nested instructions and skills, with auto memory promoted into them and a hook that checks every commit.",
-      "version": "0.1.0"
+      "version": "0.1.1"
     }
   ]
 }

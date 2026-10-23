@@ -7,7 +7,7 @@ Drafted 2026-10-14; amended 2026-10-20 for the `primer` plugin, which replaces `
 One repository, one marketplace, four plugins that a user installs separately and that work alone.
 
 ```
-reimagine-claude/
+reimagine-engine/
   .claude-plugin/marketplace.json   catalog: name, owner, four entries
   .github/workflows/ci.yml          lint, test, mawk, validate
   .gitattributes                    LF for shipped text
@@ -97,7 +97,7 @@ Manifest:
   "version": "0.1.0",
   "description": "House rules for Claude Code sessions: one block in your CLAUDE.md, kept current, plus the Concise Plain output style.",
   "author": { "name": "vibecodedapps.net" },
-  "repository": "https://github.com/vibecodedapps-official/reimagine-claude",
+  "repository": "https://github.com/vibecodedapps-official/reimagine-engine",
   "license": "Apache-2.0"
 }
 ```
@@ -336,7 +336,7 @@ Manifest:
   "version": "0.1.0",
   "description": "Project instructions in the forms Claude Code loads: a short CLAUDE.md, path-scoped rules, nested instructions and skills, with auto memory promoted into them and a hook that checks every commit.",
   "author": { "name": "vibecodedapps.net" },
-  "repository": "https://github.com/vibecodedapps-official/reimagine-claude",
+  "repository": "https://github.com/vibecodedapps-official/reimagine-engine",
   "license": "Apache-2.0"
 }
 ```
@@ -385,7 +385,7 @@ SessionStart at `startup`, the same construction. It finds `<config>` from the g
 
 ### Migration from repo-docs
 
-A repository kept by repo-docs has a `## Spokes` index, spokes under `docs/` or beside code, and perhaps the `@AGENTS.md` adapter. One adopt run: the marker goes on line 1; each pointer becomes a path-scoped rule, a skill, a nested `CLAUDE.md` or one sentence in the opening paragraph by its condition; the index goes; the adapter stays when present. In this repository the hub keeps its commands and constraints, names the five design documents in its opening paragraph, and loses the index; `.claude/settings.json` enables `primer@reimagine-claude` in place of `repo-docs@reimagine-claude`. The repo-docs plugin directory, its tests and its catalog entry go with the primer release; its tags and changelog headings stay, and lint accepts a heading for a retired name.
+A repository kept by repo-docs has a `## Spokes` index, spokes under `docs/` or beside code, and perhaps the `@AGENTS.md` adapter. One adopt run: the marker goes on line 1; each pointer becomes a path-scoped rule, a skill, a nested `CLAUDE.md` or one sentence in the opening paragraph by its condition; the index goes; the adapter stays when present. In this repository the hub keeps its commands and constraints, names the five design documents in its opening paragraph, and loses the index; `.claude/settings.json` enables `primer@reimagine-engine` in place of `repo-docs@reimagine-engine`. The repo-docs plugin directory, its tests and its catalog entry go with the primer release; its tags and changelog headings stay, and lint accepts a heading for a retired name.
 
 ## Versions, tags and release
 

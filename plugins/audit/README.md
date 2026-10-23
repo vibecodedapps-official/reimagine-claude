@@ -5,8 +5,8 @@ Audit a set of pull requests or branches against their tickets, and stop at a re
 ## Install
 
 ```
-/plugin marketplace add vibecodedapps-official/reimagine-claude
-/plugin install audit@reimagine-claude
+/plugin marketplace add vibecodedapps-official/reimagine-engine
+/plugin install audit@reimagine-engine
 ```
 
 ## Requirements
@@ -170,7 +170,7 @@ When a finding needs live data, the report holds a `live <id>` block with the ex
 
 ## Uninstall
 
-Run `/plugin uninstall audit@reimagine-claude`. The run registry and any runs in the plugin data directory stay, and so do run directories in your repositories; delete them if you want them gone.
+Run `/plugin uninstall audit@reimagine-engine`. The run registry and any runs in the plugin data directory stay, and so do run directories in your repositories; delete them if you want them gone.
 
 ## License
 

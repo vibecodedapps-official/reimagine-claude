@@ -5,8 +5,8 @@ Keeps a repository's project instructions in the forms Claude Code loads: a shor
 ## Install
 
 ```
-/plugin marketplace add vibecodedapps-official/reimagine-claude
-/plugin install primer@reimagine-claude
+/plugin marketplace add vibecodedapps-official/reimagine-engine
+/plugin install primer@reimagine-engine
 ```
 
 ## Requirements
@@ -71,7 +71,7 @@ primer: auto memory has 2 notes since the last review; run /primer
 ## Uninstall
 
 ```
-/plugin uninstall primer@reimagine-claude
+/plugin uninstall primer@reimagine-engine
 ```
 
 The files it wrote stay in your repositories.

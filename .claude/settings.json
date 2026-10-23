@@ -1,12 +1,12 @@
 {
   "enabledPlugins": {
-    "primer@reimagine-claude": true
+    "primer@reimagine-engine": true
   },
   "extraKnownMarketplaces": {
-    "reimagine-claude": {
+    "reimagine-engine": {
       "source": {
         "source": "github",
-        "repo": "vibecodedapps-official/reimagine-claude"
+        "repo": "vibecodedapps-official/reimagine-engine"
       }
     }
   }

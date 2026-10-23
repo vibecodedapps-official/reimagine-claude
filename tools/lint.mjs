@@ -298,7 +298,7 @@ function catalogFailures(ctx) {
   for (const p of plugins) if (!p.manifest) out.push(`${p.path}: missing or not JSON`);
 
   if (catalog) {
-    if (catalog.name !== 'reimagine-claude') out.push(`${CATALOG}: name is ${shown(catalog.name)}, not reimagine-claude`);
+    if (catalog.name !== 'reimagine-engine') out.push(`${CATALOG}: name is ${shown(catalog.name)}, not reimagine-engine`);
     if (typeof meta.description !== 'string' || meta.description.trim() === '') out.push(`${CATALOG}: metadata.description is missing`);
     if (!isSemver(meta.version)) out.push(`${CATALOG}: metadata.version is missing or not semver`);
     for (const e of entries) {
@@ -369,7 +369,7 @@ function readmeFailures(ctx) {
   const names = Array.isArray(ctx.catalog?.plugins) ? ctx.catalog.plugins.filter(isObject).map((e) => shown(e.name)) : [];
   for (const verb of ['install', 'uninstall']) {
     for (const n of names) {
-      const line = `/plugin ${verb} ${n}@reimagine-claude`;
+      const line = `/plugin ${verb} ${n}@reimagine-engine`;
       if (!lines.includes(line)) out.push(`README.md: no line ${line}`);
     }
   }
@@ -692,7 +692,7 @@ const isForeignRepo = (m) => {
   if (bracketed(m[1]) || owner === ':owner' || OWNER_WORDS.includes(owner) || owner.startsWith('example-')) return false;
   // A full stop after a URL ends the sentence, not the name.
   const repo = m[2].replace(/\.+$/, '').replace(/\.git$/i, '').toLowerCase();
-  return !(owner === 'vibecodedapps-official' && repo === 'reimagine-claude');
+  return !(owner === 'vibecodedapps-official' && repo === 'reimagine-engine');
 };
 
 const OWNER_RULES = [

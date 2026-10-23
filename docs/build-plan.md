@@ -123,7 +123,7 @@ Work items:
 Check:
 
 - `claude plugin validate --strict .` and each plugin pass.
-- `/plugin marketplace add vibecodedapps-official/reimagine-claude` and `/plugin install <name>@reimagine-claude` work for each plugin alone (acceptance item 1).
+- `/plugin marketplace add vibecodedapps-official/reimagine-engine` and `/plugin install <name>@reimagine-engine` work for each plugin alone (acceptance item 1).
 
 ## M7: lint
 
@@ -225,7 +225,7 @@ Work items:
 
 1. `tests/primer/fixture/messy/build.sh`: the repo-docs messy fixture's content plus a repo-docs hub with a `## Spokes` index whose pointers cover a file pattern, a task and a directory, a procedure in `CONTRIBUTING.md`, an `@notes/local.md` import of an untracked file, a `.claude/CLAUDE.md`, and a README with agent rules, deterministic as the audit fixtures are; `tests/primer/fixture.test.mjs` checks the build. Commit: `test(primer): add the messy docs fixture`.
 2. The `adopt` mode in `SKILL.md` (R249): inventory, the refactor conditions, what pins a file (decision 53), the destinations, the kept-statement check, moves before rewrites, the migration from a `## Spokes` hub, the `CLAUDE.local.md` adapter proposal. Commit: `feat(primer): add the adopt mode`.
-3. Adopt on this repository, as the milestone's acceptance: the run's own commits (the hub with the marker, no index, the five design documents in backticks in the opening sentence; whatever rules or skills the plan proposes and the owner accepts), then `chore(repo): enable primer for sessions here` switching `.claude/settings.json` and the README development paragraph to `primer@reimagine-claude` (R16, R268 in part). The repo-docs hook stays installed on the owner's machine and prints nothing once no index remains.
+3. Adopt on this repository, as the milestone's acceptance: the run's own commits (the hub with the marker, no index, the five design documents in backticks in the opening sentence; whatever rules or skills the plan proposes and the owner accepts), then `chore(repo): enable primer for sessions here` switching `.claude/settings.json` and the README development paragraph to `primer@reimagine-engine` (R16, R268 in part). The repo-docs hook stays installed on the owner's machine and prints nothing once no index remains.
 
 Check:
 

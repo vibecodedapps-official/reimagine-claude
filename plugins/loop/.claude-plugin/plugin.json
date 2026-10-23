@@ -1,8 +1,8 @@
 {
   "name": "loop",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Plan, build, review and publish a bundle of tickets as one reviewed pull request per repository, resuming on the same branch when run again.",
   "author": { "name": "vibecodedapps.net" },
-  "repository": "https://github.com/vibecodedapps-official/reimagine-claude",
+  "repository": "https://github.com/vibecodedapps-official/reimagine-engine",
   "license": "Apache-2.0"
 }

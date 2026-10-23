@@ -17,8 +17,8 @@ Node 22 or later.
 ## Install
 
 ```
-/plugin marketplace add vibecodedapps-official/reimagine-claude
-/plugin install rules@reimagine-claude
+/plugin marketplace add vibecodedapps-official/reimagine-engine
+/plugin install rules@reimagine-engine
 ```
 
 ## Use
@@ -73,7 +73,7 @@ Or run `/config` and choose Output style.
 ## Uninstall
 
 1. Run `/rules --remove` to take the block out. It gives back the original bytes of the file. A file the plugin created is deleted, unless you added text to it.
-2. Run `/plugin uninstall rules@reimagine-claude`.
+2. Run `/plugin uninstall rules@reimagine-engine`.
 
 ## License
 

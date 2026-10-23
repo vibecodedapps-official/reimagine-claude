@@ -113,7 +113,7 @@ const positive = (title, mutate) =>
   });
 
 const extra = 'plugins/rules/rules/extra.md';
-const repoUrl = 'https://github.com/vibecodedapps-official/reimagine-claude';
+const repoUrl = 'https://github.com/vibecodedapps-official/reimagine-engine';
 
 const headings = [
   '## Unreleased',
@@ -231,11 +231,11 @@ describe('lint', { concurrency: Math.max(1, availableParallelism() - 1) }, () =>
     put(dir, manifest('loop'), '{ not json\n');
   }, 1, ['plugins/loop/.claude-plugin/plugin.json: missing or not JSON']);
 
-  negative('R1: .claude-plugin/marketplace.json: name is <name>, not reimagine-claude', (dir) => editJson(dir, catalog, (c) => { c.name = 'other'; }), 1, [
-    '.claude-plugin/marketplace.json: name is other, not reimagine-claude',
+  negative('R1: .claude-plugin/marketplace.json: name is <name>, not reimagine-engine', (dir) => editJson(dir, catalog, (c) => { c.name = 'other'; }), 1, [
+    '.claude-plugin/marketplace.json: name is other, not reimagine-engine',
   ]);
-  negative('R1: .claude-plugin/marketplace.json: name is missing, not reimagine-claude', (dir) => editJson(dir, catalog, (c) => { delete c.name; }), 1, [
-    '.claude-plugin/marketplace.json: name is missing, not reimagine-claude',
+  negative('R1: .claude-plugin/marketplace.json: name is missing, not reimagine-engine', (dir) => editJson(dir, catalog, (c) => { delete c.name; }), 1, [
+    '.claude-plugin/marketplace.json: name is missing, not reimagine-engine',
   ]);
   negative('R219: .claude-plugin/marketplace.json: metadata.description is missing', (dir) => editJson(dir, catalog, (c) => { delete c.metadata.description; }), 1, [
     '.claude-plugin/marketplace.json: metadata.description is missing',
@@ -252,14 +252,14 @@ describe('lint', { concurrency: Math.max(1, availableParallelism() - 1) }, () =>
 
   negative('R1: .claude-plugin/marketplace.json: entry <name> is not one of rules, loop, audit, primer', (dir) => {
     editJson(dir, catalog, (c) => { c.plugins.push({ name: 'extra', source: './plugins/loop', description: 'x', version: '0.1.0-alpha.1' }); });
-    append(dir, 'README.md', '/plugin install extra@reimagine-claude\n/plugin uninstall extra@reimagine-claude\n');
+    append(dir, 'README.md', '/plugin install extra@reimagine-engine\n/plugin uninstall extra@reimagine-engine\n');
   }, 2, [
     '.claude-plugin/marketplace.json: entry extra is not one of rules, loop, audit, primer',
     '.claude-plugin/marketplace.json: entry extra source ./plugins/loop is not a plugin directory ./plugins/extra',
   ]);
   negative('R268: .claude-plugin/marketplace.json: a repo-docs entry is not one of rules, loop, audit, primer', (dir) => {
     editJson(dir, catalog, (c) => { c.plugins.push({ name: 'repo-docs', source: './plugins/loop', description: 'x', version: '0.1.0-alpha.1' }); });
-    append(dir, 'README.md', '/plugin install repo-docs@reimagine-claude\n/plugin uninstall repo-docs@reimagine-claude\n');
+    append(dir, 'README.md', '/plugin install repo-docs@reimagine-engine\n/plugin uninstall repo-docs@reimagine-engine\n');
   }, 2, [
     '.claude-plugin/marketplace.json: entry repo-docs is not one of rules, loop, audit, primer',
     '.claude-plugin/marketplace.json: entry repo-docs source ./plugins/loop is not a plugin directory ./plugins/repo-docs',
@@ -334,14 +334,14 @@ describe('lint', { concurrency: Math.max(1, availableParallelism() - 1) }, () =>
     bump(dir, 'rules');
   }, 1, [`${extra}:2: references \${user_config.*}`]);
 
-  negative('R219: README.md: no line /plugin install <n>@reimagine-claude', (dir) => {
-    const text = read(dir, 'README.md').split('\n').filter((l) => l.trim() !== '/plugin install loop@reimagine-claude').join('\n');
+  negative('R219: README.md: no line /plugin install <n>@reimagine-engine', (dir) => {
+    const text = read(dir, 'README.md').split('\n').filter((l) => l.trim() !== '/plugin install loop@reimagine-engine').join('\n');
     put(dir, 'README.md', text);
-  }, 1, ['README.md: no line /plugin install loop@reimagine-claude']);
-  negative('R219: README.md: no line /plugin uninstall <n>@reimagine-claude', (dir) => {
-    const text = read(dir, 'README.md').split('\n').filter((l) => l.trim() !== '/plugin uninstall loop@reimagine-claude').join('\n');
+  }, 1, ['README.md: no line /plugin install loop@reimagine-engine']);
+  negative('R219: README.md: no line /plugin uninstall <n>@reimagine-engine', (dir) => {
+    const text = read(dir, 'README.md').split('\n').filter((l) => l.trim() !== '/plugin uninstall loop@reimagine-engine').join('\n');
     put(dir, 'README.md', text);
-  }, 1, ['README.md: no line /plugin uninstall loop@reimagine-claude']);
+  }, 1, ['README.md: no line /plugin uninstall loop@reimagine-engine']);
 
   negative('R39: <file>: frontmatter lacks disable-model-invocation: true', (dir) => {
     edit(dir, 'plugins/rules/skills/rules/SKILL.md', 'disable-model-invocation: true\n', '');
@@ -680,7 +680,7 @@ describe('lint', { concurrency: Math.max(1, availableParallelism() - 1) }, () =>
   });
   positive('R10: other placeholders and this repository pass', (dir) => {
     put(dir, extra, [
-      'Clone git@github.com:vibecodedapps-official/reimagine-claude.git now.',
+      'Clone git@github.com:vibecodedapps-official/reimagine-engine.git now.',
       `Or ${repoUrl} here, or ${repoUrl}.`,
       'Open /Users/you/x and C:/Users/<name>/y and /home/$USER/z.',
       'See https://github.com/example-org/y and https://github.com/:owner/repo.',

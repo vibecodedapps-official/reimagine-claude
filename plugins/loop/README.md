@@ -5,8 +5,8 @@ Plan, build, review and publish a bundle of tickets as one reviewed pull request
 ## Install
 
 ```
-/plugin marketplace add vibecodedapps-official/reimagine-claude
-/plugin install loop@reimagine-claude
+/plugin marketplace add vibecodedapps-official/reimagine-engine
+/plugin install loop@reimagine-engine
 ```
 
 ## Use
@@ -89,7 +89,7 @@ On a host other than GitHub the loop runs every step through the checks and ends
 
 ## Uninstall
 
-Run `/plugin uninstall loop@reimagine-claude`. The `.reimagine/` directories in your repositories stay; delete them if you want them gone.
+Run `/plugin uninstall loop@reimagine-engine`. The `.reimagine/` directories in your repositories stay; delete them if you want them gone.
 
 ## License
 

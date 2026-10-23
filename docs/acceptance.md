@@ -1,6 +1,6 @@
 # Acceptance
 
-Hand-run checks for the suite. Each milestone adds its items; items 27 to 36 were added 2026-10-20 for the primer plugin, and 37 to 44 on 2026-10-22 for the host alignment and test performance passes. An item is `N. **Title.** Setup: ... Command: ... Expected: ... Covers R.... Rerun when ...`, followed by its run history; an item not yet run says "Not yet run." Runs use scratch profiles (`CLAUDE_CONFIG_DIR` outside the repository) and throwaway repositories. Every entry in the record of runs gives the date, the machine, the Claude Code, gh and Node versions, the items run, and the result, and, from 2026-10-22, the permission mode of its runs; earlier entries are not rewritten (requirement 275).
+Hand-run checks for the suite. Each milestone adds its items; items 27 to 36 were added 2026-10-20 for the primer plugin, and 37 to 44 on 2026-10-22 for the host alignment and test performance passes. An item is `N. **Title.** Setup: ... Command: ... Expected: ... Covers R.... Rerun when ...`, followed by its run history; an item not yet run says "Not yet run." Runs use scratch profiles (`CLAUDE_CONFIG_DIR` outside the repository) and throwaway repositories. Every entry in the record of runs gives the date, the machine, the Claude Code, gh and Node versions, the items run, and the result, and, from 2026-10-22, the permission mode of its runs; earlier entries are not rewritten (requirement 275). The marketplace was renamed from reimagine-claude to reimagine-engine on 2026-10-23, and entries before that date use the old name.
 
 ## Items
 

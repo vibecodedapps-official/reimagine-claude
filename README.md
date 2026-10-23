@@ -1,4 +1,4 @@
-# reimagine-claude
+# reimagine-engine
 
 A suite of four Claude Code plugins, built on three ideas: achieve more with less; say how, not what; take work from development to production in bulk.
 
@@ -21,11 +21,11 @@ Status: `rules`, `loop`, `audit` and `primer` are released from `main`, each wit
 Without a GitHub SSH key on the machine, set `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1` in the environment before starting Claude Code, so the marketplace is cloned over HTTPS. Then, in Claude Code:
 
 ```
-/plugin marketplace add vibecodedapps-official/reimagine-claude
-/plugin install rules@reimagine-claude
-/plugin install loop@reimagine-claude
-/plugin install audit@reimagine-claude
-/plugin install primer@reimagine-claude
+/plugin marketplace add vibecodedapps-official/reimagine-engine
+/plugin install rules@reimagine-engine
+/plugin install loop@reimagine-engine
+/plugin install audit@reimagine-engine
+/plugin install primer@reimagine-engine
 ```
 
 Each plugin works alone. After installing `rules`, run `/rules` (also reachable as `/rules:rules`) and answer the question it asks; then pick the output style with `/output-style rules:Concise Plain`.
@@ -35,31 +35,31 @@ Each plugin works alone. After installing `rules`, run `/rules` (also reachable 
 - Loop: say `reimagine loop #12 and #15` or `run the loop on AB#4567, plan only`, or type `/loop:run` followed by the same words. There are no flags; the skill prints how it read your request before it does anything. The bare `/loop` is Claude Code's own interval skill, not this one.
 - Audit: say `reimagine audit PR 123 and 124 in app, tickets AB#4567 and AB#4580`, or pass the manifest a loop run wrote.
 - primer: put `<!-- primer -->` on the first line of a repository's `CLAUDE.md`, and the drift hook checks every commit Claude Code makes there against the instruction files. Run `/primer` in a repository to set up, adopt or check its instruction files; it says which mode it runs in before it writes.
-- repo-docs is retired and left the catalog with the primer release: uninstall it with `/plugin uninstall repo-docs@reimagine-claude`, then run `/primer` in each repository it kept, and adopt converts the hub and its spokes in one run.
+- repo-docs is retired and left the catalog with the primer release: uninstall it with `/plugin uninstall repo-docs@reimagine-engine`, then run `/primer` in each repository it kept, and adopt converts the hub and its spokes in one run.
 
 ## Update
 
 From a shell:
 
 ```
-claude plugin marketplace update reimagine-claude
-claude plugin update rules@reimagine-claude
-claude plugin update loop@reimagine-claude
-claude plugin update audit@reimagine-claude
-claude plugin update primer@reimagine-claude
+claude plugin marketplace update reimagine-engine
+claude plugin update rules@reimagine-engine
+claude plugin update loop@reimagine-engine
+claude plugin update audit@reimagine-engine
+claude plugin update primer@reimagine-engine
 ```
 
-In a session, `/plugin marketplace update reimagine-claude` refreshes the catalog and `/plugin` opens the plugin manager, whose Installed tab updates a plugin; `/plugin update` is not a session command. An alpha install moves to 0.1.0 the same way; the alpha version sorts below it. Restart the session afterwards. When the house rules changed, a one-line notice at startup says to run `/rules`.
+In a session, `/plugin marketplace update reimagine-engine` refreshes the catalog and `/plugin` opens the plugin manager, whose Installed tab updates a plugin; `/plugin update` is not a session command. An alpha install moves to 0.1.0 the same way; the alpha version sorts below it. Restart the session afterwards. When the house rules changed, a one-line notice at startup says to run `/rules`.
 
 ## Uninstall
 
 Run `/rules --remove` first if you want the block out of your `CLAUDE.md`; it gives back the file's original bytes.
 
 ```
-/plugin uninstall rules@reimagine-claude
-/plugin uninstall loop@reimagine-claude
-/plugin uninstall audit@reimagine-claude
-/plugin uninstall primer@reimagine-claude
+/plugin uninstall rules@reimagine-engine
+/plugin uninstall loop@reimagine-engine
+/plugin uninstall audit@reimagine-engine
+/plugin uninstall primer@reimagine-engine
 ```
 
 The audit keeps its run registry in the plugin data directory; delete it by hand if you want it gone.
@@ -70,7 +70,7 @@ Node 22 or later, no dependencies. `npm test` runs the suites under `tests/`; `n
 
 `npm run eval` runs the eval cases under `tests/evals/` with the host's `claude plugin eval`, two runs per case with and without the plugin, locally and never in CI; it needs Claude Code with that command, a login, and git 2.31 or later, and its results land in the ignored `tests/evals/results/`.
 
-The repository keeps its own `CLAUDE.md` as a primer hub, and `.claude/settings.json` declares this catalog and enables `primer` for sessions here, so the drift hook checks every commit. A session in a trusted folder fetches the catalog and the plugin; run `claude plugin install primer@reimagine-claude --scope project` once in the repository so every session, headless ones included, loads it. To leave it off on your machine, set `"primer@reimagine-claude": false` under `enabledPlugins` in `.claude/settings.local.json`.
+The repository keeps its own `CLAUDE.md` as a primer hub, and `.claude/settings.json` declares this catalog and enables `primer` for sessions here, so the drift hook checks every commit. A session in a trusted folder fetches the catalog and the plugin; run `claude plugin install primer@reimagine-engine --scope project` once in the repository so every session, headless ones included, loads it. To leave it off on your machine, set `"primer@reimagine-engine": false` under `enabledPlugins` in `.claude/settings.local.json`.
 
 Design documents, in reading order: `docs/requirements.md`, `docs/architecture.md`, `docs/build-plan.md`, `docs/decisions.md`, `docs/acceptance.md`.
 

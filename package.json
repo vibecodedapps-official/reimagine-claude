@@ -1,5 +1,5 @@
 {
-  "name": "reimagine-claude",
+  "name": "reimagine-engine",
   "version": "0.1.0",
   "description": "Claude Code plugins: house rules, a build loop, an audit, and instruction-file maintenance",
   "private": true,
