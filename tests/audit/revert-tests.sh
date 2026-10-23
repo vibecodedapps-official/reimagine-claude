@@ -394,23 +394,17 @@ status tests/test_stubborn.sh > "$tmp/st"
 grep -qx -- '- Exit status: timed out after [2-9] seconds (exit status 137)' "$tmp/st" ||
 	mismatch "$case_id: status [$(cat "$tmp/st")]"
 
-# 5e. Two files that take 1.5 seconds against a deadline of 2, run at head and without the
+# 5e. Two files that take 1.25 seconds against a deadline of 2, run at head and without the
 # change, under the low tick: each run's deadline counts whole seconds of the shell's
 # clock, and none may end before 2 seconds have passed.
 case_id="case 5e"
 mkrepo c5e
-put 100644 README 'x
-'
+put 100644 README 'x\n'
 commit main
-put 100644 tests/test_s1.sh 'sleep 1.5
-'
-put 100644 tests/test_s2.sh 'sleep 1.5
-'
+put 100644 tests/test_s1.sh 'sleep 1.25\n'
+put 100644 tests/test_s2.sh 'sleep 1.25\n'
 commit feature main
-run "$R" 'command	sh
-run	tests/test_*.sh
-timeout	2
-'
+run "$R" 'command\tsh\nrun\ttests/test_*.sh\ntimeout\t2\n'
 ok
 verdicts '- `tests/test_s1.sh`: passes at head and without the change
 - `tests/test_s2.sh`: passes at head and without the change
