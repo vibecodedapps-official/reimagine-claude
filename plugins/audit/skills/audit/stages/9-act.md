@@ -243,7 +243,8 @@ compaction, read the item ids and `--per-item` from the block recorded there.
     - that the audit's entry in `runs.json` is unchanged, since act writes only under
       `<run dir>/act/` and its invocation record;
     - the absolute path of `act/log.md`;
-    - one live line, from the report's Live checks blocks (`live.md`) as they stand:
+    - one live line, from the Live checks blocks in `report.md`, whose grammar is in the
+      skill's `live.md`, as they stand:
       - `live checks: none outstanding`, when no block has `status`
         `not run: not approved` or `under review`;
       - `live results needed: <ids>; /audit:resume <run-id> --live <file> imports them while resume's eligibility checks pass: each bundle's recorded head and base still resolve to the recorded shas, and no stage before 6 needs a rerun; resume rechecks all of that and refuses otherwise`,
