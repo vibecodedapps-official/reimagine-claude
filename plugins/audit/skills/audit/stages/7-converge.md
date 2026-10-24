@@ -164,19 +164,21 @@ adversary runs, `ledger/7.md`, `gate.md`, `converged.md`, and in split mode
    - `provisional; no late verdict`
    - `provisional; late finding` (an `L<n>` raised on this run)
 
-5. **Cut the slices, then choose the mode.** Assign every universe id to a group: for
-   `pass1`, `pass2` and `topup` findings, the scope in the id; for `X<n>` and `L<n>`
-   findings, carried ones included, the group whose files the recommended change or the
-   evidence names, else `ungrouped`. Build each group's slice,
-   `ledger/slices/<group>.md`, by shell with the commands of step 7, item 1; the
-   orchestrator reads none of it. Measure each slice with `wc -c`, and add the byte
-   sizes of `ledger/5.md`, `ledger/6.md`, `ledger/7.md` and, when they exist,
-   `live/findings.md` and every `live/carried/<id>.md`. The threshold is 450,000
-   bytes, or `_test.ledger_split_bytes` when that is set; it sizes one merger's
-   context, which the sum does not measure. Record the sum, the largest slice and the
-   threshold in the stage entry. Use split mode (step 7) when any slice is over the
-   threshold, or when the sum is over three times it; otherwise remove `ledger/slices/`
-   and use normal mode (step 6).
+5. **Cut the slices, then choose the mode.** Add the byte sizes (`wc -c`) of
+   `ledger/5.md`, `ledger/6.md`, `ledger/7.md` and, when they exist, `live/findings.md`
+   and every `live/carried/<id>.md`. The threshold is 450,000 bytes, or
+   `_test.ledger_split_bytes` when that is set; it sizes one merger's context, which
+   the sum does not measure. When the sum is under the threshold, no slice cut from
+   those files can pass it: record the sum, `not cut` as the largest slice and the
+   threshold in the stage entry, and use normal mode (step 6) without building the
+   slices. Otherwise assign every universe id to a group: for `pass1`, `pass2` and
+   `topup` findings, the scope in the id; for `X<n>` and `L<n>` findings, carried ones
+   included, the group whose files the recommended change or the evidence names, else
+   `ungrouped`. Build each group's slice, `ledger/slices/<group>.md`, by shell with the
+   commands of step 7, item 1; the orchestrator reads none of it. Measure each slice
+   with `wc -c`. Record the sum, the largest slice and the threshold in the stage
+   entry. Use split mode (step 7) when any slice is over the threshold, or when the sum
+   is over three times it; otherwise remove `ledger/slices/` and use normal mode.
 
 6. **Normal mode.** Launch one `audit:merger` by the same launch rules: the merger
    role's model from a prose override, else the manifest, else `sonnet`; scope
