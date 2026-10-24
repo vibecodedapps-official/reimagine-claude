@@ -7,6 +7,12 @@ One changelog for the suite. Each plugin releases on its own line; a release get
 - Design documents for 0.1.0 under `docs/`: requirements, architecture, build plan, decisions, acceptance.
 - Design documents for the `primer` plugin under `docs/`, which replaces `repo-docs` from its release: requirements 237 to 268, decisions 73 to 89, milestones M10 to M19, acceptance items 27 to 36.
 
+## rules 0.1.6 - 2026-10-24
+
+- A new Done rule describes an edit from the diff, not from the plan: re-read the hunk and name only what is in it, and report a change that was planned and turned out unnecessary as not needed, never as made. A report had named a rewording the files did not hold.
+- Concise Plain 4.6: what a person said or decided is reported in their words or a paraphrase that adds nothing, with the options as they were put, and a reading of their words labeled as the writer's; a draft to someone else matches its reader, plain and professional by default; a fact goes into a draft only when the reader cannot get it from a source the draft names, and a chat reply stays a few sentences unless the reader asked for the detail; before a draft is shown, even one for pasting, it is scanned for bare ids of the kinds the Links section names. The chat block carries the same four lines.
+- The marketplace and repository are renamed `reimagine-engine`: the install and uninstall lines and the manifest's repository URL name it. The plugin id, skill, hook, output style and tag names do not change; a profile that installed under the old name needs the new marketplace entry.
+
 ## audit 0.1.6 - 2026-10-22
 
 - `revert-tests.sh` with a fractional `REVERT_TESTS_TICK` no longer ends a deadline, the wait window or a cleanup bound up to a second early: the shell's clock counts whole seconds, so such a tick now waits one second more. A whole tick, the default included, waits as before.
