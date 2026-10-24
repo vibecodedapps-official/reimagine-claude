@@ -1,6 +1,6 @@
 # Build plan: 0.1.0
 
-Drafted 2026-10-14. requirements.md and architecture.md win over this plan. Requirements are cited as R1 to R279; the primer milestones M10 to M19 follow M9, and M20 to M25 follow them, each dated where it was added. Each milestone ends with its checks green on the implementer's machine; `npm test` runs from M1 on, `npm run lint` from M7 on, and the forbidden-name sweep (decision 10) runs before every commit from the first one. Pushes and pull requests follow the ask-first rules of the owner's instruction files; the handoff that starts the implementation says what is approved.
+Drafted 2026-10-14. requirements.md and architecture.md win over this plan. Requirements are cited as R1 to R280; the primer milestones M10 to M19 follow M9, and M20 to M26 follow them, each dated where it was added. Each milestone ends with its checks green on the implementer's machine; `npm test` runs from M1 on, `npm run lint` from M7 on, and the forbidden-name sweep (decision 10) runs before every commit from the first one. Pushes and pull requests follow the ask-first rules of the owner's instruction files; the handoff that starts the implementation says what is approved.
 
 The implementation runs with an Opus orchestrator and Sonnet subagents. The orchestrator owns every design document, every commit, and every check; subagents write files from a brief that quotes the requirement and see nothing else.
 
@@ -401,6 +401,29 @@ Check:
 - `npm test` and lint with the deny tokens pass on Windows and on one POSIX machine; the audit sh suites pass under mawk with the tick set and unset.
 - Acceptance item 44: a full `npm test` at half the baseline or better and every area script under 30 seconds except `test:audit`, whose target is the baseline of `revert-tests.sh` alone divided by the tick ratio.
 - After the push, the `## audit <version> - <date>` heading for the version item 2 set, commit `docs(changelog): add the audit <version> heading`, pushed, then `claude plugin tag --push plugins/audit`; the after-timings of item 4 and the record, commit `docs(acceptance): record the test performance milestone`.
+
+## House-rule edit nine and Concise Plain 4.6: M26
+
+Added 2026-10-24. Requirement R280 and the amended R43, decision 111. Built after M20 to M25. Depends on nothing; touches `plugins/rules/`, `tests/rules/`, `tools/lint.mjs` and `tests/lint/` only.
+
+| # | Milestone | Adds | Depends on |
+|---|---|---|---|
+| M26 | house-rule edit nine and Concise Plain 4.6 | the Done item, the test assertion and the moved digest literals; the four style changes in the style and the chat block, and the lint literal at 4.6; rules 0.1.6 | - |
+
+### M26: house-rule edit nine and Concise Plain 4.6
+
+Work items, in this order:
+
+1. The design documents: R280 in the form of R269 and R43 at version 4.6 in `docs/requirements.md`, decision 111 in `docs/decisions.md`, and this section. Commit: `docs(design): specify house-rule edit nine and concise plain 4.6`.
+2. The item of R280 in `plugins/rules/rules/core.md` at the end of Done, wrapped like its neighbors. `tests/rules/rules.test.mjs`: an `items.includes` assertion for R280 beside that of R269, and the shipped digest literals for `core` and `core,windows`, the rule count and any adopt line numbers, moved by running the script once and pasting the observed values (decision 11), in the same commit. Commit: `feat(rules): report an edit from the diff, not the plan`.
+3. `plugins/rules/output-styles/concise-plain.md`: the four changes of decision 111, the description ending in `v4.6.`; `plugins/rules/chat/instructions.md`: the same four changes inside the fenced block and the header line at `Concise Plain v4.6`, the list of deliberate differences unchanged; `tools/lint.mjs` and `tests/lint/lint.test.mjs`: the `v4.5` literals become `v4.6`. Commit: `feat(rules): concise plain 4.6, drafts for the reader and words as they were put`.
+4. No version bump: the rules manifest and its catalog entry are already 0.1.6, above `rules--v0.1.5`, from the rename commit (decision 110); `git tag --list 'rules--v*'` and lint confirm it.
+5. After the push: the `## rules 0.1.6 - <date>` heading in `CHANGELOG.md`, one bullet per change, the rename included, commit `docs(changelog): add the rules 0.1.6 heading`, pushed, then `claude plugin tag --push plugins/rules`; the acceptance record, commit `docs(acceptance): record the house-rule edit nine milestone`.
+
+Check:
+
+- `npm run test:rules` and `npm run test:lint` on each commit of items 2 and 3, each run as its own command with its exit code read; `npm test` and lint with the deny tokens before the push.
+- Acceptance items 4, 5 and 22 rerun: the staleness notice on a profile holding the 0.1.5 block; the style listed as `rules:Concise Plain`; the tag rule at `rules--v0.1.6`; each recorded with date, machine, versions and permission mode.
 
 ## Acceptance record
 
