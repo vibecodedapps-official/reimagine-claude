@@ -82,3 +82,39 @@ test('R74: SKILL.md finds the organization and project of the visualstudio.com f
   assert.ok(text.includes('When the project segment is `_git`, as in `dev.azure.com/<org>/_git/<repo>`, the project has the repository\'s name.'));
   assert.ok(!text.includes('On any other host, which has the form'));
 });
+
+test('R281: SKILL.md lists "primary <path>" among the recognized phrases and the Scope line names the checkout in use', () => {
+  const text = section(SKILL, 'Reading the request');
+  assert.notEqual(text, null);
+  assert.ok(text.includes('- "primary <path>":'), 'the phrase list has no "primary <path>" line');
+  assert.ok(text.includes('the checkout "primary <path>" names'), 'the Scope paragraph does not name the phrase');
+});
+
+test('R281: Step 0 resolves the named checkout before host detection and ends blocked on a path that is not a toplevel or a linked worktree', () => {
+  const text = section(PREFLIGHT, 'Primary checkout');
+  assert.notEqual(text, null, 'Step 0 has no Primary checkout section');
+  assert.ok(PREFLIGHT.indexOf('\n## Primary checkout\n') < PREFLIGHT.indexOf('\n## Host detection\n'), 'Primary checkout comes after Host detection');
+  assert.ok(text.includes('`git -C <path> rev-parse --show-toplevel`'));
+  assert.ok(text.includes('`blocked`'));
+  assert.ok(text.includes('`git -C <checkout>`'), 'the section does not give the git -C form');
+  assert.ok(text.includes('`cd <checkout> && <command>`'), 'the section does not give the cd form');
+});
+
+test('R77: the worktree failure of Step 0.2 names "primary <that path>" as a way around it', () => {
+  assert.ok(PREFLIGHT.includes('"primary <that path>"'));
+});
+
+test('R281: the worktree exception of Step 0.3 does not apply to a named linked worktree', () => {
+  const text = section(PREFLIGHT, '0.3 Clean tree, flagged files, worktree');
+  assert.notEqual(text, null);
+  assert.ok(text.includes('linked worktree'), 'Step 0.3 does not say what a linked worktree does with a differing flagged path');
+  assert.ok(text.includes('"primary <main checkout>"'), 'Step 0.3 does not name the way around the stop');
+});
+
+test('R82: the record of a named linked worktree lives in its main checkout', () => {
+  const RECORD = read('../../plugins/loop/skills/run/record.md');
+  const text = section(RECORD, 'Location');
+  assert.notEqual(text, null);
+  assert.ok(text.includes('`git -C <checkout> worktree list --porcelain`'), 'record.md does not say how the main checkout is found');
+  assert.ok(text.includes('main checkout'));
+});

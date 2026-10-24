@@ -6,14 +6,14 @@ Read this file when Step 0.3's exception applies (a flagged file differs from HE
 
 The worktree path is `<checkout-parent>/<checkout-name>-reimagine-<branch-slug>`, for example `C:/src/app-reimagine-feat-68-export` beside `C:/src/app`. It sits beside the checkout, never inside it.
 
-Do Step 0.5's work first, in the original checkout: add the `.reimagine/` exclude and create the record directory. The record then exists before the worktree does, and from then a stop writes the report.
+Do Step 0.5's work first, in the record root (`record.md`, Location): add the `.reimagine/` exclude and create the record directory. The record then exists before the worktree does, and from then a stop writes the report.
 
 Create the worktree detached at the base commit: `git worktree add --detach <path> <base>`.
 
 Record two roots in `run.md`:
 
 - `<checkout>`: the worktree.
-- `<record>`: the record directory, under the original checkout.
+- `<record>`: the record directory, under the record root.
 
 ## Working in it
 

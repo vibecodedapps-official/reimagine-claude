@@ -53,6 +53,7 @@ Recognized phrases:
 - "confirm the plan": pause once after the plan review for a clear yes.
 - "continue <branch>": resume that branch and its record.
 - "on branch <name>": name the branch to create.
+- "primary <path>": name the primary checkout, a git toplevel or a linked worktree, in place of the session's repository.
 - "also edit <path>" and "also edit <path> on <branch>": add a writable checkout.
 - "budget <n> minutes": set the run budget.
 - Effort words.
@@ -69,7 +70,7 @@ Ticket forms, resolved per id in this order:
 
 All remaining text joined is one ad-hoc description. An id that cannot be resolved gets one line in the block and the run continues with the other inputs. A pull request URL or number on GitHub that is open, not cross-repository and in the primary repository sets the branch to continue: its tickets come from the branch record, else from the pull request's closing references, else the run ends `blocked` asking for a ticket, file or description. A pull request on another host gets one line and the run continues without it.
 
-Scope: the primary repository is the session's. "also edit <path>" adds a writable checkout. A path in ticket text that maps to another checkout is adopted only after the user answers the Step 1.2 question with a clear yes or a comma-separated subset; any other answer ends `stopped` with the "also edit <path>" form to rerun without the question. Never adopt a repository from prose alone.
+Scope: the primary repository is the session's, or the checkout "primary <path>" names, which Step 0 checks is a git toplevel or a linked worktree and then addresses with `git -C <checkout>` and `cd <checkout> && <command>`. "also edit <path>" adds a writable checkout. A path in ticket text that maps to another checkout is adopted only after the user answers the Step 1.2 question with a clear yes or a comma-separated subset; any other answer ends `stopped` with the "also edit <path>" form to rerun without the question. Never adopt a repository from prose alone.
 
 The first text of your reply is the echo line:
 
@@ -86,7 +87,7 @@ Scope: primary C:/src/app; also edit C:/src/app-infra
 Effort: thorough (reviewers at high; risk floor not yet judged)
 ```
 
-Each ticket names how it resolved: `gh`, `az boards`, `mcp:<tool>`, `file`, `text`. Mode is one of `build and publish`, `plan only`, `build without publishing`, plus `; continue branch <b>` and `; confirm the plan` when they apply. A pull request reference, "continue <branch>", or an existing record (Step 0 finds it by ticket id or by the predicted branch) makes the run a continuation. The Effort line names the word you read, or `default` when there is none. The block has no length cap.
+Each ticket names how it resolved: `gh`, `az boards`, `mcp:<tool>`, `file`, `text`. Mode is one of `build and publish`, `plan only`, `build without publishing`, plus `; continue branch <b>` and `; confirm the plan` when they apply. A pull request reference, "continue <branch>", or an existing record (Step 0 finds it by ticket id or by the predicted branch) makes the run a continuation. The Scope line names the primary checkout in use, the session's or the path "primary <path>" names, then each "also edit" path. The Effort line names the word you read, or `default` when there is none. The block has no length cap.
 
 After the block, read `steps/0-preflight.md` and start Step 0.
 
@@ -171,7 +172,7 @@ One mechanic serves every question the run asks: credentials, repository adoptio
 
 - A shell quoting failure is fixed by writing the text to a file in the record and passing its absolute path.
 - A check that failed at baseline is not the loop's to fix. Match it by test names, not counts, and report it with the evidence.
-- Every shell argument that names a record file is its absolute path under the session's original checkout.
+- Every shell argument that names a record file is its absolute path under the record root (`record.md`, Location).
 - A sha before `:<path>` is written literally or as `${sha}:<path>`, never `$sha:<path>`: some shells read `:t` or `:l` after a variable as a modifier and alter the path without an error.
 
 ## Configuration
@@ -196,7 +197,7 @@ Unknown keys and bad values are reported and ignored. A file that does not parse
 
 ## Record
 
-The record lives at `.reimagine/loop/<branch-slug>/` in the primary repository's original checkout, keyed by branch so a second invocation finds it. `steps.json` is the only record of completion. `record.md` holds the layout, the files and the rules; read it at Step 0.5.
+The record lives at `.reimagine/loop/<branch-slug>/` in the primary repository's record root, its main checkout as `record.md`, Location, says, keyed by branch so a second invocation finds it. `steps.json` is the only record of completion. `record.md` holds the layout, the files and the rules; read it at Step 0.5.
 
 1. `<branch-slug>` is the branch name lowercased, with each run of characters outside `[a-z0-9]` replaced by `-`, cut to at most 60 characters, then trailing `-` removed. For `feat/68-4567-export` it is `feat-68-4567-export`.
 2. The branch is known at preflight. It is the continued branch; else the "on branch" name; else the branch of the one existing record that holds one of the request's tickets, which Step 0.2 finds by ticket id, so adding or reordering tickets keeps the branch; else the predicted name: `fix/<ids>-<slug>` when any ticket is labeled bug or titled "fix" (any case), else `feat/<ids>-<slug>` when there is a ticket, else `work/<slug>`. `<ids>` are the ticket numbers joined with `-`. `<slug>` comes from the first ticket's title, else the redacted description, else the file name, made mechanically so every run predicts the same name: lowercase it, replace each run of characters outside `[a-z0-9]` with `-`, drop `-` at both ends, keep the first 40 characters even when that cuts a word, then drop a trailing `-`. For the title "count() should accept an optional predicate" the slug is `count-should-accept-an-optional-predicat`. A predicted name that matches an existing local or remote branch with no record ends preflight `blocked`.
