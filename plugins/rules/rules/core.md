@@ -72,6 +72,9 @@ Any instruction file can add an ask-first rule; none removes one.
 - Keep whatever describes the work accurate. Name any check you didn't run. A claim
   about state counts only if you checked the thing itself; what you read about it gets
   "probably".
+- Describe an edit from the diff, not from the plan: re-read the hunk and name only what
+  is in it. A change that was planned and turned out unnecessary is reported as not
+  needed, never as made.
 
 ## Ask first
 
