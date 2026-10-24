@@ -35,5 +35,6 @@ every relaunch and swap it causes is recorded in the stage entry and named in th
   orchestrator accepts its file, it changes the conclusion of one quoted answer in
   `domain/<source>-map.md` to its opposite, keeping the quote, and records the line in the
   stage 3 entry as `test_planted`.
-- `ledger_split_bytes`: a byte count. It replaces both 450,000-byte thresholds of stage 7:
-  the one that chooses the split mode, and the one that splits a group's slice into parts.
+- `ledger_split_bytes`: a byte count. It replaces the 450,000-byte threshold of stage 7,
+  which bounds a group's slice: split mode is chosen when a slice passes it or the sum of
+  the ledger files passes three times it, and a slice over it is cut into parts.

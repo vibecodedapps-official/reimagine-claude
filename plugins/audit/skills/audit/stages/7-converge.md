@@ -164,11 +164,19 @@ adversary runs, `ledger/7.md`, `gate.md`, `converged.md`, and in split mode
    - `provisional; no late verdict`
    - `provisional; late finding` (an `L<n>` raised on this run)
 
-5. **Choose the mode.** Add the byte sizes (`wc -c`) of `ledger/5.md`, `ledger/6.md`,
-   `ledger/7.md`, and, when they exist, `live/findings.md` and every
-   `live/carried/<id>.md`. Record the total and the threshold in the stage entry. Over
-   450,000 bytes, or over `_test.ledger_split_bytes` when that is set, use split mode
-   (step 7); otherwise normal mode (step 6).
+5. **Cut the slices, then choose the mode.** Assign every universe id to a group: for
+   `pass1`, `pass2` and `topup` findings, the scope in the id; for `X<n>` and `L<n>`
+   findings, carried ones included, the group whose files the recommended change or the
+   evidence names, else `ungrouped`. Build each group's slice,
+   `ledger/slices/<group>.md`, by shell with the commands of step 7, item 1; the
+   orchestrator reads none of it. Measure each slice with `wc -c`, and add the byte
+   sizes of `ledger/5.md`, `ledger/6.md`, `ledger/7.md` and, when they exist,
+   `live/findings.md` and every `live/carried/<id>.md`. The threshold is 450,000
+   bytes, or `_test.ledger_split_bytes` when that is set; it sizes one merger's
+   context, which the sum does not measure. Record the sum, the largest slice and the
+   threshold in the stage entry. Use split mode (step 7) when any slice is over the
+   threshold, or when the sum is over three times it; otherwise remove `ledger/slices/`
+   and use normal mode (step 6).
 
 6. **Normal mode.** Launch one `audit:merger` by the same launch rules: the merger
    role's model from a prose override, else the manifest, else `sonnet`; scope
@@ -220,19 +228,16 @@ adversary runs, `ledger/7.md`, `gate.md`, `converged.md`, and in split mode
      ledger files.
    - The file ends with `status: complete`.
 
-7. **Split mode.** One `audit:merger` per group, then one final merger.
+7. **Split mode.** One `audit:merger` per group, then one final merger, over the
+   slices step 5 built.
 
-   1. Assign every universe id to a group: for `pass1`, `pass2` and `topup` findings,
-      the scope in the id; for `X<n>` and `L<n>` findings, carried ones included, the
-      group whose files the recommended change or the evidence names, else
-      `ungrouped`.
-
-   2. Build each group's slice, `ledger/slices/<group>.md`, by shell before its merger
-      starts; the orchestrator reads none of it, and no section passes through its own
-      output. For each id of the group in id order, append, for each of `ledger/5.md`,
-      `ledger/6.md` and `ledger/7.md` that has a section for it, a pointer line and
-      that section; then its `live/findings.md` section and its carried file, when
-      they exist, each after its pointer line; then its line of `gate.md`. In
+   1. Each group's slice, `ledger/slices/<group>.md`, is built by shell at step 5,
+      before any merger starts; the orchestrator reads none of it, and no section
+      passes through its own output. For each id of the group in id order, append,
+      for each of `ledger/5.md`, `ledger/6.md` and `ledger/7.md` that has a section
+      for it, a pointer line and that section; then its `live/findings.md` section and
+      its carried file, when they exist, each after its pointer line; then its line of
+      `gate.md`. In
       `ledger/5.md` a section is exactly `## <id>` and runs to the next `## ` line; a
       `### ` line never starts or ends one there, because each section embeds the
       finding's own heading under `### Original`. In `ledger/6.md` and `ledger/7.md` a
@@ -263,12 +268,12 @@ adversary runs, `ledger/7.md`, `gate.md`, `converged.md`, and in split mode
       awk -v id=<id> 'index($0, id ": ") == 1' <run dir>/gate.md >> <slice>
       ```
 
-      A slice over 450,000 bytes (`wc -c`), or over `_test.ledger_split_bytes` when
-      set, is cut into parts `<group>-1`, `<group>-2`, ... with slices
-      `ledger/slices/<group>-<k>.md` and one merger each. Fill the parts greedily in id
-      order: truncate `<run dir>/tmp/block.md` (`: > <run dir>/tmp/block.md`), build one
-      id's block into it with the commands above, measure it with `wc -c`, and append it
-      to the open part with `cat` and a redirect. A part closes when the next block
+   2. A slice over the threshold of step 5 is cut into parts `<group>-1`, `<group>-2`,
+      ... with slices `ledger/slices/<group>-<k>.md` and one merger each. Fill the
+      parts greedily in id order: truncate `<run dir>/tmp/block.md`
+      (`: > <run dir>/tmp/block.md`), build one id's block into it with the commands
+      above, measure it with `wc -c`, and append it to the open part with `cat` and a
+      redirect. A part closes when the next block
       would take it over the threshold, and that id opens the next part. An id whose
       block alone is over the threshold forms a part of its own, marked
       `over threshold` in a first slice line written by `printf` and in the stage
@@ -347,7 +352,8 @@ adversary runs, `ledger/7.md`, `gate.md`, `converged.md`, and in split mode
     `SKILL.md`, "State files", says: status; inputs with hashes, the live inputs by hash
     or `absent`; outputs; agents with requested model, scope, times, result and tokens
     labeled "task notification, subagent_tokens; scope not documented"; swaps; the mode
-    with the byte total and the threshold, and each part marked `over threshold`;
+    with the byte total, the largest slice and the threshold, and each part marked
+    `over threshold`;
     `converged_check`, absent when no merge was attempted; failed scopes with their
     coverage loss; and each `_test` fault applied.
 
