@@ -40,7 +40,7 @@ Use only the latest result per context and per check suite.
 
 Decide which workflows apply to the pull request from the workflow files:
 
-- Judge a `pull_request_target` workflow from the default branch's file.
+- Judge a `pull_request_target` workflow from the base branch's file.
 - Apply the `branches`, `branches-ignore`, `paths`, `paths-ignore` and `types` filters. The type is `opened` for a pull request this run opened and `synchronize` for a continued branch or after a repair push.
 - A filter you cannot judge counts as a match.
 - A skip marker in the head commit message makes a `pull_request` workflow not applicable: `[skip ci]`, `[ci skip]`, `[no ci]`, `[skip actions]`, `[actions skip]`, or a `skip-checks: true` trailer. Required checks stay required.

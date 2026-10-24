@@ -16,7 +16,7 @@ const section = (text, heading) => {
 };
 
 test('R83: Step 0.2 looks for an existing record by ticket id before it predicts a branch', () => {
-  const text = section(PREFLIGHT, '0.2 Default branch, base commit, continued branch, open pull requests');
+  const text = section(PREFLIGHT, '0.2 Base branch, base commit, continued branch, open pull requests');
   assert.notEqual(text, null);
   const lookup = text.indexOf('`tickets`');
   assert.ok(lookup !== -1, 'Step 0.2 does not read the tickets list of existing records');
@@ -117,4 +117,34 @@ test('R82: the record of a named linked worktree lives in its main checkout', ()
   assert.notEqual(text, null);
   assert.ok(text.includes('`git -C <checkout> worktree list --porcelain`'), 'record.md does not say how the main checkout is found');
   assert.ok(text.includes('main checkout'));
+});
+
+test('R282: SKILL.md lists "base <branch>" among the recognized phrases and the Mode line carries the base', () => {
+  const text = section(SKILL, 'Reading the request');
+  assert.notEqual(text, null);
+  assert.ok(text.includes('- "base <branch>":'), 'the phrase list has no "base <branch>" line');
+  assert.ok(text.includes('`; base <branch>`'), 'the Mode line does not carry the base');
+});
+
+test('R76: Step 0.2 resolves the base branch from the request, then the configuration, then the remote default, and a failed fetch ends blocked', () => {
+  const text = section(PREFLIGHT, '0.2 Base branch, base commit, continued branch, open pull requests');
+  assert.notEqual(text, null, 'Step 0.2 is not headed Base branch');
+  const phrase = text.indexOf('"base <branch>" in the request');
+  const key = text.indexOf('`.reimagine.json` `base`');
+  const fallback = text.indexOf('else the default branch');
+  assert.ok(phrase !== -1 && key !== -1 && fallback !== -1, 'Step 0.2 does not give the three sources');
+  assert.ok(phrase < key && key < fallback, 'Step 0.2 gives the sources out of order');
+  assert.ok(text.includes('A fetch that fails ends the run `blocked`, naming the branch.'));
+  assert.ok(text.includes('whose base differs from `<b>` ends `blocked`'), 'an open pull request on another base does not end blocked');
+});
+
+test('R88, R116: the merge-base, the deploy judgment and the pull request use <base>, not <default>', () => {
+  const BUILD = read('../../plugins/loop/skills/run/steps/4-build.md');
+  const PUBLISH = read('../../plugins/loop/skills/run/steps/7-publish.md');
+  assert.ok(BUILD.includes('`git merge-base <remote>/<base> HEAD`'));
+  assert.ok(PUBLISH.includes('--base <base>`'));
+  for (const file of [BUILD, PUBLISH, read('../../plugins/loop/skills/run/record.md'), read('../../plugins/loop/skills/run/risk.md'), read('../../plugins/loop/skills/run/ci-watch.md')]) {
+    assert.ok(!file.includes('<default>'), 'a step file still uses <default>');
+    assert.ok(!file.includes('the default branch'), 'a step file still reads the default branch as the base');
+  }
 });
