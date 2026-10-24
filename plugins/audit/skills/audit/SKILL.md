@@ -438,7 +438,7 @@ Read each file at its point and not before. A sentence that only says where a ru
 - `stages/8-report.md`, `report.md` and `work-items.md`: when stage 8 starts.
 - `stages/9-act.md`: for `act`.
 - `resume.md`: for `resume`.
-- `live.md`: for `resume` with `live`, and when a stage reads live files.
+- `live.md`: for `resume` with `live`, and when a stage reads live files. It is a skill document, not a run file: the run's live inputs are under `live/`, and the Live checks blocks are in `report.md`.
 - `fault-injection.md`: only when the manifest has `_test`.
 - `handoff.md`: for `handoff`.
 - `audit-evidence.md`: never read by you; stage 1 copies it and auditor and adversary prompts name it.

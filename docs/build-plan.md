@@ -1,6 +1,6 @@
 # Build plan: 0.1.0
 
-Drafted 2026-10-14. requirements.md and architecture.md win over this plan. Requirements are cited as R1 to R280; the primer milestones M10 to M19 follow M9, and M20 to M26 follow them, each dated where it was added. Each milestone ends with its checks green on the implementer's machine; `npm test` runs from M1 on, `npm run lint` from M7 on, and the forbidden-name sweep (decision 10) runs before every commit from the first one. Pushes and pull requests follow the ask-first rules of the owner's instruction files; the handoff that starts the implementation says what is approved.
+Drafted 2026-10-14. requirements.md and architecture.md win over this plan. Requirements are cited as R1 to R283; the primer milestones M10 to M19 follow M9, and M20 to M28 follow them, each dated where it was added. Each milestone ends with its checks green on the implementer's machine; `npm test` runs from M1 on, `npm run lint` from M7 on, and the forbidden-name sweep (decision 10) runs before every commit from the first one. Pushes and pull requests follow the ask-first rules of the owner's instruction files; the handoff that starts the implementation says what is approved.
 
 The implementation runs with an Opus orchestrator and Sonnet subagents. The orchestrator owns every design document, every commit, and every check; subagents write files from a brief that quotes the requirement and see nothing else.
 
@@ -424,6 +424,50 @@ Check:
 
 - `npm run test:rules` and `npm run test:lint` on each commit of items 2 and 3, each run as its own command with its exit code read; `npm test` and lint with the deny tokens before the push.
 - Acceptance items 4, 5 and 22 rerun: the staleness notice on a profile holding the 0.1.5 block; the style listed as `rules:Concise Plain`; the tag rule at `rules--v0.1.6`; each recorded with date, machine, versions and permission mode.
+
+## Field feedback 2026-10-23: M27 and M28
+
+Added 2026-10-24. Requirements R281 to R283 and the amended R6, R50, R56, R76, R77, R81, R88, R116, R125, R139, R159, R184 and R193; decision 112; acceptance item 45. Eight findings from field runs of loop 0.1.4 and audit 0.1.6, verified against the shipped texts on 2026-10-24; one was dropped and the record helper of decision 31 stays deferred (decision 112). Two sub-milestones under one heading, since the plugins release separately: M27 touches `plugins/loop/` and `tests/loop/`, M28 `plugins/audit/`, `tests/audit/` and `tools/lint.mjs`. Neither bumps a version: the manifests already carry loop 0.1.5 and audit 0.1.7 from the rename commit (decision 110), above `loop--v0.1.4` and `audit--v0.1.6`. Each commit runs the area scripts that cover what it touched, each as its own command with its exit code read; `npm test` and lint with the deny tokens run once before the push.
+
+| # | Milestone | Adds | Depends on |
+|---|---|---|---|
+| M27 | loop field feedback | the "primary <path>" and "base <branch>" phrases, the `base` key, the decided-by mapping | - |
+| M28 | audit field feedback | `scripts/run-copies.sh` with its suite, the stage 7 slice-first mode choice, the stage 8 body sentence, the two act texts, the decided-by table | - |
+
+M27 and M28 touch no common file but the design documents, which the first commit carries, and may proceed in either order.
+
+### M27: loop field feedback
+
+Work items, in this order, each test written first and seen failing against the untouched text:
+
+1. The "primary <path>" phrase (R281, R50, R77): the grammar line in `SKILL.md` and `README.md`, the Scope line of the reading block, a "Primary checkout" item at the head of Step 0 in `steps/0-preflight.md` that resolves `<checkout>` and ends `blocked` on a path that is not a toplevel or a linked worktree, the `git -C <checkout>` and `cd <checkout> && ...` forms of `worktree.md` for every primary command, the permission statement's prompt line, Step 0.2.3's third way around, Step 0.2.5's switch in `<checkout>`, Step 0.3's exception limited to a main checkout, and the record location of `record.md` and `SKILL.md` for a named linked worktree. `tests/loop/preflight.test.mjs`: text assertions for the phrase, the stop, the third way around and the record location. Commit: `feat(loop): name the primary checkout with primary <path>`.
+2. The "base <branch>" phrase and the `base` key (R282, R76, R81, R88, R116, R56, R125): the grammar line in `SKILL.md` and `README.md`, the Mode line, Step 0.2.1 resolving `<b>` from the phrase, the key, then the default, with the fetch failure ending `blocked`, the pull request base check of 0.2.7, `run.md` at 0.5, the `base` key in 0.1.2 and in the byte-identical configuration block of `SKILL.md` and `README.md`, `<default>` to `<base>` in `steps/7-publish.md`, `steps/4-build.md` 3.7.2, `risk.md`, `record.md` and `ci-watch.md`, and the primary-only sentence in `multi-repo.md`. `tests/loop/config.test.mjs`: the key list gains `base`; `tests/loop/preflight.test.mjs`: the resolution order and the Mode line. Commit: `feat(loop): take the base branch from the request or the configuration`.
+3. The decided-by mapping (R139): `handoff.md`'s `run` line reads `role: orchestrator`. `tests/loop/handoff.test.mjs`: the table of R139 is present and identical to the audit's. Commit: `fix(loop): map a run decision to a role in the handoff`.
+
+Check:
+
+- `npm run test:loop` and `npm run test:lint` on each commit; the `SKILL.md` core stays under 5,800 words.
+- Acceptance item 45, item 8's plan-only run rerun headless on a throwaway repository with a linked worktree and a branch other than the default: once with "primary <linked worktree path>" from the main checkout, once with "base <branch>"; the Scope and Mode lines, the record's location and `run.md`'s base recorded.
+
+### M28: audit field feedback
+
+Work items, in this order:
+
+1. `scripts/run-copies.sh` (R283, R6, R184) and `tests/audit/run-copies.sh`: a relocated copy of the script under a temporary root with a small `skills/audit/common.md` and `audit-evidence.md`, so the whole output is a literal and the `$0`-relative lookup is exercised, each bad argument with its exit code and message, and the shipped files, whose header lines are literals and whose body is compared byte for byte with its source; registered in `tests/audit/sh.test.mjs` beside its siblings and run under mawk where one is installed. `tools/lint.mjs`'s executable list gains it. Step 10d of `stages/1-orient.md` writes `questions.md` and runs the script. Commit: `feat(audit): copy the run's common files with a script`.
+2. Stage 8 step 6: the body is written with the Write tool; only the revision line and the assembly of `report.md` run by shell. Commit: `fix(audit): write the report body with the write tool`.
+3. Stage 7 step 5 (R159): assign the ids and cut the slices first, with the commands of step 7, then choose split mode when a slice passes the threshold or the sum passes three times it, else remove the slices; step 7 keeps the part cutting; step 12's entry gains the largest slice; `fault-injection.md`'s `ledger_split_bytes` bounds a slice. Commit: `feat(audit): split the merge on the largest slice`.
+4. Stage 9 step 10 and `SKILL.md`'s Supporting files: the live line reads the blocks in `report.md`, whose grammar is in the skill's `live.md`, and `live.md` is a skill document, not a run file. Commit: `fix(audit): name report.md as the home of the live blocks`.
+5. Stage 9 step 4 (R193): the first yes covers the path for the invocation; a later exit-0 rewrite is restored and logged with its new hash; the path is never staged with a group; a fix that touches it stops; the close names the regenerated paths once. Commit: `feat(audit): approve a regenerated path once per act`.
+6. `handoff.md` (R139): the decided-by table after the format block, cited from rule 12 and from "Writing a handoff" step 7. `tests/audit/handoff.test.mjs`: the table is present and identical to the loop's. Commit: `fix(audit): carry the loop's decided-by mapping in the handoff`.
+
+Check:
+
+- `npm run test:audit` and `npm run test:lint` on each commit; the sh suites once under mawk where one is installed, else recorded as not run.
+- Acceptance item 14 rerun, headless, which exercises `run-copies.sh` and the stage 8 sentence; its stage 7 entry records the byte total, the largest slice and the threshold.
+
+### After the push
+
+The `## loop 0.1.5 - <date>` and `## audit 0.1.7 - <date>` headings in `CHANGELOG.md`, one bullet per change, the rename bullet of decision 110 in each and the audit's "A run started on 0.1.6 resumes from stage 1" bullet, commit `docs(changelog): add the loop 0.1.5 and audit 0.1.7 headings`, pushed; then `claude plugin tag --push plugins/loop` and `claude plugin tag --push plugins/audit`, each after a yes; items 21 and 22 at the two tags; the acceptance record under a "field feedback 2026-10-23" heading, commit `docs(acceptance): record the field feedback milestones`.
 
 ## Acceptance record
 

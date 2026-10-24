@@ -12,7 +12,7 @@ The primary is the session's repository, or its worktree when Step 0.3 made one.
 
 **Step 0.1.** Read the instruction files and the ask-first rules of every repository and union them. The permission statement lists each repository's push and pull request.
 
-**Steps 0.2 to 0.4.** Run each per repository, with its own default branch, base commit and planning snapshot.
+**Steps 0.2 to 0.4.** Run each per repository, with its own base branch, base commit and planning snapshot. "base <branch>" and the `base` key set the primary's base alone; an additional repository takes its remote's default branch.
 
 **Step 0.3.** The worktree exception applies to the primary only. For an additional repository, record its skip-worktree and assume-unchanged paths that differ from HEAD. No slice may edit them, because the edit is invisible to diff, `git add -N` and staging. A plan that needs one ends the run `blocked` at Step 2.
 
@@ -40,7 +40,7 @@ After the user answers the adoption question with a yes or a subset, run these i
 
 1. Host detection for each.
 2. Step 0.1 for each, and print the permission statement again.
-3. Step 0.2 for each: default branch and base.
+3. Step 0.2 for each: base branch and base commit.
 4. Step 0.3 clean-tree check for each. A dirty tree ends the run `blocked`.
 5. The branch question below.
 6. Step 0.2's continue checks for each repository that continues a branch.

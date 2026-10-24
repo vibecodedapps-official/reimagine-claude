@@ -31,7 +31,7 @@ A run is higher-risk when any one of these holds over the whole run:
 2. more than eight distinct files change across all slices, created files included
 3. a new module, type, interface or rule section is cited by another file
 
-Judge it at the plan, after Step 4, before every Step 5 round and before every CI repair. At the plan, count the files the slices own. After that, judge it on the diff from the merge-base with the default branch. Once a run is higher-risk it stays higher-risk.
+Judge it at the plan, after Step 4, before every Step 5 round and before every CI repair. At the plan, count the files the slices own. After that, judge it on the diff from the merge-base with the base branch of Step 0.2. Once a run is higher-risk it stays higher-risk.
 
 The rule selects the Step 5 role and nothing else. A higher-risk run reviews its whole diff with the `code-review` skill in place of the fresh `fable` reviewer, with an explicit level (the effort level in force, below), the range `<merge-base>...HEAD` as a full sha, and never `--comment` or `--fix`. The rule never reruns Step 3 or the build, and never changes the implementer. `.reimagine.json` never changes the role it selects.
 

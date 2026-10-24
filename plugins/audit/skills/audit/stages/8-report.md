@@ -247,9 +247,11 @@ result's text, approver and time; a `result_file` result's text is its copy
        labeled "task notification, subagent_tokens; scope not documented", the stage
        6 agents included like any other. No total is presented as exact.
 
-   Write the body to `<run dir>/report.body.tmp`, not yet to `report.md`. Coverage is
-   filled in two passes: everything but the `work-items.sh` result now, that result at
-   step 8.
+   Write the body to `<run dir>/report.body.tmp` with the Write tool, not yet to
+   `report.md` and never by a shell heredoc or `printf`: a body carried in a command's
+   text passes the process argument cap, and the write fails. Only the revision line
+   and the assembly of `report.md` in step 9 run by shell. Coverage is filled in two
+   passes: everything but the `work-items.sh` result now, that result at step 8.
 
 7. **Write `work-items.jsonl`** in the run directory from the operations of section 7,
    one JSON object per line, in the format of `work-items.md`. With no operations the

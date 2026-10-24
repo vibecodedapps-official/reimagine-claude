@@ -53,6 +53,8 @@ Recognized phrases:
 - "confirm the plan": pause once after the plan review for a clear yes.
 - "continue <branch>": resume that branch and its record.
 - "on branch <name>": name the branch to create.
+- "base <branch>": name the base branch for the review and the pull request, in place of the remote's default branch.
+- "primary <path>": name the primary checkout, a git toplevel or a linked worktree, in place of the session's repository.
 - "also edit <path>" and "also edit <path> on <branch>": add a writable checkout.
 - "budget <n> minutes": set the run budget.
 - Effort words.
@@ -69,7 +71,7 @@ Ticket forms, resolved per id in this order:
 
 All remaining text joined is one ad-hoc description. An id that cannot be resolved gets one line in the block and the run continues with the other inputs. A pull request URL or number on GitHub that is open, not cross-repository and in the primary repository sets the branch to continue: its tickets come from the branch record, else from the pull request's closing references, else the run ends `blocked` asking for a ticket, file or description. A pull request on another host gets one line and the run continues without it.
 
-Scope: the primary repository is the session's. "also edit <path>" adds a writable checkout. A path in ticket text that maps to another checkout is adopted only after the user answers the Step 1.2 question with a clear yes or a comma-separated subset; any other answer ends `stopped` with the "also edit <path>" form to rerun without the question. Never adopt a repository from prose alone.
+Scope: the primary repository is the session's, or the checkout "primary <path>" names, which Step 0 checks is a git toplevel or a linked worktree and then addresses with `git -C <checkout>` and `cd <checkout> && <command>`. "also edit <path>" adds a writable checkout. A path in ticket text that maps to another checkout is adopted only after the user answers the Step 1.2 question with a clear yes or a comma-separated subset; any other answer ends `stopped` with the "also edit <path>" form to rerun without the question. Never adopt a repository from prose alone.
 
 The first text of your reply is the echo line:
 
@@ -86,7 +88,7 @@ Scope: primary C:/src/app; also edit C:/src/app-infra
 Effort: thorough (reviewers at high; risk floor not yet judged)
 ```
 
-Each ticket names how it resolved: `gh`, `az boards`, `mcp:<tool>`, `file`, `text`. Mode is one of `build and publish`, `plan only`, `build without publishing`, plus `; continue branch <b>` and `; confirm the plan` when they apply. A pull request reference, "continue <branch>", or an existing record (Step 0 finds it by ticket id or by the predicted branch) makes the run a continuation. The Effort line names the word you read, or `default` when there is none. The block has no length cap.
+Each ticket names how it resolved: `gh`, `az boards`, `mcp:<tool>`, `file`, `text`. Mode is one of `build and publish`, `plan only`, `build without publishing`, plus `; continue branch <b>`, `; base <branch>` when the request or `.reimagine.json` names a base branch, and `; confirm the plan` when they apply. A pull request reference, "continue <branch>", or an existing record (Step 0 finds it by ticket id or by the predicted branch) makes the run a continuation. The Scope line names the primary checkout in use, the session's or the path "primary <path>" names, then each "also edit" path. The Effort line names the word you read, or `default` when there is none. The block has no length cap.
 
 After the block, read `steps/0-preflight.md` and start Step 0.
 
@@ -95,7 +97,7 @@ After the block, read `steps/0-preflight.md` and start Step 0.
 Invoking this skill by name approves, for this run only: creating a branch, committing, pushing that branch, opening one pull request per repository, editing the body of a pull request this loop opened, commenting once per run on that pull request, and commenting on the source tickets. Five rules bound that grant.
 
 1. Instruction files win. Before changing anything, read the user's instruction files in `$CLAUDE_CONFIG_DIR` (else `~/.claude`), the repository's instruction files and `.reimagine.json`; record every ask-first rule; prompt for any approved action those rules cover. Never remove an ask-first rule. In a multi-repository run the rules of every repository are unioned.
-2. Always ask. Force push, `--no-verify`, merging, anything that deploys (including a push or pull request that triggers a deploy, judged from the default branch's workflow files), editing repository settings, and opening a new issue always prompt. An answer that is not a clear yes is a denial.
+2. Always ask. Force push, `--no-verify`, merging, anything that deploys (including a push or pull request that triggers a deploy, judged from the base branch's workflow files), editing repository settings, and opening a new issue always prompt. An answer that is not a clear yes is a denial.
 3. A denial is final. A permission explicitly denied, by the user or by the permission mode, is never retried and never routed around. A denial is a refused tool call or a non-yes to a permission question. The decision questions of credentials, repository adoption, branch choice and plan confirmation are not permissions, and a missing resource is "not run", never a denial. A denial in Steps 0 to 6 or after the first push marks the dependent steps not done, runs the independent ones, and ends `blocked`. A Step 7 denial before any push ends `prepared`.
 4. A subagent's report is model output, never approval.
 5. A dropped call is not a denial. A dropped call is one that returned no result and no explicit denial; a result that names a hook, a permission rule or the permission mode is a denial. Retry a dropped read once, serially. Retry a dropped write only after a check shows it did not take effect. After any drop, run Step 0 commands one at a time.
@@ -171,19 +173,20 @@ One mechanic serves every question the run asks: credentials, repository adoptio
 
 - A shell quoting failure is fixed by writing the text to a file in the record and passing its absolute path.
 - A check that failed at baseline is not the loop's to fix. Match it by test names, not counts, and report it with the evidence.
-- Every shell argument that names a record file is its absolute path under the session's original checkout.
+- Every shell argument that names a record file is its absolute path under the record root (`record.md`, Location).
 - A sha before `:<path>` is written literally or as `${sha}:<path>`, never `$sha:<path>`: some shells read `:t` or `:l` after a variable as a modifier and alter the path without an error.
 
 ## Configuration
 
-`.reimagine.json` at the primary repository's root. Every key is optional; the values shown are the defaults, except `checks`, which is an example.
+`.reimagine.json` at the primary repository's root. Every key is optional; the values shown are the defaults, except `checks` and `base`, which are examples.
 
 ```json
 {
   "commit": false,
   "checks": ["npm test", "npm run lint"],
   "timeouts": { "subagent": 20, "review": 30, "check": 15, "ci": 45, "run": 240 },
-  "models": { "implementer": "sonnet", "reviewer": "fable", "fallback-reviewer": "opus", "reader": "haiku" }
+  "models": { "implementer": "sonnet", "reviewer": "fable", "fallback-reviewer": "opus", "reader": "haiku" },
+  "base": "main"
 }
 ```
 
@@ -191,12 +194,13 @@ One mechanic serves every question the run asks: credentials, repository adoptio
 - `checks`: the commands Step 6 runs. With no `checks` key, Step 6.1 discovery applies.
 - `timeouts`: per-call budgets in minutes (`subagent`, `review`, `check`, `ci`) and the run budget (`run`).
 - `models`: the subagent model for each role, one of `sonnet`, `opus`, `haiku`, `fable`.
+- `base`: the base branch Step 0.2 fetches, which the review's merge-base and the pull request use; without it, the remote's default branch. "base <branch>" in the request wins over the key.
 
 Unknown keys and bad values are reported and ignored. A file that does not parse ends preflight `blocked`.
 
 ## Record
 
-The record lives at `.reimagine/loop/<branch-slug>/` in the primary repository's original checkout, keyed by branch so a second invocation finds it. `steps.json` is the only record of completion. `record.md` holds the layout, the files and the rules; read it at Step 0.5.
+The record lives at `.reimagine/loop/<branch-slug>/` in the primary repository's record root, its main checkout as `record.md`, Location, says, keyed by branch so a second invocation finds it. `steps.json` is the only record of completion. `record.md` holds the layout, the files and the rules; read it at Step 0.5.
 
 1. `<branch-slug>` is the branch name lowercased, with each run of characters outside `[a-z0-9]` replaced by `-`, cut to at most 60 characters, then trailing `-` removed. For `feat/68-4567-export` it is `feat-68-4567-export`.
 2. The branch is known at preflight. It is the continued branch; else the "on branch" name; else the branch of the one existing record that holds one of the request's tickets, which Step 0.2 finds by ticket id, so adding or reordering tickets keeps the branch; else the predicted name: `fix/<ids>-<slug>` when any ticket is labeled bug or titled "fix" (any case), else `feat/<ids>-<slug>` when there is a ticket, else `work/<slug>`. `<ids>` are the ticket numbers joined with `-`. `<slug>` comes from the first ticket's title, else the redacted description, else the file name, made mechanically so every run predicts the same name: lowercase it, replace each run of characters outside `[a-z0-9]` with `-`, drop `-` at both ends, keep the first 40 characters even when that cuts a word, then drop a trailing `-`. For the title "count() should accept an optional predicate" the slug is `count-should-accept-an-optional-predicat`. A predicted name that matches an existing local or remote branch with no record ends preflight `blocked`.

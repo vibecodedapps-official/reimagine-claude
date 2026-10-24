@@ -1,6 +1,6 @@
 # Step 7 Publish
 
-Read this file at the start of Step 7. `<checkout>` is the primary repository's checkout (its worktree when Step 0.3 made one), `<record>` is the record directory, `<remote>` and `<default>` come from Step 0.2, and `<branch>` is the run's branch. In a run with a worktree, read `worktree.md` for the commands; with more than one repository, read `multi-repo.md` for Step 7. Every git command in this step runs as `git -C <checkout>`, except when `<checkout>` is the session's own directory: then it runs without `-C <checkout>`, since the skill pre-approves only the plain read-only forms.
+Read this file at the start of Step 7. `<checkout>` is the primary repository's checkout (its worktree when Step 0.3 made one), `<record>` is the record directory, `<remote>` and `<base>` come from Step 0.2, `<base>` being the base branch (the remote's default branch unless the request or `.reimagine.json` named one), and `<branch>` is the run's branch. In a run with a worktree, read `worktree.md` for the commands; with more than one repository, read `multi-repo.md` for Step 7. Every git command in this step runs as `git -C <checkout>`, except when `<checkout>` is the session's own directory: then it runs without `-C <checkout>`, since the skill pre-approves only the plain read-only forms.
 
 ## Opening
 
@@ -32,7 +32,7 @@ After the run's first push returns, commit only CI repairs (item 5 of Step 7.3).
 
 ## 7.2 Push and pull request
 
-Before pushing, judge whether the push or the pull request triggers a deploy. Read the default branch's workflow files with `git -C <checkout> show <remote>/<default>:<path>` for each path that `git -C <checkout> ls-tree -r --name-only <remote>/<default> .github/workflows` lists, and the workflow files of the commit being pushed with `git -C <checkout> show HEAD:<path>` for each path that `git -C <checkout> ls-tree -r --name-only HEAD .github/workflows` lists. Judge a `push` or `pull_request` trigger from either set; a workflow that deploys in either set counts. A `pull_request_target` workflow is judged from the default branch's file. When a push or the pull request triggers a deploy, ask first, naming the workflow, and treat any answer but a clear yes as a denial.
+Before pushing, judge whether the push or the pull request triggers a deploy. Read the base branch's workflow files with `git -C <checkout> show <remote>/<base>:<path>` for each path that `git -C <checkout> ls-tree -r --name-only <remote>/<base> .github/workflows` lists, and the workflow files of the commit being pushed with `git -C <checkout> show HEAD:<path>` for each path that `git -C <checkout> ls-tree -r --name-only HEAD .github/workflows` lists. Judge a `push` or `pull_request` trigger from either set; a workflow that deploys in either set counts. A `pull_request_target` workflow is judged from the base branch's file. When a push or the pull request triggers a deploy, ask first, naming the workflow, and treat any answer but a clear yes as a denial.
 
 Before every push read the remote head with `git -C <checkout> ls-remote --heads <remote> refs/heads/<branch>`:
 
@@ -45,9 +45,9 @@ For a continued branch, also run Step 0.2's pull request query again before the 
 
 Push with `git -C <checkout> push -u <remote> <branch>`. When it returns, take `date -u +%Y-%m-%dT%H:%M:%SZ`, run `git -C <checkout> rev-parse HEAD`, and keep both as the last push time and the last pushed sha. Do the same after every later push.
 
-**No open pull request on the branch.** Read `pr-body.md`. Write the body from its `## Pull request body` template to the run's body file: `<record>/pr-body.md`, or `<record>/pr-body-run<n>.md` from run 2 on (`record.md`, Files). Open the pull request against the default branch:
+**No open pull request on the branch.** Read `pr-body.md`. Write the body from its `## Pull request body` template to the run's body file: `<record>/pr-body.md`, or `<record>/pr-body-run<n>.md` from run 2 on (`record.md`, Files). Open the pull request against the base branch:
 
-`gh pr create --title "<title>" --body-file <absolute path to the body file> --base <default>`
+`gh pr create --title "<title>" --body-file <absolute path to the body file> --base <base>`
 
 Add `--head <branch>` on a continued branch. The title is the single ticket's title, or the plan's one-line summary when there are several inputs, at most 70 characters. Record the pull request in steps.json as `runs[].pr`, in the form `github:<owner>/<repo>#<n>`, from the url `gh pr create` prints.
 

@@ -81,11 +81,11 @@ One `### D<n>` per choice in the report's Decisions section, numbered in that or
 - `decision`: what was decided.
 - `rationale`: why.
 - `options`: `  - chosen: <option>` and `  - rejected: <option>; why: <reason>`, or `none recorded`.
-- `decided_by`, from who decided in the report:
+- `decided_by`, from who decided, as the record names it:
   - user: `role: session user`
   - plan confirmation: `role: session user (plan confirmation)`
   - review: `checkpoint (recommended option taken)`
-  - run: `not recorded`
+  - run: `role: orchestrator`
   - Never a person's name, and never a model, an agent or a tool.
 - `recorded_at`: `url <link>` when the decision is published in a pull request or comment, else `checkpoint: <step>`.
 - `status`: `taken`, `default taken` or `deferred`.

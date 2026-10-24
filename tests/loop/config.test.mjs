@@ -21,9 +21,10 @@ test('R81: the configuration block in SKILL.md is byte-identical to the one in R
   assert.equal(skill, configBlock(README));
 });
 
-test('R81: the configuration block has exactly the keys commit, checks, timeouts, models, with the default values', () => {
+test('R81: the configuration block has exactly the keys commit, checks, timeouts, models, base, with the default values', () => {
   const config = JSON.parse(configBlock(SKILL));
-  assert.deepEqual(Object.keys(config), ['commit', 'checks', 'timeouts', 'models']);
+  assert.deepEqual(Object.keys(config), ['commit', 'checks', 'timeouts', 'models', 'base']);
+  assert.equal(config.base, 'main');
   assert.deepEqual(Object.keys(config.timeouts), ['subagent', 'review', 'check', 'ci', 'run']);
   assert.deepEqual(config.timeouts, { subagent: 20, review: 30, check: 15, ci: 45, run: 240 });
   assert.deepEqual(config.models, { implementer: 'sonnet', reviewer: 'fable', 'fallback-reviewer': 'opus', reader: 'haiku' });
@@ -55,5 +56,12 @@ test('R59: every Bash rule in allowed-tools has at most one *, and only at its e
   assert.ok(rules.length > 0, 'no Bash rule found in allowed-tools');
   for (const rule of rules) {
     assert.ok(!rule.slice(0, -1).includes('*'), `Bash(${rule}) has a * before its end`);
+  }
+});
+
+test('R282: SKILL.md and README.md explain the base key the same way: without it the remote default, and the request phrase wins', () => {
+  for (const text of [SKILL, README]) {
+    assert.ok(text.includes('- `base`:'), 'no bullet explains the base key');
+    assert.ok(text.includes('"base <branch>"'), 'the base bullet does not name the request phrase');
   }
 });

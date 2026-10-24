@@ -16,7 +16,7 @@ const section = (text, heading) => {
 };
 
 test('R83: Step 0.2 looks for an existing record by ticket id before it predicts a branch', () => {
-  const text = section(PREFLIGHT, '0.2 Default branch, base commit, continued branch, open pull requests');
+  const text = section(PREFLIGHT, '0.2 Base branch, base commit, continued branch, open pull requests');
   assert.notEqual(text, null);
   const lookup = text.indexOf('`tickets`');
   assert.ok(lookup !== -1, 'Step 0.2 does not read the tickets list of existing records');
@@ -81,4 +81,70 @@ test('R74: SKILL.md finds the organization and project of the visualstudio.com f
   assert.ok(text.includes('On `dev.azure.com` the organization is the first path segment and the project the second.'));
   assert.ok(text.includes('When the project segment is `_git`, as in `dev.azure.com/<org>/_git/<repo>`, the project has the repository\'s name.'));
   assert.ok(!text.includes('On any other host, which has the form'));
+});
+
+test('R281: SKILL.md lists "primary <path>" among the recognized phrases and the Scope line names the checkout in use', () => {
+  const text = section(SKILL, 'Reading the request');
+  assert.notEqual(text, null);
+  assert.ok(text.includes('- "primary <path>":'), 'the phrase list has no "primary <path>" line');
+  assert.ok(text.includes('the checkout "primary <path>" names'), 'the Scope paragraph does not name the phrase');
+});
+
+test('R281: Step 0 resolves the named checkout before host detection and ends blocked on a path that is not a toplevel or a linked worktree', () => {
+  const text = section(PREFLIGHT, 'Primary checkout');
+  assert.notEqual(text, null, 'Step 0 has no Primary checkout section');
+  assert.ok(PREFLIGHT.indexOf('\n## Primary checkout\n') < PREFLIGHT.indexOf('\n## Host detection\n'), 'Primary checkout comes after Host detection');
+  assert.ok(text.includes('`git -C <path> rev-parse --show-toplevel`'));
+  assert.ok(text.includes('`blocked`'));
+  assert.ok(text.includes('`git -C <checkout>`'), 'the section does not give the git -C form');
+  assert.ok(text.includes('`cd <checkout> && <command>`'), 'the section does not give the cd form');
+});
+
+test('R77: the worktree failure of Step 0.2 names "primary <that path>" as a way around it', () => {
+  assert.ok(PREFLIGHT.includes('"primary <that path>"'));
+});
+
+test('R281: the worktree exception of Step 0.3 does not apply to a named linked worktree', () => {
+  const text = section(PREFLIGHT, '0.3 Clean tree, flagged files, worktree');
+  assert.notEqual(text, null);
+  assert.ok(text.includes('linked worktree'), 'Step 0.3 does not say what a linked worktree does with a differing flagged path');
+  assert.ok(text.includes('"primary <main checkout>"'), 'Step 0.3 does not name the way around the stop');
+});
+
+test('R82: the record of a named linked worktree lives in its main checkout', () => {
+  const RECORD = read('../../plugins/loop/skills/run/record.md');
+  const text = section(RECORD, 'Location');
+  assert.notEqual(text, null);
+  assert.ok(text.includes('`git -C <checkout> worktree list --porcelain`'), 'record.md does not say how the main checkout is found');
+  assert.ok(text.includes('main checkout'));
+});
+
+test('R282: SKILL.md lists "base <branch>" among the recognized phrases and the Mode line carries the base', () => {
+  const text = section(SKILL, 'Reading the request');
+  assert.notEqual(text, null);
+  assert.ok(text.includes('- "base <branch>":'), 'the phrase list has no "base <branch>" line');
+  assert.ok(text.includes('`; base <branch>`'), 'the Mode line does not carry the base');
+});
+
+test('R76: Step 0.2 resolves the base branch from the request, then the configuration, then the remote default, and a failed fetch ends blocked', () => {
+  const text = section(PREFLIGHT, '0.2 Base branch, base commit, continued branch, open pull requests');
+  assert.notEqual(text, null, 'Step 0.2 is not headed Base branch');
+  const phrase = text.indexOf('"base <branch>" in the request');
+  const key = text.indexOf('`.reimagine.json` `base`');
+  const fallback = text.indexOf('else the default branch');
+  assert.ok(phrase !== -1 && key !== -1 && fallback !== -1, 'Step 0.2 does not give the three sources');
+  assert.ok(phrase < key && key < fallback, 'Step 0.2 gives the sources out of order');
+  assert.ok(text.includes('A fetch that fails ends the run `blocked`, naming the branch.'));
+  assert.ok(text.includes('whose base differs from `<b>` ends `blocked`'), 'an open pull request on another base does not end blocked');
+});
+
+test('R88, R116: the merge-base, the deploy judgment and the pull request use <base>, not <default>', () => {
+  const BUILD = read('../../plugins/loop/skills/run/steps/4-build.md');
+  const PUBLISH = read('../../plugins/loop/skills/run/steps/7-publish.md');
+  assert.ok(BUILD.includes('`git merge-base <remote>/<base> HEAD`'));
+  assert.ok(PUBLISH.includes('--base <base>`'));
+  for (const file of [BUILD, PUBLISH, read('../../plugins/loop/skills/run/record.md'), read('../../plugins/loop/skills/run/risk.md'), read('../../plugins/loop/skills/run/ci-watch.md')]) {
+    assert.ok(!file.includes('<default>'), 'a step file still uses <default>');
+    assert.ok(!file.includes('the default branch'), 'a step file still reads the default branch as the base');
+  }
 });

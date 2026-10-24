@@ -80,6 +80,17 @@ generated: <ISO 8601 time>
 - reason: <why>
 ```
 
+A decision's `decided_by` follows who decided, as the record names it. The loop's
+`handoff.md` carries this table word for word, so a handoff written here and one the loop
+writes read a decision the same way:
+
+- `decided_by`, from who decided, as the record names it:
+  - user: `role: session user`
+  - plan confirmation: `role: session user (plan confirmation)`
+  - review: `checkpoint (recommended option taken)`
+  - run: `role: orchestrator`
+  - Never a person's name, and never a model, an agent or a tool.
+
 ## Rules
 
 1. The frontmatter is the first block: a `---` line, exactly two keys,
@@ -143,10 +154,10 @@ generated: <ISO 8601 time>
     person, and never a model, an agent or a tool. `role: <role>` is written when the
     record names who decided by their role; a choice taken at a checkpoint on the
     recommended option is `checkpoint (recommended option taken)`; anything else is
-    `not recorded`. `handoff.sh check` also accepts a `person: <name>` value, so that a
-    file from another writer still parses; the writer of this plugin never produces one,
-    and turns a person's name in the record into the role it played, else
-    `not recorded`.
+    `not recorded`; the table under the format maps the record's four deciders.
+    `handoff.sh check` also accepts a `person: <name>` value, so that a file from
+    another writer still parses; the writer of this plugin never produces one, and turns
+    a person's name in the record into the role it played, else `not recorded`.
 13. A links entry is `  - <type>: <target>`, split at the first `: `, both parts not
     empty, and no entry appears twice in one item. A parent is not the item's own ticket
     id (for a raised ticket, its `ticket` value). `parent` and `links` give the ticket's
@@ -255,10 +266,10 @@ tracked file, commits, pushes or posts to a forge. Scripts run as
      `deferred to <owner>`. Where the record shows no alternative was weighed, write
      `options: none recorded`, and for a taken decision `status: default taken`. Never
      invent an option, a reason, an owner or a check;
-   - `decided_by` by rule 12, and `recorded_at` pointing where the audit can read the
-     decision: a commit body or a ticket or pull request comment. The audit cannot open
-     a `checkpoint:` pointer, so a checkpoint choice that should count as weighed is
-     recorded in one of those places first, by the user;
+   - `decided_by` by rule 12 and the table under the format, and `recorded_at` pointing
+     where the audit can read the decision: a commit body or a ticket or pull request
+     comment. The audit cannot open a `checkpoint:` pointer, so a checkpoint choice that
+     should count as weighed is recorded in one of those places first, by the user;
    - a statement the session checked under `verified`, with the exact check as it ran,
      naming what it needs to give the same result: the directory, the environment
      variables, the services or accounts and the environment it ran against. A check
