@@ -17,6 +17,8 @@ Amended 2026-10-20: the `primer` plugin (requirements 237 to 268) replaces `repo
 
 Amended 2026-10-22: house-rule edit eight is requirement 269, among the edits; the host alignment pass adds requirements 270 to 275 in their own section and 276 under Non-goals, and amends 6, 219, 229 and 267; the test performance pass adds 277 to 279 under Tooling.
 
+Amended 2026-10-24: house-rule edit nine is requirement 280, among the edits, and requirement 43 moves the output style to version 4.6.
+
 ## Suite
 
 1. **One repository, one marketplace.** The marketplace is named `reimagine-engine` and lists exactly four plugins: `rules`, `loop`, `audit` and `primer`, each at `plugins/<name>/`. Before a release a prerelease catalog may list a plugin that is built at a prerelease version (requirement 14), so a work machine can install it from `main` before its release, and may list `repo-docs` until requirement 268 retires it. Check: lint.
@@ -50,6 +52,7 @@ Amended 2026-10-22: house-rule edit eight is requirement 269, among the edits; t
 235. **Edit six, under Ask first.** The item "Before starting, name the steps the permission mode is likely to deny." is present. Check: test.
 236. **Edit seven, under Ask first.** The item "A call the permission mode or a hook denies is a question for me, not a refusal. Never route around it with another command, a script, or a subagent. Report it in full and wait: the exact call, what it is for, and any later call the task needs that is likely to be denied too. On retry, reissue the same calls and nothing else. A denial from me is final." is present. Check: test.
 269. **Edit eight, under Working.** The item "Finding issues or proposing changes is judgment, not a count. Recommend the few that affect correctness or risk, or cost more to leave than to fix, each with its evidence and the two costs; keep the rest as notes, apart and counted." is present, after the item "A review is read-only unless I ask for changes.". The chat block of requirement 44 carries the same rule in one line under Content: "Asked to find issues or recommend changes, recommend the few that affect correctness or risk, or cost more to leave than to fix, with evidence; the rest are notes, kept apart and counted." Check: test (the item); review (the chat block line).
+280. **Edit nine, under Done.** The item "Describe an edit from the diff, not from the plan: re-read the hunk and name only what is in it. A change that was planned and turned out unnecessary is reported as not needed, never as made." is present, last under Done, after the item that starts "Keep whatever describes the work accurate.". Check: test.
 21. **No stop removed.** Every ask-first rule and every stop rule in the agreed text is present unchanged. Check: review.
 
 ### Mechanism
@@ -78,7 +81,7 @@ Amended 2026-10-22: house-rule edit eight is requirement 269, among the edits; t
 
 ### Output style and chat block
 
-43. **Output style file.** `plugins/rules/output-styles/concise-plain.md` is the agreed text, version 4.5, with frontmatter `name: Concise Plain`, a description ending in `v4.5.`, and `keep-coding-instructions: true`. It appears in the picker as `rules:Concise Plain`. Nothing in the suite edits `settings.json`. Check: lint (frontmatter); acceptance (picker name).
+43. **Output style file.** `plugins/rules/output-styles/concise-plain.md` is the agreed text, version 4.6, with frontmatter `name: Concise Plain`, a description ending in `v4.6.`, and `keep-coding-instructions: true`. It appears in the picker as `rules:Concise Plain`. Nothing in the suite edits `settings.json`. Check: lint (frontmatter); acceptance (picker name).
 44. **Chat block.** `plugins/rules/chat/instructions.md` holds exactly one fenced block for pasting into a chat product's custom instructions. Nothing installs it, and it names no vendor or product. Check: lint.
 
 ## The `loop` plugin
