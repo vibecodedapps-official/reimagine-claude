@@ -412,7 +412,7 @@ function skillFailures(ctx) {
   const styleFm = frontmatter(style);
   if (style === null || styleFm.get('name') !== 'Concise Plain') out.push(`${STYLE}: name is not Concise Plain`);
   if (style !== null) {
-    if (!String(styleFm.get('description') ?? '').trim().endsWith('v4.5.')) out.push(`${STYLE}: description does not end in v4.5.`);
+    if (!String(styleFm.get('description') ?? '').trim().endsWith('v4.6.')) out.push(`${STYLE}: description does not end in v4.6.`);
     if (styleFm.get('keep-coding-instructions') !== 'true') out.push(`${STYLE}: keep-coding-instructions is not true`);
   }
   return out;
