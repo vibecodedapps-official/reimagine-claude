@@ -720,19 +720,28 @@ branch to it in the manifest."
          again, and `/audit:resume <run-id> --from 1` does.
        - Corrections: empty, filled in stage 5.
 
-    d. **Run copies.** Read `${CLAUDE_PLUGIN_ROOT}/skills/audit/common.md` with the Read
-       tool and write it to `common.md` in the run directory with the Write tool, not
-       `cp`, filling its header: run id, run directory, tier and the question list. Copy
-       `${CLAUDE_PLUGIN_ROOT}/skills/audit/audit-evidence.md` to `audit-evidence.md` in
-       the run directory the same way, with no header to fill.
+    d. **Run copies.** Write the run's question list to `questions.md` in the run
+       directory with the Write tool, one line `- <id>: <question>` per question: the
+       four defaults, or the manifest's list with `extends: default` applied. Then run
+
+       ```
+       sh ${CLAUDE_PLUGIN_ROOT}/scripts/run-copies.sh <run dir> <run id> <tier> <run dir>/questions.md
+       ```
+
+       which writes `common.md` with its header filled (run id, run directory, tier and
+       the question lines) and `audit-evidence.md` byte for byte from the skill's own
+       copies, found from the script's path, so neither file passes through the model.
+       Exit 1 names a bad argument and exit 2 an IO failure, each in one line on stderr;
+       either stops the stage with that line. Never write either copy with the Write
+       tool or `cp`.
 
     e. **Read-only check.** Run it as SKILL.md, Read-only check, says; it writes
        `baseline/1-check.md`. The entry below is written only after it passes.
 
     f. **Stage entry.** Write the stage 1 entry through `stages.json.tmp` and `mv -f`:
-       status `complete`; outputs `manifest.json`, `audit-brief.md`, `common.md`,
-       `audit-evidence.md`, `claims.md`, `groups.md`, every `diffs/` and `forge/` file,
-       every `trees/<name>/` export with its `trees/<name>.lstree` and the
+       status `complete`; outputs `manifest.json`, `audit-brief.md`, `questions.md`,
+       `common.md`, `audit-evidence.md`, `claims.md`, `groups.md`, every `diffs/` and
+       `forge/` file, every `trees/<name>/` export with its `trees/<name>.lstree` and the
        `trees/<name>.export.<ext>` actually written, each `revert/<bundle>.keys` and
        `revert/<bundle>.md`, and `baseline/1-check.md`; inputs those of 0n plus each
        bundle's head, pinned base and merge-base shas (`baseRefOid` beside the base for
