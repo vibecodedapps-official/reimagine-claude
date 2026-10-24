@@ -31,7 +31,7 @@ reimagine-engine/
 |---|---|---|---|---|---|
 | rules | house rules block, output style | `/rules` | `scripts/rules.mjs` | SessionStart `startup` | own |
 | loop | the build loop | `/loop:run` (the skill itself), prose "reimagine loop" | none | none | own |
-| audit | the audit | `/audit:run`, `/audit:resume`, `/audit:act`, `/audit:handoff`, prose "reimagine audit" | nine sh scripts | none | own |
+| audit | the audit | `/audit:run`, `/audit:resume`, `/audit:act`, `/audit:handoff`, prose "reimagine audit" | ten sh scripts | none | own |
 | primer | project instructions | `/primer`, prose "turn this into a skill", "we keep doing this", "add this to the project instructions", "check the instruction files" | `hooks/drift.sh`, `hooks/notice.sh` | PreToolUse `Bash\|PowerShell`; SessionStart `startup` | own |
 
 ## Layers on a machine
@@ -173,7 +173,7 @@ Scope: primary C:/src/app; also edit C:/src/app-infra
 Effort: thorough (reviewers at high; risk floor not yet judged)
 ```
 
-Resolution order per id: GitHub forms through `gh`; `AB#n`, or a bare number when the primary remote is Azure DevOps, through an Azure DevOps MCP tool if listed, else `az boards work-item show --id n`; a Salesforce case through a Salesforce MCP tool; a readable path as a file; anything else, a bare number on a GitHub remote included, as text. A `--token` in the request is read as prose and the block shows the reading. "plan only", "do not publish", "confirm the plan", "continue <branch>", "on branch <name>", "also edit <path>", "budget <n> minutes" and the effort words are the recognized phrases.
+Resolution order per id: GitHub forms through `gh`; `AB#n`, or a bare number when the primary remote is Azure DevOps, through an Azure DevOps MCP tool if listed, else `az boards work-item show --id n`; a Salesforce case through a Salesforce MCP tool; a readable path as a file; anything else, a bare number on a GitHub remote included, as text. A `--token` in the request is read as prose and the block shows the reading. "plan only", "do not publish", "confirm the plan", "continue <branch>", "on branch <name>", "primary <path>", "base <branch>", "also edit <path>", "budget <n> minutes" and the effort words are the recognized phrases. "primary <path>" names the primary checkout, a toplevel or a linked worktree, in place of the session's; "base <branch>" names the base branch in place of the remote's default.
 
 ### Approval scope
 
@@ -196,11 +196,12 @@ Invoking by name approves branch, commit, push, one pull request per repository,
   "commit": false,
   "checks": ["npm test", "npm run lint"],
   "timeouts": { "subagent": 20, "review": 30, "check": 15, "ci": 45, "run": 240 },
-  "models": { "implementer": "sonnet", "reviewer": "fable", "fallback-reviewer": "opus", "reader": "haiku" }
+  "models": { "implementer": "sonnet", "reviewer": "fable", "fallback-reviewer": "opus", "reader": "haiku" },
+  "base": "main"
 }
 ```
 
-Every key is optional; the values shown are the defaults. `models` accepts only subagent model names and never changes the risk floor or the higher-risk role.
+Every key is optional; the values shown are the defaults, except `checks` and `base`, which are examples: without `base` the base branch is the remote's default, and the request's "base <branch>" wins over the key. `models` accepts only subagent model names and never changes the risk floor or the higher-risk role.
 
 ### Budgets, rounds, risk
 
@@ -208,7 +209,7 @@ Per-call budgets in minutes: subagent 20, review 30, check 15, CI 45. One defaul
 
 ### Steps
 
-0. Preflight: echo, host, input guard, instruction files and ask-first rules, `.reimagine.json`, credential scan, permission statement, default branch and base, continue checks, open pull requests, clean tree, flagged files, record directory, prompts seen.
+0. Preflight: echo, primary checkout, host, input guard, instruction files and ask-first rules, `.reimagine.json`, credential scan, permission statement, base branch and base commit, continue checks, open pull requests, clean tree, flagged files, record directory, prompts seen.
 1. Review and verify the inputs; repository gate; claims; drift; buildable status; risk floor.
 2. Plan: `plan.md` with slices.
 3. Plan review by the fresh reviewer, up to three rounds; plan-only stop; optional confirmation; then branch, baseline, dependencies.
@@ -286,7 +287,7 @@ plugins/audit/
   skills/audit/handoff.md  live.md  report.md  work-items.md  fault-injection.md  resume.md
   skills/audit/stages/1-orient.md ... 9-act.md
   agents/digester.md  mapper.md  auditor.md  adversary.md  merger.md
-  scripts/readonly.sh  handoff.sh  ledger.sh  working-tree.sh  revert-tests.sh  live.sh  memory.sh  work-items.sh  collisions.sh
+  scripts/readonly.sh  handoff.sh  ledger.sh  working-tree.sh  revert-tests.sh  live.sh  memory.sh  work-items.sh  collisions.sh  run-copies.sh
 ```
 
 The skill description names "reimagine audit". The four commands forward to the skill: `run` with inputs or a manifest, `resume <run-id> [--from n] [--live file]`, `act <run-id> <item-id...> [--per-item]`, `handoff [--out] [--verdicts] [--memory]`. `run` takes no flags; prose may give effort, budget and model overrides, and the manifest holds everything else.
@@ -307,9 +308,11 @@ Stages 4 to 6 run on the prompt path. Decision 94 defines a second engine, a dyn
 
 ### Scripts and their literals
 
-The nine scripts and their suites embed these strings: `reimagine-handoff: 1`; `reimagine-live: 1`; `# audit report: `; `audit:auditor` and `audit:adversary` in ledger output; identity `audit`, `audit@example.invalid`, `audit: working tree` in `working-tree.sh`; the `second-opinion/` directory and `origin: second-opinion`. Every literal sha and hash in the suites that depends on one of those strings is produced by running the fixture builder once and pasting the observed value; the build plan has that as a work item.
+The ten scripts and their suites embed these strings: `reimagine-handoff: 1`; `reimagine-live: 1`; `# audit report: `; `audit:auditor` and `audit:adversary` in ledger output; identity `audit`, `audit@example.invalid`, `audit: working tree` in `working-tree.sh`; the `second-opinion/` directory and `origin: second-opinion`. Every literal sha and hash in the suites that depends on one of those strings is produced by running the fixture builder once and pasting the observed value; the build plan has that as a work item.
 
 `jq` is needed by `live.sh`, `work-items.sh` and `collisions.sh`; stage 1 warns when it is missing and names what will not run.
+
+`run-copies.sh` writes the run's `common.md`, header filled, and `audit-evidence.md` from the skill's copies, found from its own path, so neither passes through the model (requirement 283).
 
 `revert-tests.sh` reads `REVERT_TESTS_CAP`, `REVERT_TESTS_DEADLINE`, `REVERT_TESTS_WAIT` and `REVERT_TESTS_TICK` from the environment, whole or fractional seconds; its test sets them low, and the shipped defaults are unchanged (requirement 279).
 
